@@ -1,0 +1,924 @@
+# UX/UI Design Brief: CryptoSense Analytics Platform
+## Glassmorphic Minimalist Design System
+
+**Project:** CryptoSense Analytics MVP  
+**Repository:** `mkelam/Coinsphere`  
+**Timeline:** 8-week development cycle  
+**Design Deadline:** Week 1 (Dashboard + Predictions) → Week 2 (Risk + Onboarding)  
+**Version:** 1.0  
+**Last Updated:** October 7, 2025
+
+---
+
+## Table of Contents
+
+1. [Critical Context](#critical-context)
+2. [Design Specifications](#design-specifications)
+3. [Screens to Design](#screens-to-design)
+4. [Design Constraints](#design-constraints)
+5. [Component Library](#component-library)
+6. [Animation & Micro-interactions](#animation--micro-interactions)
+7. [Edge Cases & Error States](#edge-cases--error-states)
+8. [Responsive Breakpoints](#responsive-breakpoints)
+9. [Reference Examples](#reference-examples)
+10. [Deliverables](#deliverables)
+11. [Success Criteria](#success-criteria)
+12. [Timeline & Milestones](#timeline--milestones)
+13. [Handoff to Developers](#handoff-to-developers)
+
+---
+
+## CRITICAL CONTEXT (Read First)
+
+### Product Differentiation
+
+This is **NOT** another portfolio tracker. Our core value proposition:
+
+1. **AI Predictions** - Bull/bear forecasts with confidence scores (competitors don't have this)
+2. **Risk Scoring** - Real-time "Degen Score" 0-100 for every asset
+3. **99% Sync Accuracy** - Cross-validated pricing (vs competitors' 70-80%)
+4. **Transparency** - Show users WHY predictions are made (not black-box)
+
+**Design Implication:** Predictions and risk scores must be **primary UI elements**, not buried features.
+
+### Target Users
+
+- **Primary:** Active crypto traders (25-45, trades 10+ times/month, operates at night)
+- **Device:** iPhone 14 Pro is primary device (design mobile-first)
+- **Behavior:** Checks app 5-10x per day for quick portfolio health checks
+- **Pain Point:** Can't predict when to enter/exit positions without our AI
+
+---
+
+## DESIGN SPECIFICATIONS
+
+### Style Direction
+
+**Glassmorphism Philosophy:**
+- Glass effects **enhance data readability** (layer separation), not decoration
+- Cards float on dark gradient background (depth hierarchy)
+- Blur effects should **not reduce text contrast** (WCAG AA minimum)
+- Use glass for: cards, modals, navigation bars
+- **Don't use glass for:** buttons, alerts, critical information
+
+**Minimalist Principles:**
+- Information density > white space (financial app, not lifestyle brand)
+- Remove element unless it serves data comprehension
+- Every pixel earns its place through utility
+
+**Dark Mode Only:**
+- Crypto traders operate at night
+- Reduces eye strain during long sessions
+- Makes charts/numbers pop with higher contrast
+
+---
+
+### Design System Parameters
+
+#### Color Palette
+
+```css
+/* Backgrounds */
+--bg-primary: linear-gradient(180deg, #0A0E27 0%, #1A1F3A 100%);
+--bg-glass: rgba(255, 255, 255, 0.05);
+--bg-glass-hover: rgba(255, 255, 255, 0.08);
+
+/* Borders */
+--border-glass: rgba(255, 255, 255, 0.1);
+--border-subtle: rgba(255, 255, 255, 0.05);
+
+/* Semantic Colors */
+--accent-primary: #3B82F6;      /* Electric Blue - CTAs, links */
+--success: #10B981;              /* Emerald - Bullish, gains */
+--danger: #EF4444;               /* Rose - Bearish, losses */
+--warning: #F59E0B;              /* Amber - Medium risk */
+--neutral: #6B7280;              /* Gray - Inactive states */
+
+/* Text */
+--text-primary: #FFFFFF;
+--text-secondary: rgba(255, 255, 255, 0.7);
+--text-tertiary: rgba(255, 255, 255, 0.5);
+--text-disabled: rgba(255, 255, 255, 0.3);
+```
+
+#### Typography
+
+```css
+/* Font Families */
+--font-heading: 'Inter', -apple-system, sans-serif;
+--font-body: 'Inter', -apple-system, sans-serif;
+--font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+/* Font Sizes */
+--text-hero: 48px;       /* Portfolio value */
+--text-h1: 32px;         /* Page titles */
+--text-h2: 24px;         /* Section headers */
+--text-body: 16px;       /* Default text */
+--text-small: 14px;      /* Data labels, metadata */
+--text-tiny: 12px;       /* Timestamps, legal */
+
+/* Font Weights */
+--weight-bold: 600;
+--weight-medium: 500;
+--weight-regular: 400;
+```
+
+#### Spacing System
+
+```css
+--space-xs: 4px;
+--space-sm: 8px;
+--space-md: 16px;
+--space-lg: 24px;
+--space-xl: 32px;
+--space-2xl: 48px;
+--space-3xl: 64px;
+
+/* Card padding */
+--padding-card: 24px;
+--padding-card-sm: 16px; /* Mobile */
+```
+
+#### Glass Effect Standards
+
+```css
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%); /* Safari */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover state */
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+}
+```
+
+---
+
+## SCREENS TO DESIGN
+
+### Phase 1: Core Experience (Week 1)
+
+#### 1. Dashboard (Home Screen)
+
+**Purpose:** Answer "Am I making/losing money right now?" in < 5 seconds
+
+**Layout Structure:**
+
+```
+┌─────────────────────────────────────┐
+│  [Logo]              [🔔] [Profile] │ ← Sticky header
+├─────────────────────────────────────┤
+│                                     │
+│  ╔═══════════════════════════════╗  │ ← Hero card (glass)
+│  ║   $47,392.83                  ║  │
+│  ║   +$2,487 (+5.52%) 24h        ║  │
+│  ║   [7d] [30d] [All]  📊sparkline║  │
+│  ╚═══════════════════════════════╝  │
+│                                     │
+│  Quick Actions:                     │
+│  [+ Add Exchange] [+ Add Wallet]    │ ← Subtle, not pushy
+│                                     │
+│  ┌─────────────┬─────────────────┐  │
+│  │ Asset       │ Holdings        │  │ ← Glass card
+│  │ Allocation  │ (Top 10)        │  │
+│  │   🍩        │                 │  │
+│  │ BTC 45%     │ BTC  0.5  $17.5K│  │
+│  │ ETH 30%     │ ETH  10   $18.5K│  │
+│  └─────────────┴─────────────────┘  │
+│                                     │
+│  Recent Transactions (Last 20)      │ ← Compact table
+│  ┌─────────────────────────────────┐
+│  │ ↗ Buy  BTC  0.05  $1,750  3h ago│
+│  │ ↘ Sell ETH  2.0   $3,700  1d ago│
+│  └─────────────────────────────────┘
+└─────────────────────────────────────┘
+```
+
+**Critical Data Points:**
+- Portfolio value (hero number, 48px, bold)
+- 24h change (color-coded: green=gain, red=loss)
+- Sparkline chart (last 7 days, subtle, not distracting)
+- Asset allocation (donut chart with legend, top 5 assets)
+- Holdings table: Symbol, Amount, USD Value, 24h %
+- Transactions: Type (buy/sell), Symbol, Amount, Price, Time
+
+**Interaction Patterns:**
+- Tap portfolio value → detailed breakdown modal
+- Tap asset in holdings → asset detail page
+- Swipe left on transaction → view details
+- Pull-to-refresh updates prices
+
+**Edge Cases to Design:**
+- Empty state: "Connect your first exchange"
+- Loading state: Skeleton loaders (not spinners)
+- Error state: "Price sync failed" with retry button
+- Single asset portfolio: Show allocation as 100% bar, not donut
+
+---
+
+#### 2. AI Predictions Screen
+
+**Purpose:** Show bull/bear forecasts with transparency (build trust)
+
+**Layout Structure:**
+
+```
+┌─────────────────────────────────────┐
+│  ← Predictions          [Filter 🔍] │
+├─────────────────────────────────────┤
+│  Timeframe: [7d] [14d] [30d]        │ ← Tab selector
+│                                     │
+│  ╔═══════════════════════════════╗  │
+│  ║  🐂 BULLISH                   ║  │ ← BTC card (glass)
+│  ║  BTC                          ║  │
+│  ║  $38,000 - $42,000            ║  │ ← Price range
+│  ║                               ║  │
+│  ║  Confidence: HIGH (82%)       ║  │ ← Trust signal
+│  ║  [i] Why this prediction?     ║  │ ← Expandable
+│  ╚═══════════════════════════════╝  │
+│                                     │
+│  ╔═══════════════════════════════╗  │
+│  ║  🐻 BEARISH                   ║  │ ← ETH card (glass)
+│  ║  ETH                          ║  │
+│  ║  $1,600 - $1,750              ║  │
+│  ║                               ║  │
+│  ║  Confidence: MEDIUM (68%)     ║  │
+│  ║  [i] Why this prediction?     ║  │
+│  ╚═══════════════════════════════╝  │
+│                                     │
+│  Model Accuracy (Last 30 Days)      │
+│  ┌─────────────────────────────────┐
+│  │  BTC: 71% ████████▌░░           │ ← Visual bar
+│  │  ETH: 65% ███████▌░░░           │
+│  └─────────────────────────────────┘
+└─────────────────────────────────────┘
+```
+
+**Critical Data Points:**
+- Bull/Bear indicator (icon + label, unmistakable)
+- Price range (min-max with 80% confidence interval)
+- Confidence score (High/Medium/Low + percentage)
+- "Why this prediction?" (expandable explanation showing factors)
+- Historical accuracy (last 30 days, builds trust)
+
+**"Why This Prediction?" Expanded Content:**
+```
+- Social sentiment: Bullish (72% positive mentions)
+- Technical indicators: RSI oversold, MACD crossover
+- On-chain data: Whale accumulation detected
+- Historical patterns: Similar to 2021 Q2 rally
+```
+
+**Interaction Patterns:**
+- Tap card → full prediction detail page
+- Tap "Why?" → inline expansion with factors
+- Swipe between BTC/ETH predictions
+- Timeframe tabs update predictions in real-time
+
+**Edge Cases:**
+- Low confidence (<60%): Show warning "Uncertain market conditions"
+- No prediction available: "Insufficient data" with explanation
+- Model retraining: "Updating predictions..." banner
+
+---
+
+#### 3. Risk Scoring Screen
+
+**Purpose:** Show real-time risk assessment (actionable danger signals)
+
+**Layout Structure:**
+
+```
+┌─────────────────────────────────────┐
+│  ← Risk Analysis        [Sort by 🔽]│
+├─────────────────────────────────────┤
+│  Portfolio Risk Score               │
+│  ┌─────────────────────────────────┐
+│  │        ⚠️ 68/100                │ ← Gauge (glass)
+│  │     MODERATE RISK               │
+│  │  [View Breakdown]               │
+│  └─────────────────────────────────┘
+│                                     │
+│  Individual Assets                  │
+│  ╔═══════════════════════════════╗  │
+│  ║  🔴 SHIB  Degen Score: 92     ║  │ ← High risk (red)
+│  ║  $1,234 holdings              ║  │
+│  ║  Volatility: Extreme          ║  │
+│  ║  Liquidity: Low               ║  │
+│  ║  [View Details]               ║  │
+│  ╚═══════════════════════════════╝  │
+│                                     │
+│  ╔═══════════════════════════════╗  │
+│  ║  🟡 SOL  Degen Score: 58      ║  │ ← Medium risk (yellow)
+│  ║  $8,790 holdings              ║  │
+│  ║  Volatility: High             ║  │
+│  ║  Liquidity: Medium            ║  │
+│  ╚═══════════════════════════════╝  │
+│                                     │
+│  ╔═══════════════════════════════╗  │
+│  ║  🟢 BTC  Degen Score: 28      ║  │ ← Low risk (green)
+│  ║  $17,500 holdings             ║  │
+│  ║  Volatility: Moderate         ║  │
+│  ║  Liquidity: High              ║  │
+│  ╚═══════════════════════════════╝  │
+└─────────────────────────────────────┘
+```
+
+**Risk Score Color Coding:**
+- 0-30: Green (Low risk - stable assets)
+- 31-60: Yellow (Medium risk - moderate volatility)
+- 61-80: Orange (High risk - volatile assets)
+- 81-100: Red (Extreme risk - "degen" territory)
+
+**Risk Factor Breakdown (when expanded):**
+- Volatility (30-day standard deviation)
+- Liquidity (24h trading volume)
+- Social sentiment (Twitter/Reddit buzz)
+- Market cap rank (top 10 = safer)
+- Regulatory risk (SEC scrutiny level)
+
+**Interaction Patterns:**
+- Tap portfolio gauge → full risk breakdown modal
+- Tap asset card → detailed risk factors
+- Sort by: Risk score, Holdings value, Volatility
+- Set alert: "Notify me if risk exceeds 75"
+
+**Edge Cases:**
+- New asset (< 7 days data): "Insufficient history" warning
+- Extreme volatility spike: Banner alert "⚠️ High risk detected"
+- All low-risk portfolio: "Conservative portfolio" message
+
+---
+
+### Phase 2: Onboarding & Settings (Week 2)
+
+#### 4. Onboarding Flow (3 Screens Max)
+
+**Screen 1: Welcome**
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│           🔮                        │ ← Animated icon
+│     CryptoSense Analytics           │
+│                                     │
+│  AI-powered predictions and risk    │
+│  scoring for crypto traders         │
+│                                     │
+│  ✓ 99% sync accuracy                │
+│  ✓ Bull/bear forecasts              │
+│  ✓ Real-time risk scores            │
+│                                     │
+│     [Get Started]                   │
+│     Already have account? [Login]   │
+└─────────────────────────────────────┘
+```
+
+**Screen 2: Connect Exchange**
+
+```
+┌─────────────────────────────────────┐
+│  Step 1 of 2: Connect Exchange      │
+│                                     │
+│  Choose your primary exchange:      │
+│  ┌─────────────────────────────────┐
+│  │ [Binance Logo] Binance          │
+│  │ [Coinbase Logo] Coinbase        │
+│  │ [Kraken Logo] Kraken            │
+│  │ ... (scrollable list)           │
+│  └─────────────────────────────────┘
+│                                     │
+│  Or add wallet address:             │
+│  [Paste address]                    │
+│                                     │
+│  🔒 Read-only access (we never      │
+│     execute trades for you)         │
+│                                     │
+│     [Skip for now] [Continue]       │
+└─────────────────────────────────────┘
+```
+
+**Screen 3: Set First Alert**
+
+```
+┌─────────────────────────────────────┐
+│  Step 2 of 2: Get Notified          │
+│                                     │
+│  Stay informed with smart alerts:   │
+│                                     │
+│  ☑ Price movements > 5%             │
+│  ☑ High-risk assets detected        │
+│  ☑ Weekly prediction updates        │
+│  ☐ Daily portfolio summary          │
+│                                     │
+│  We'll send notifications to:       │
+│  📧 your@email.com                  │
+│                                     │
+│     [Skip] [Start Tracking]         │
+└─────────────────────────────────────┘
+```
+
+**Onboarding Principles:**
+- Total time: < 2 minutes
+- Skip option on every screen
+- Show value, don't just collect data
+- Quick win: Show first portfolio sync immediately
+
+---
+
+#### 5. Settings Screen
+
+```
+┌─────────────────────────────────────┐
+│  ← Settings                         │
+├─────────────────────────────────────┤
+│                                     │
+│  Account                            │
+│  ┌─────────────────────────────────┐
+│  │ John Doe                        │
+│  │ john@example.com                │
+│  │ [Edit Profile]                  │
+│  └─────────────────────────────────┘
+│                                     │
+│  Connections (3)                    │
+│  ┌─────────────────────────────────┐
+│  │ [Binance] Last sync: 2 min ago  │
+│  │ [Coinbase] Last sync: 5 min ago │
+│  │ [0x742d...bEb] Ethereum wallet  │
+│  │ [+ Add Exchange/Wallet]         │
+│  └─────────────────────────────────┘
+│                                     │
+│  Notifications                      │
+│  ┌─────────────────────────────────┐
+│  │ Price alerts       [Toggle ON]  │
+│  │ Risk warnings      [Toggle ON]  │
+│  │ Predictions        [Toggle OFF] │
+│  │ Daily summary      [Toggle OFF] │
+│  └─────────────────────────────────┘
+│                                     │
+│  Subscription                       │
+│  ┌─────────────────────────────────┐
+│  │ Free Plan                       │
+│  │ Limited to 5 assets             │
+│  │ [Upgrade to Pro - $12/mo]       │ ← Subtle upsell
+│  └─────────────────────────────────┘
+│                                     │
+│  [Privacy Policy] [Terms] [Logout]  │
+└─────────────────────────────────────┘
+```
+
+---
+
+## DESIGN CONSTRAINTS (Non-Negotiables)
+
+### Information Hierarchy
+
+1. **Portfolio value** → Primary (largest, highest contrast)
+2. **AI predictions** → Secondary (cards, prominent placement)
+3. **Risk scores** → Tertiary (visual indicators, color-coded)
+4. **Holdings/transactions** → Supporting (tables, data-dense)
+
+**Rule:** Every screen must answer "Am I making/losing money?" within 5 seconds
+
+### Interaction Principles
+
+- **2-click rule:** Any feature accessible in ≤2 taps
+- **Real-time updates:** Prices refresh every 60s without full reload (WebSocket)
+- **Pull-to-refresh:** Mobile gesture to force price sync
+- **Skeleton loaders:** Show content structure while loading (never blank/spinner)
+
+### Accessibility Requirements
+
+- **Contrast:** WCAG AA minimum (4.5:1 for text, 3:1 for UI elements)
+- **Keyboard nav:** All interactive elements focusable (tab order logical)
+- **Screen readers:** Proper labels for charts, buttons, icons
+- **Touch targets:** Minimum 44x44px (iOS/Android standard)
+
+### Performance Constraints
+
+- **Mobile-first:** Design for 375px width (iPhone SE) → scale up
+- **Load time:** < 3s on 3G (use skeleton loaders, lazy load images)
+- **Animation:** 60fps animations (use CSS transforms, not position/width)
+- **Bundle size:** < 500KB initial page load
+
+---
+
+## COMPONENT LIBRARY (Build These First)
+
+### 1. Glass Card Component
+
+**Variants:**
+- Default (static)
+- Hover (interactive, lifted)
+- Active (pressed state)
+- Disabled (reduced opacity)
+
+**States to design:**
+
+```
+┌────────────────┐  ┌────────────────┐  ┌────────────────┐
+│                │  │    (hover)     │  │   (active)     │
+│  Content       │  │  Content ⬆️     │  │  Content ⬇️     │
+│                │  │  shadow++      │  │  shadow--      │
+└────────────────┘  └────────────────┘  └────────────────┘
+```
+
+### 2. Button Component
+
+**Variants:**
+- Primary (solid blue, for CTAs)
+- Secondary (glass with border)
+- Ghost (transparent, text only)
+- Danger (solid red, for destructive actions)
+
+**Sizes:** Large (48px), Medium (40px), Small (32px)
+
+### 3. Data Table Component
+
+**Features:**
+- Sortable columns (tap header to sort)
+- Fixed header (scrollable body)
+- Alternating row colors (subtle)
+- Hover state (highlight row)
+
+**Mobile adaptation:** Convert to cards on < 768px width
+
+### 4. Chart Components
+
+**Types needed:**
+- Donut chart (asset allocation)
+- Line chart (price history)
+- Sparkline (compact trend)
+- Gauge (risk score visualization)
+
+**Design specs:**
+- Glassmorphic background
+- High-contrast colors for data points
+- Tooltip on hover (show exact values)
+- Responsive (scales down gracefully)
+
+### 5. Input Field Component
+
+**Glassmorphic style:**
+
+```css
+.input-field {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #FFFFFF;
+}
+
+.input-field:focus {
+  border-color: #3B82F6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+```
+
+**States:** Default, Focus, Error, Disabled
+
+---
+
+## ANIMATION & MICRO-INTERACTIONS
+
+### Principles
+
+- **Purposeful, not decorative** - animations clarify state changes
+- **Fast (< 200ms)** - crypto traders want speed
+- **Subtle** - don't distract from data
+
+### Key Animations
+
+**1. Portfolio Value Update**
+
+```
+Old value fades out → New value fades in (300ms ease)
+Change % pulses green/red briefly (200ms)
+```
+
+**2. Card Hover**
+
+```
+Scale: 1 → 1.02 (150ms ease-out)
+Shadow: light → medium (150ms)
+Border: 0.1 → 0.15 opacity (150ms)
+```
+
+**3. Pull-to-Refresh**
+
+```
+User pulls down → spinner appears
+Data loads → success checkmark (500ms)
+Checkmark fades → new data animates in
+```
+
+**4. Skeleton Loading**
+
+```
+Show gray placeholders (shimmer effect)
+Fade to real content when loaded (200ms)
+```
+
+**5. Risk Score Change**
+
+```
+Score increases: pulse green (300ms)
+Score decreases: pulse red (300ms)
+Gauge animates to new value (500ms ease)
+```
+
+---
+
+## EDGE CASES & ERROR STATES
+
+### Empty States
+
+**No portfolio connected:**
+
+```
+┌─────────────────────────────────────┐
+│           📊                        │
+│     No portfolio yet                │
+│                                     │
+│  Connect an exchange or wallet      │
+│  to start tracking                  │
+│                                     │
+│     [Add Exchange]                  │
+└─────────────────────────────────────┘
+```
+
+**No transactions:**
+
+```
+"No transactions yet. Buy your first crypto to see history here."
+```
+
+### Loading States
+
+**Portfolio loading:**
+
+```
+Use skeleton loaders (not spinners)
+Show card structure with pulsing gray boxes
+Preserve layout (no content shift)
+```
+
+**Prediction loading:**
+
+```
+"Analyzing market data..." with animated dots
+Show previous prediction (grayed out) while loading
+```
+
+### Error States
+
+**Sync failed:**
+
+```
+┌─────────────────────────────────────┐
+│  ⚠️ Price sync failed                │
+│  Unable to update portfolio         │
+│                                     │
+│  Last updated: 5 minutes ago        │
+│                                     │
+│     [Retry Now]                     │
+└─────────────────────────────────────┘
+```
+
+**API error:**
+
+```
+"Predictions temporarily unavailable. Using cached data from 2 hours ago."
+```
+
+**Exchange connection error:**
+
+```
+"Binance connection lost. Check API keys in Settings."
+[Fix Connection] button
+```
+
+---
+
+## RESPONSIVE BREAKPOINTS
+
+### Mobile (375px - 767px)
+
+- Single column layout
+- Bottom navigation (Dashboard, Predictions, Risk, Settings)
+- Collapsible sections (tap to expand)
+- Cards full-width
+- Tables convert to cards
+
+### Tablet (768px - 1023px)
+
+- Two-column layout where appropriate
+- Side navigation (drawer on mobile)
+- Cards 48% width (2 per row)
+- Tables remain tables
+
+### Desktop (1024px+)
+
+- Three-column layout possible
+- Persistent side navigation
+- Cards 32% width (3 per row)
+- Larger charts, more data visible
+
+**Priority:** Design mobile first, scale up
+
+---
+
+## REFERENCE EXAMPLES
+
+### Nail This Vibe ✅
+
+- **Stripe Dashboard** - Data clarity, subtle depth, purposeful glass
+- **Linear** - Minimalist, fast, keyboard-first, no fluff
+- **Phantom Wallet** - Crypto-native, glassmorphic without excess
+- **Revolut** - Financial data, scannable tables, clear hierarchy
+
+### Avoid These ❌
+
+- **Coinbase** - Rainbow gradients, overly colorful, distracting
+- **Binance** - Information overload, cluttered, too much at once
+- **Robinhood** - Gamification, confetti, not serious analytics
+- **CoinMarketCap** - Outdated design, poor hierarchy, ad-heavy
+
+---
+
+## DELIVERABLES
+
+### Figma File Structure
+
+```
+📁 CryptoSense Design System
+├── 📄 Cover Page (project overview, team)
+├── 🎨 Design Tokens
+│   ├── Colors (all variables)
+│   ├── Typography (scale, weights)
+│   ├── Spacing (8px system)
+│   ├── Shadows (elevation levels)
+│   └── Border Radius (consistency)
+├── 🧩 Component Library
+│   ├── Buttons (all variants + states)
+│   ├── Cards (glass, hover, active)
+│   ├── Inputs (text, select, checkbox)
+│   ├── Tables (sortable, responsive)
+│   ├── Charts (donut, line, gauge, sparkline)
+│   ├── Navigation (top bar, bottom bar, side nav)
+│   └── Modals (dialog, drawer, toast)
+├── 📱 Mobile Screens (375px)
+│   ├── 01 - Dashboard
+│   ├── 02 - AI Predictions
+│   ├── 03 - Risk Scoring
+│   ├── 04 - Onboarding (3 screens)
+│   ├── 05 - Settings
+│   └── 06 - Edge Cases (empty, loading, error)
+├── 💻 Desktop Screens (1440px)
+│   └── (Same structure as mobile)
+└── 🔗 Prototype
+    ├── Mobile flow (clickable)
+    └── Desktop flow (clickable)
+```
+
+### Export Assets
+
+- Component Figma file (for developers)
+- Design tokens JSON (colors, spacing, typography)
+- Icon set (SVG, 24x24px base size)
+- Logo variations (light, dark, monochrome)
+
+### Documentation
+
+- Component usage guide (when to use what)
+- Responsive behavior notes
+- Animation specifications
+- Accessibility checklist
+
+---
+
+## SUCCESS CRITERIA
+
+### Design is successful if:
+
+✅ User can assess portfolio health in **< 5 seconds** (timed test)  
+✅ Predictions feel **trustworthy** (confidence scores visible, accuracy history shown)  
+✅ Risk scores are **immediately actionable** (color-coded, clear danger signals)  
+✅ Glass effects **enhance readability** (tested contrast ratios, not decoration)  
+✅ Works **beautifully on iPhone 14 Pro** (primary user device)  
+✅ Developers can implement **without asking questions** (components annotated)
+
+### Design fails if:
+
+❌ User must scroll to see portfolio value  
+❌ Predictions look like "magic" (no transparency = no trust)  
+❌ Glass effects reduce text contrast (fails WCAG AA)  
+❌ Designers prioritized aesthetics over data density  
+❌ Missing states (empty, loading, error not designed)
+
+---
+
+## TIMELINE & MILESTONES
+
+### Week 1 (Days 1-7)
+
+**Day 1-2:** Design tokens + component library  
+**Day 3-4:** Dashboard screen (mobile + desktop)  
+**Day 5-6:** AI Predictions screen (mobile + desktop)  
+**Day 7:** Review with 3 crypto traders (validate clarity)
+
+### Week 2 (Days 8-14)
+
+**Day 8-9:** Risk Scoring screen (mobile + desktop)  
+**Day 10-11:** Onboarding flow + Settings screen  
+**Day 12:** Edge cases (empty, loading, error states)  
+**Day 13:** Responsive breakpoints (tablet)  
+**Day 14:** Final review, create prototype, hand off to devs
+
+---
+
+## HANDOFF TO DEVELOPERS
+
+### What Developers Need
+
+1. **Figma file** with inspect mode enabled (padding, colors visible)
+2. **Design tokens** exported as JSON (colors, spacing, typography)
+3. **Component library** with all states (default, hover, active, disabled)
+4. **Responsive specs** (mobile, tablet, desktop breakpoints)
+5. **Animation specs** (duration, easing, what animates)
+6. **Walkthrough session** (30-60 min, explain decisions)
+
+### Developer Questions to Anticipate
+
+- "What happens if portfolio value is $0?"
+- "How many assets can fit in the allocation chart?"
+- "What if prediction confidence is < 50%?"
+- "How do we handle 100+ transactions?"
+
+**Pre-answer these in design notes.**
+
+---
+
+## FINAL NOTES
+
+### What This Design Is
+
+- **Functional** - Every pixel serves data comprehension
+- **Trustworthy** - Transparency builds confidence in AI
+- **Fast** - Optimized for quick portfolio checks
+- **Professional** - Serious analytics, not a game
+
+### What This Design Is NOT
+
+- **Decorative** - No art project, serve the data
+- **Overwhelming** - Complexity hidden behind progressive disclosure
+- **Gimmicky** - No confetti, no gamification, no tricks
+
+### Design Philosophy
+
+> "Design is not just what it looks like and feels like. Design is how it works."  
+> — Steve Jobs
+
+For CryptoSense, **"how it works"** means: clarity, transparency, speed.
+
+---
+
+## Questions for Designer Before Starting
+
+1. Do you need real BTC/ETH historical data for chart mockups, or use placeholder?
+2. Should we design light mode (even though not MVP), or dark only?
+3. Do you have access to Stripe/Linear/Phantom for reference deep-dives?
+4. What's your preferred design tool (Figma, Sketch, Adobe XD)?
+
+---
+
+## Document Control
+
+**Version:** 1.0  
+**Status:** Active - Ready for Design Phase  
+**Related Documents:**
+- `current/front-end-spec.md`
+- `current/System Architecture Document.md`
+- `current/PRODUCT_STRATEGY.md`
+
+**Approval Required From:**
+- [ ] Product Lead
+- [ ] Technical Lead
+- [ ] UX/UI Designer
+
+**Next Review:** After Week 1 designs complete
+
+---
+
+**END OF UX DESIGN BRIEF**
