@@ -1,0 +1,9 @@
+{
+  "bmadVersion": "4.43.0",
+  "projectName": "Crypto Scanner",
+  "installedPacks": ["bmad-core"],
+  "ideIntegration": ["claude-code"],
+  "setupComplete": true,
+  "installDate": "2025-10-06",
+  "coreConfigPath": ".bmad-core/core-config.yaml"
+}

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Mac/OneDrive/Desktop/Projects/**)",
+      "Bash(where bmad)",
+      "Bash(node:*)",
+      "Bash(dir:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(findstr:*)",
+      "Bash(xcopy:*)",
+      "Bash(robocopy:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
