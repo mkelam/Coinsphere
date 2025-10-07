@@ -18,7 +18,10 @@
       "Bash(git commit:*)",
       "Bash(git pull:*)",
       "Bash(git stash:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(npx shadcn@latest add \"https://v0.app/chat/b/b_HdUvhdOHG71?token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..AHUCxZ_OgRBsRtw-.RDp4DaBlkE4FtSUHHOElDPTGDXfbN4lrOd_Z-p_d6vjd9ISa-ZjjgUSAsGI.xNqAgjO7B8i79796fuUoZQ\")",
+      "Bash(npx:*)",
+      "Bash(curl -s \"https://v0.app/chat/b/b_HdUvhdOHG71?token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..AHUCxZ_OgRBsRtw-.RDp4DaBlkE4FtSUHHOElDPTGDXfbN4lrOd_Z-p_d6vjd9ISa-ZjjgUSAsGI.xNqAgjO7B8i79796fuUoZQ\")"
     ],
     "deny": [],
     "ask": []
