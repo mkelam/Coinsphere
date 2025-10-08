@@ -21,6 +21,9 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
+backend/.env.production
+frontend/.env.production
 
 # IDE
 .vscode/
@@ -67,7 +70,10 @@ Thumbs.db
 .DS_Store
 
 # Docker
-.dockerignore
+docker-compose.override.yml
+.docker/
+deployment/ssl/*.pem
+deployment/ssl/*.key
 
 # Certificates
 *.pem
@@ -89,3 +95,5 @@ prisma/migrations/
 # Editor
 .vscode/settings.json
 .vscode/launch.json
+nul
+frontend/nul
