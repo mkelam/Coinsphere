@@ -16,6 +16,7 @@ import portfoliosRoutes from './routes/portfolios.js';
 import predictionsRoutes from './routes/predictions.js';
 import riskRoutes from './routes/risk.js';
 import alertsRoutes from './routes/alerts.js';
+import transactionsRoutes from './routes/transactions.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -39,6 +40,7 @@ app.use('/api/v1/portfolios', portfoliosRoutes);
 app.use('/api/v1/predictions', predictionsRoutes);
 app.use('/api/v1/risk', riskRoutes);
 app.use('/api/v1/alerts', alertsRoutes);
+app.use('/api/v1/transactions', transactionsRoutes);
 
 // Error handling
 app.use(errorHandler);

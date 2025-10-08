@@ -6,6 +6,7 @@ import { AssetAllocation } from "@/components/asset-allocation"
 import { HoldingsTable } from "@/components/holdings-table"
 import { RecentTransactions } from "@/components/recent-transactions"
 import { MarketInsights } from "@/components/market-insights"
+import { TransactionHistory } from "@/components/transaction-history"
 import { LoginPage } from "@/pages/LoginPage"
 import { SignupPage } from "@/pages/SignupPage"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
@@ -30,7 +31,7 @@ function DashboardPage() {
           <HoldingsTable />
         </div>
 
-        <RecentTransactions />
+        <TransactionHistory />
       </main>
     </div>
   )
