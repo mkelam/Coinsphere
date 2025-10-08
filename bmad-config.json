@@ -1,6 +1,6 @@
 {
   "bmadVersion": "4.43.0",
-  "projectName": "Crypto Scanner",
+  "projectName": "Coinsphere",
   "installedPacks": ["bmad-core"],
   "ideIntegration": ["claude-code"],
   "setupComplete": true,

@@ -4,17 +4,17 @@ services:
   # PostgreSQL Database
   postgres:
     image: timescale/timescaledb:latest-pg15
-    container_name: cryptosense-postgres
+    container_name: coinsphere-postgres
     environment:
-      POSTGRES_USER: cryptosense
+      POSTGRES_USER: coinsphere
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: cryptosense_dev
+      POSTGRES_DB: coinsphere_dev
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U cryptosense']
+      test: ['CMD-SHELL', 'pg_isready -U coinsphere']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: cryptosense-redis
+    container_name: coinsphere-redis
     ports:
       - '6379:6379'
     volumes:
@@ -38,11 +38,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: cryptosense-backend
+    container_name: coinsphere-backend
     environment:
       NODE_ENV: development
       PORT: 3001
-      DATABASE_URL: postgresql://cryptosense:password@postgres:5432/cryptosense_dev
+      DATABASE_URL: postgresql://coinsphere:password@postgres:5432/coinsphere_dev
       REDIS_URL: redis://redis:6379
       JWT_SECRET: dev-secret-key-change-in-production-min-32-chars
     ports:
@@ -62,9 +62,9 @@ services:
     build:
       context: ./ml-service
       dockerfile: Dockerfile
-    container_name: cryptosense-ml
+    container_name: coinsphere-ml
     environment:
-      DATABASE_URL: postgresql://cryptosense:password@postgres:5432/cryptosense_dev
+      DATABASE_URL: postgresql://coinsphere:password@postgres:5432/coinsphere_dev
       MODEL_VERSION: v1.0.0
       TRAINING_BATCH_SIZE: 32
     ports:
@@ -82,7 +82,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: cryptosense-frontend
+    container_name: coinsphere-frontend
     environment:
       VITE_API_BASE_URL: http://localhost:3001/api/v1
       VITE_WS_URL: ws://localhost:3001
@@ -98,7 +98,7 @@ services:
   # Adminer (Database GUI)
   adminer:
     image: adminer:latest
-    container_name: cryptosense-adminer
+    container_name: coinsphere-adminer
     ports:
       - '8080:8080'
     depends_on:
@@ -111,4 +111,4 @@ volumes:
 
 networks:
   default:
-    name: cryptosense-network
+    name: coinsphere-network

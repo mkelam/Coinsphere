@@ -23,7 +23,10 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="p-2 rounded-lg hover:bg-white/[0.03] transition-colors">
+            <button
+              onClick={() => navigate("/alerts")}
+              className="p-2 rounded-lg hover:bg-white/[0.03] transition-colors"
+            >
               <Bell className="w-5 h-5" />
             </button>
 
@@ -46,7 +49,13 @@ export function Header() {
                     <div className="text-xs text-white/50">{user?.email}</div>
                   </div>
 
-                  <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:bg-white/[0.05] rounded-lg transition-colors">
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false)
+                      navigate("/settings")
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white/70 hover:bg-white/[0.05] rounded-lg transition-colors"
+                  >
                     <Settings className="w-4 h-4" />
                     Settings
                   </button>

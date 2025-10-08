@@ -1,0 +1,41 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - generic [ref=e6]: 🔮
+    - heading "CoinSphere" [level=1] [ref=e7]
+    - paragraph [ref=e8]: Sign in to your account
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: Email
+        - textbox "Email" [ref=e13]:
+          - /placeholder: you@example.com
+      - generic [ref=e14]:
+        - generic [ref=e15]: Password
+        - generic [ref=e16]:
+          - textbox "Password" [ref=e17]:
+            - /placeholder: ••••••••
+          - button [ref=e18]:
+            - img [ref=e19]
+      - generic [ref=e22]:
+        - generic [ref=e23] [cursor=pointer]:
+          - checkbox "Remember me" [ref=e24]
+          - generic [ref=e25]: Remember me
+        - link "Forgot password?" [ref=e26] [cursor=pointer]:
+          - /url: "#"
+      - button "Sign In" [ref=e27]
+    - generic [ref=e28]:
+      - text: Don't have an account?
+      - link "Sign up" [ref=e29] [cursor=pointer]:
+        - /url: /signup
+  - generic [ref=e34]: Or continue with
+  - generic [ref=e35]:
+    - button "Google" [ref=e36]:
+      - img [ref=e37]
+      - text: Google
+    - button "GitHub" [ref=e42]:
+      - img [ref=e43]
+      - text: GitHub
+```
