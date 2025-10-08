@@ -7,8 +7,10 @@ import { HoldingsTable } from "@/components/holdings-table"
 import { RecentTransactions } from "@/components/recent-transactions"
 import { MarketInsights } from "@/components/market-insights"
 import { TransactionHistory } from "@/components/transaction-history"
+import { PriceHistoryChart } from "@/components/price-history-chart"
 import { LoginPage } from "@/pages/LoginPage"
 import { SignupPage } from "@/pages/SignupPage"
+import { SettingsPage } from "@/pages/SettingsPage"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 
 function DashboardPage() {
@@ -24,6 +26,11 @@ function DashboardPage() {
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4">Market Insights</h2>
           <MarketInsights symbol="BTC" />
+        </div>
+
+        {/* Price History Chart */}
+        <div className="mb-6">
+          <PriceHistoryChart symbol="BTC" timeframe="7d" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -49,6 +56,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />

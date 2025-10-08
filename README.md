@@ -1,100 +1,126 @@
-# Coinsphere
+# 🚀 CryptoSense (Coinsphere) - AI-Powered Crypto Portfolio Tracker
 
-**AI-Powered Crypto Portfolio Tracker with Market Predictions and Risk Scoring**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-22.x-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.x-61dafb.svg)](https://reactjs.org/)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-4.9-blue)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18-61DAFB)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-20-green)](https://nodejs.org/)
-[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
+**CryptoSense** (formerly Coinsphere) is an enterprise-grade cryptocurrency portfolio tracker with AI-powered market predictions, real-time risk scoring, and intelligent alerts. Built for serious crypto traders who need data-driven insights.
 
----
-
-## 🚀 Overview
-
-**Coinsphere** (coinsphere.app) is a modern portfolio tracking platform that helps crypto investors:
-- 📊 Track holdings across 20+ exchanges in real-time
-- 🤖 Get AI-powered price predictions with 70%+ accuracy
-- ⚠️ Assess risk with our proprietary Degen Risk Score (0-100)
-- 🔔 Set intelligent price and risk alerts
-- 📈 Visualize portfolio performance with beautiful charts
-
-**Target Launch:** 8-week MVP development cycle
-**Tech Stack:** React + TypeScript, Node.js, Python, PostgreSQL + TimescaleDB, Redis
+![CryptoSense Dashboard](Documentation/screenshots/dashboard.png)
 
 ---
 
-## 📁 Project Structure
+## 🌟 Key Features
+
+### 📊 Portfolio Management
+- **Multi-Portfolio Support**: Manage unlimited portfolios with separate tracking
+- **Real-Time Price Updates**: WebSocket-powered live price feeds from CoinGecko
+- **Transaction History**: Complete audit trail with buy/sell/transfer tracking
+- **Asset Allocation Visualization**: Interactive pie charts showing portfolio distribution
+
+### 🤖 AI-Powered Predictions
+- **Machine Learning Engine**: Statistical models using 6 technical indicators
+  - RSI (Relative Strength Index)
+  - MACD (Moving Average Convergence Divergence)
+  - EMA (Exponential Moving Average - 12 & 26 periods)
+  - Bollinger Bands for volatility analysis
+  - Volume trend analysis
+  - Price momentum tracking
+- **Multi-Timeframe Forecasts**: 1h, 4h, 24h, 7d, 30d predictions
+- **Confidence Scoring**: Transparent accuracy metrics for each prediction
+
+### 🎯 Degen Risk Scoring
+- **0-100 Risk Scale**: Comprehensive asset risk assessment
+- **4-Component Analysis**:
+  - **Liquidity Score** (25% weight): Market depth and trading volume
+  - **Volatility Score** (30% weight): Price stability and standard deviation
+  - **Market Cap Score** (30% weight): Project size and stability
+  - **Volume Score** (15% weight): Trading activity relative to market cap
+- **Risk Levels**: Conservative, Moderate, Aggressive, Degen, Ultra Degen
+
+### 🔔 Smart Alerts System
+- **Price Alerts**: Trigger on threshold crossings (above/below/equal)
+- **Prediction Alerts**: Notify when ML confidence exceeds threshold
+- **Risk Alerts**: Warn when risk score changes significantly
+- **Multi-Channel Delivery**: Email, push notifications, in-app alerts
+
+### 📈 Price History Charts
+- **Interactive Recharts Visualizations**: Smooth line charts with custom tooltips
+- **Multiple Timeframes**: 24h, 7d, 30d, 1y views
+- **Real-Time Updates**: Charts refresh automatically with WebSocket data
+- **Color-Coded Trends**: Green for bullish, red for bearish
+
+### ⚙️ User Settings
+- **Profile Management**: Update name, email, password
+- **Notification Preferences**: Granular control over alert channels
+- **Account Information**: View subscription tier, account age, data usage
+- **Security**: Change password, manage sessions (coming soon)
+
+---
+
+## 🏗️ Architecture
+
+### Tech Stack
+
+#### Frontend
+```
+React 18.3          - UI framework with Hooks
+TypeScript 5.6      - Type-safe development
+Vite 6.0            - Lightning-fast build tool
+Tailwind CSS v4     - Utility-first styling with @tailwindcss/postcss
+Shadcn/ui           - Accessible component primitives
+Recharts 2.15       - Data visualization library
+Axios 1.7           - HTTP client with interceptors
+React Router 7      - Client-side routing
+```
+
+#### Backend
+```
+Node.js 22.15       - Runtime environment
+Express 4.21        - Web framework
+TypeScript 5.7      - Type safety
+Prisma 6.5          - Next-gen ORM
+PostgreSQL 15       - Primary database
+TimescaleDB         - Time-series extension for price data
+Redis 7             - Caching and session storage
+ws 8.18             - WebSocket server
+```
+
+#### Infrastructure
+```
+Docker              - Containerization
+Docker Compose      - Multi-container orchestration
+Nginx               - Reverse proxy and load balancer
+PM2                 - Process manager (alternative to Docker)
+GitHub Actions      - CI/CD pipelines
+```
+
+### System Design
 
 ```
-coinsphere/
-├── Documentation/           # Complete project documentation
-│   ├── PRODUCT_STRATEGY.md
-│   ├── System Architecture Document.md
-│   ├── DATABASE_SCHEMA.md
-│   └── ... (30+ documents)
-├── frontend/               # React + TypeScript web app
-│   ├── src/
-│   ├── public/
-│   └── package.json
-├── backend/                # Node.js + Express API
-│   ├── src/
-│   ├── tests/
-│   └── package.json
-├── ml-service/            # Python + FastAPI ML service
-│   ├── app/
-│   ├── models/
-│   └── requirements.txt
-├── shared/                # Shared types and utilities
-│   ├── types/
-│   └── utils/
-├── infrastructure/        # Docker, K8s, CI/CD
-│   ├── docker/
-│   ├── k8s/
-│   └── terraform/
-├── scripts/              # Build and deployment scripts
-├── .github/              # GitHub Actions workflows
-└── docker-compose.yml    # Local development
+┌─────────────────────────────────────────────────────────────┐
+│                         Nginx (Port 80/443)                 │
+│                   (Reverse Proxy + SSL)                      │
+└───────────────┬──────────────────────┬──────────────────────┘
+                │                      │
+        ┌───────▼────────┐    ┌────────▼───────────┐
+        │   Frontend     │    │     Backend        │
+        │   (React)      │    │   (Express API)    │
+        │   Port 5173    │    │   Port 3001        │
+        └────────────────┘    └─────┬──────┬───────┘
+                                    │      │
+                          ┌─────────▼──┐ ┌─▼─────────────┐
+                          │ PostgreSQL │ │ WebSocket     │
+                          │ TimescaleDB│ │ (Real-Time)   │
+                          │ Port 5432  │ │ Port 3001/ws  │
+                          └────────────┘ └───────────────┘
+                                    │
+                          ┌─────────▼────────────┐
+                          │   CoinGecko API      │
+                          │ (External Data)      │
+                          └──────────────────────┘
 ```
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Framework:** React 18 with TypeScript
-- **Build Tool:** Vite
-- **UI Components:** Shadcn/ui + Tailwind CSS
-- **State Management:** React Query (TanStack Query) + Zustand
-- **Charts:** Recharts
-- **Forms:** React Hook Form + Zod
-
-### Backend
-- **Runtime:** Node.js 20 LTS
-- **Framework:** Express.js with TypeScript
-- **Authentication:** JWT (RS256)
-- **Validation:** Zod
-- **API Documentation:** OpenAPI 3.0 (Swagger)
-
-### ML Service
-- **Language:** Python 3.11
-- **Framework:** FastAPI
-- **ML Library:** PyTorch 2.0
-- **Model:** LSTM (3 layers: 128→64→32 units)
-- **Tracking:** MLflow
-
-### Database
-- **Primary:** PostgreSQL 15
-- **Time-Series:** TimescaleDB extension
-- **Cache:** Redis 7
-- **ORM:** Prisma (backend), SQLAlchemy (ML)
-
-### Infrastructure
-- **Containers:** Docker + Docker Compose
-- **Orchestration:** AWS ECS (production)
-- **CI/CD:** GitHub Actions
-- **Monitoring:** Sentry, CloudWatch
-- **CDN:** Cloudflare
 
 ---
 
