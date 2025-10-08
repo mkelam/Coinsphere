@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 app = FastAPI(
-    title="CryptoSense ML Service",
-    description="AI-powered crypto price prediction service",
+    title="Coinsphere ML Service",
+    description="AI-powered crypto price prediction and risk scoring service",
     version="0.1.0"
 )
 
@@ -19,7 +19,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"service": "CryptoSense ML", "status": "running"}
+    return {"service": "Coinsphere ML", "status": "running"}
 
 @app.get("/health")
 def health_check():

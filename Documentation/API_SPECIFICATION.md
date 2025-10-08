@@ -1,11 +1,11 @@
 # API Specification Document
-## CryptoSense Analytics Platform - REST API & WebSocket
+## Coinsphere - REST API & WebSocket
 
 **Version:** 1.0
 **Date:** October 6, 2025
-**Base URL (Production):** `https://api.cryptosense.io/v1`
-**Base URL (Staging):** `https://api-staging.cryptosense.io/v1`
-**Documentation:** `https://api.cryptosense.io/docs` (Swagger/OpenAPI)
+**Base URL (Production):** `https://api.coinsphere.app/v1`
+**Base URL (Staging):** `https://api-staging.coinsphere.app/v1`
+**Documentation:** `https://api.coinsphere.app/docs` (Swagger/OpenAPI)
 
 ---
 
@@ -578,7 +578,7 @@ List supported exchanges.
     {
       "id": "binance",
       "name": "Binance",
-      "icon": "https://cdn.cryptosense.io/exchanges/binance.png",
+      "icon": "https://cdn.coinsphere.app/exchanges/binance.png",
       "supported": true,
       "features": ["spot", "futures", "margin"]
     }
@@ -841,7 +841,7 @@ Search for cryptocurrencies.
       "id": "bitcoin",
       "symbol": "BTC",
       "name": "Bitcoin",
-      "image": "https://cdn.cryptosense.io/coins/btc.png",
+      "image": "https://cdn.coinsphere.app/coins/btc.png",
       "currentPrice": 35000.00,
       "marketCap": 685000000000,
       "rank": 1
@@ -1259,11 +1259,11 @@ Cancel subscription (at end of billing period).
 
 ### 6.1 Connection
 
-**WebSocket URL:** `wss://api.cryptosense.io/v1/ws`
+**WebSocket URL:** `wss://api.coinsphere.app/v1/ws`
 
 **Authentication:**
 ```javascript
-const ws = new WebSocket('wss://api.cryptosense.io/v1/ws');
+const ws = new WebSocket('wss://api.coinsphere.app/v1/ws');
 
 ws.onopen = () => {
   ws.send(JSON.stringify({
@@ -1372,7 +1372,7 @@ Create a webhook endpoint.
 **Request:**
 ```json
 {
-  "url": "https://yourapp.com/webhooks/cryptosense",
+  "url": "https://yourapp.com/webhooks/coinsphere",
   "events": ["alert.triggered", "portfolio.synced"],
   "secret": "your_webhook_secret"
 }
@@ -1382,7 +1382,7 @@ Create a webhook endpoint.
 ```json
 {
   "id": "wh_xyz123",
-  "url": "https://yourapp.com/webhooks/cryptosense",
+  "url": "https://yourapp.com/webhooks/coinsphere",
   "events": ["alert.triggered", "portfolio.synced"],
   "status": "active",
   "createdAt": "2025-10-06T12:00:00Z"
@@ -1419,17 +1419,17 @@ Create a webhook endpoint.
 
 ### 7.3 Webhook Signature
 
-All webhooks include `X-CryptoSense-Signature` header for verification:
+All webhooks include `X-Coinsphere-Signature` header for verification:
 
 ```
-X-CryptoSense-Signature: sha256=abcdef123456...
+X-Coinsphere-Signature: sha256=abcdef123456...
 ```
 
 **Verify:**
 ```javascript
 const crypto = require('crypto');
 
-const signature = request.headers['x-cryptosense-signature'];
+const signature = request.headers['x-coinsphere-signature'];
 const payload = JSON.stringify(request.body);
 const expectedSignature = 'sha256=' + crypto
   .createHmac('sha256', webhookSecret)
@@ -1598,24 +1598,24 @@ interface RiskFactor {
 
 ## APPENDIX B: OpenAPI 3.0 Specification
 
-Full OpenAPI/Swagger spec available at: `https://api.cryptosense.io/openapi.json`
+Full OpenAPI/Swagger spec available at: `https://api.coinsphere.app/openapi.json`
 
-Import into Postman: `https://api.cryptosense.io/postman-collection.json`
+Import into Postman: `https://api.coinsphere.app/postman-collection.json`
 
 ---
 
 ## APPENDIX C: API Client Libraries
 
 **Official SDKs:**
-- JavaScript/TypeScript: `npm install @cryptosense/sdk`
-- Python: `pip install cryptosense-sdk`
-- Go: `go get github.com/cryptosense/go-sdk`
+- JavaScript/TypeScript: `npm install @coinsphere/sdk`
+- Python: `pip install coinsphere-sdk`
+- Go: `go get github.com/coinsphere/go-sdk`
 
 **Example Usage (JavaScript):**
 ```javascript
-import CryptoSense from '@cryptosense/sdk';
+import Coinsphere from '@coinsphere/sdk';
 
-const client = new CryptoSense({ apiKey: 'your_api_key' });
+const client = new Coinsphere({ apiKey: 'your_api_key' });
 
 // Get portfolio
 const portfolio = await client.portfolios.get('prt_xyz789');

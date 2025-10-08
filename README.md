@@ -1,4 +1,4 @@
-# CryptoSense Analytics Platform (Coinsphere)
+# Coinsphere
 
 **AI-Powered Crypto Portfolio Tracker with Market Predictions and Risk Scoring**
 
@@ -12,7 +12,7 @@
 
 ## 🚀 Overview
 
-CryptoSense is a modern portfolio tracking platform that helps crypto investors:
+**Coinsphere** (coinsphere.app) is a modern portfolio tracking platform that helps crypto investors:
 - 📊 Track holdings across 20+ exchanges in real-time
 - 🤖 Get AI-powered price predictions with 70%+ accuracy
 - ⚠️ Assess risk with our proprietary Degen Risk Score (0-100)
@@ -361,7 +361,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ by the CryptoSense team**
+**Built with ❤️ by the Coinsphere team**
 
 ---
 

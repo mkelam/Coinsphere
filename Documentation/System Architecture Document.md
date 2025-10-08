@@ -1,5 +1,5 @@
 # System Architecture Document
-## CryptoSense Analytics Platform
+## Coinsphere
 
 **Version:** 1.0  
 **Date:** October 6, 2025  
@@ -50,7 +50,7 @@
 
 ## 1.1 System Purpose
 
-CryptoSense Analytics is an AI-powered portfolio tracking and prediction platform for retail crypto traders. The platform delivers three core capabilities:
+Coinsphere Analytics is an AI-powered portfolio tracking and prediction platform for retail crypto traders. The platform delivers three core capabilities:
 
 1. **Real-time Portfolio Tracking** - Aggregate holdings across 20+ exchanges and wallets with 99%+ sync accuracy
 2. **AI Market Predictions** - LSTM-based bull/bear forecasts with transparent reasoning
@@ -168,7 +168,7 @@ graph LR
     User[Crypto Traders]
     Admin[Admin/Support]
     
-    System[CryptoSense Platform]
+    System[Coinsphere Platform]
     
     Exchanges[Crypto Exchanges<br/>Binance, Coinbase, etc.]
     Wallets[Web3 Wallets<br/>MetaMask, Phantom]
@@ -540,7 +540,7 @@ export const usePortfolioStore = create<PortfolioStore>((set, get) => ({
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { getAuthToken, refreshToken } from './auth';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -804,7 +804,7 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3001'],
   credentials: true,
 }));
 
@@ -845,7 +845,7 @@ app.use('/api/alerts', authMiddleware, rateLimitMiddleware, alertsRoutes);
 // Global error handler (must be last)
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
 });
@@ -1752,7 +1752,7 @@ import json
 from models.market_predictor import MarketPredictor
 from features.engineer import FeatureEngineer
 
-app = FastAPI(title="CryptoSense ML Service")
+app = FastAPI(title="Coinsphere ML Service")
 
 # Load model on startup
 model = None
@@ -2681,7 +2681,7 @@ jobs:
       
       - name: Run E2E tests
         run: |
-          npm run test:e2e -- --baseUrl=https://staging.cryptosense.io
+          npm run test:e2e -- --baseUrl=https://staging.coinsphere.app
   
   deploy-production:
     needs: [test-backend, test-ml-service, test-frontend]
@@ -2700,8 +2700,8 @@ jobs:
       
       - name: Smoke tests
         run: |
-          curl -f https://api.cryptosense.io/health || exit 1
-          curl -f https://cryptosense.io || exit 1
+          curl -f https://api.coinsphere.app/health || exit 1
+          curl -f https://coinsphere.app || exit 1
       
       - name: Notify Slack
         uses: 8398a7/action-slack@v3
@@ -2824,7 +2824,7 @@ export const logger = winston.createLogger({
     winston.format.json()
   ),
   defaultMeta: {
-    service: 'cryptosense-api',
+    service: 'coinsphere-api',
     environment: process.env.NODE_ENV,
   },
   transports: [
@@ -2890,7 +2890,7 @@ app.use((req, res, next) => {
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="/backups/postgres"
-S3_BUCKET="s3://cryptosense-backups"
+S3_BUCKET="s3://coinsphere-backups"
 
 # Create backup directory
 mkdir -p $BACKUP_DIR
@@ -2929,7 +2929,7 @@ echo "Backup completed successfully"
 
 ```bash
 # Restore from backup
-aws s3 cp s3://cryptosense-backups/daily/backup_20250106.dump.gz .
+aws s3 cp s3://coinsphere-backups/daily/backup_20250106.dump.gz .
 gunzip backup_20250106.dump.gz
 pg_restore --dbname=$DATABASE_URL --clean backup_20250106.dump
 
@@ -3120,14 +3120,14 @@ const user = await prisma.user.findUnique({
 app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = [
-      'https://cryptosense.io',
-      'https://www.cryptosense.io',
-      'https://app.cryptosense.io',
+      'https://coinsphere.app',
+      'https://www.coinsphere.app',
+      'https://app.coinsphere.app',
     ];
     
     // Allow localhost in development
     if (process.env.NODE_ENV === 'development') {
-      allowedOrigins.push('http://localhost:3000');
+      allowedOrigins.push('http://localhost:3001');
     }
     
     if (!origin || allowedOrigins.includes(origin)) {
@@ -3180,7 +3180,7 @@ export async function getSecret(secretName: string): Promise<string> {
 }
 
 // Usage
-const jwtSecret = await getSecret('prod/cryptosense/jwt-secret');
+const jwtSecret = await getSecret('prod/coinsphere/jwt-secret');
 ```
 
 ## 10.5 GDPR Compliance
@@ -3907,15 +3907,15 @@ export class FeedbackService {
 #!/bin/bash
 # scripts/disaster-recovery.sh
 
-echo "=== CryptoSense Disaster Recovery ==="
+echo "=== Coinsphere Disaster Recovery ==="
 echo ""
 echo "STEP 1: Identify latest backup"
-LATEST_BACKUP=$(aws s3 ls s3://cryptosense-backups/daily/ | sort | tail -n 1 | awk '{print $4}')
+LATEST_BACKUP=$(aws s3 ls s3://coinsphere-backups/daily/ | sort | tail -n 1 | awk '{print $4}')
 echo "Latest backup: $LATEST_BACKUP"
 
 echo ""
 echo "STEP 2: Download backup from S3"
-aws s3 cp "s3://cryptosense-backups/daily/$LATEST_BACKUP" /tmp/
+aws s3 cp "s3://coinsphere-backups/daily/$LATEST_BACKUP" /tmp/
 
 echo ""
 echo "STEP 3: Extract backup"
@@ -3945,7 +3945,7 @@ echo ""
 echo "STEP 8: Restart application"
 railway restart
 # or
-aws ecs update-service --cluster cryptosense --service api --force-new-deployment
+aws ecs update-service --cluster coinsphere --service api --force-new-deployment
 
 echo ""
 echo "✅ Disaster recovery complete!"
@@ -3963,7 +3963,7 @@ echo "=== Rolling back deployment ==="
 
 # Get previous deployment
 PREVIOUS_DEPLOYMENT=$(aws ecs describe-services \
-  --cluster cryptosense \
+  --cluster coinsphere \
   --services api \
   --query 'services[0].deployments[1].taskDefinition' \
   --output text)
@@ -3972,14 +3972,14 @@ echo "Rolling back to: $PREVIOUS_DEPLOYMENT"
 
 # Update service
 aws ecs update-service \
-  --cluster cryptosense \
+  --cluster coinsphere \
   --service api \
   --task-definition "$PREVIOUS_DEPLOYMENT" \
   --force-new-deployment
 
 echo "Waiting for rollback to complete..."
 aws ecs wait services-stable \
-  --cluster cryptosense \
+  --cluster coinsphere \
   --services api
 
 echo "✅ Rollback complete"

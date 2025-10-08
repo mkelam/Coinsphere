@@ -1,4 +1,4 @@
-# ML Model Specification - CryptoSense Analytics Platform
+# ML Model Specification - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 7, 2025
@@ -26,7 +26,7 @@
 
 ### 1.1 Model Purpose
 
-The CryptoSense ML system provides **AI-powered market predictions** with three core capabilities:
+The Coinsphere ML system provides **AI-powered market predictions** with three core capabilities:
 
 1. **Price Direction Prediction** (7d, 14d, 30d timeframes)
    - Bullish/Bearish/Neutral classification

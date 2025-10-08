@@ -1,4 +1,4 @@
-# Developer Onboarding Guide - CryptoSense Analytics Platform
+# Developer Onboarding Guide - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 7, 2025
@@ -23,7 +23,7 @@
 
 ## 1. Welcome
 
-Welcome to the CryptoSense Analytics Platform team! 🎉
+Welcome to the Coinsphere team! 🎉
 
 **What We're Building:**
 An AI-powered crypto portfolio tracker with market predictions and risk scoring for active traders.
@@ -85,7 +85,7 @@ You'll need access to:
 ### 3.1 Repository Organization
 
 ```
-cryptosense/
+coinsphere/
 ├── frontend/                 # React web app
 │   ├── src/
 │   │   ├── components/      # Reusable UI components
@@ -212,7 +212,7 @@ cp .env.example .env
 **Backend `.env` example**:
 ```env
 # Database
-DATABASE_URL=postgresql://cryptosense:password@localhost:5432/cryptosense_dev
+DATABASE_URL=postgresql://coinsphere:password@localhost:5432/coinsphere_dev
 
 # Redis
 REDIS_URL=redis://localhost:6379
@@ -259,11 +259,11 @@ def456ghi789   redis:7            0.0.0.0:6379->6379/tcp
 **Connect to database**:
 ```bash
 # Using psql
-psql -h localhost -U cryptosense -d cryptosense_dev
+psql -h localhost -U coinsphere -d coinsphere_dev
 # Password: password (from docker-compose.yml)
 
 # OR using TablePlus/pgAdmin
-# Host: localhost, Port: 5432, Database: cryptosense_dev
+# Host: localhost, Port: 5432, Database: coinsphere_dev
 ```
 
 ### 5.2 Option 2: Local Installation
@@ -275,12 +275,12 @@ brew install postgresql@15
 brew services start postgresql@15
 
 # Create database
-createdb cryptosense_dev
+createdb coinsphere_dev
 
 # Create user
 psql -d postgres
-CREATE USER cryptosense WITH PASSWORD 'password';
-GRANT ALL PRIVILEGES ON DATABASE cryptosense_dev TO cryptosense;
+CREATE USER coinsphere WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE coinsphere_dev TO coinsphere;
 \q
 ```
 
@@ -312,7 +312,7 @@ npm run migrate:dev
 
 **Verify tables were created**:
 ```bash
-psql -h localhost -U cryptosense -d cryptosense_dev -c "\dt"
+psql -h localhost -U coinsphere -d coinsphere_dev -c "\dt"
 ```
 
 **Expected tables**:
@@ -335,7 +335,7 @@ npm run seed:dev
 ```
 
 **What this creates**:
-- 3 test users (admin@cryptosense.dev, pro@cryptosense.dev, free@cryptosense.dev)
+- 3 test users (admin@coinsphere.dev, pro@coinsphere.dev, free@coinsphere.dev)
 - Sample portfolios with holdings
 - 24 hours of price history for BTC, ETH, SOL
 - Sample predictions and risk scores
@@ -343,9 +343,9 @@ npm run seed:dev
 **Test login credentials**:
 | Email | Password | Tier |
 |-------|----------|------|
-| admin@cryptosense.dev | Admin123! | power-trader |
-| pro@cryptosense.dev | Pro123! | pro |
-| free@cryptosense.dev | Free123! | free |
+| admin@coinsphere.dev | Admin123! | power-trader |
+| pro@coinsphere.dev | Pro123! | pro |
+| free@coinsphere.dev | Free123! | free |
 
 ---
 
@@ -613,7 +613,7 @@ docker-compose restart postgres
 brew services restart postgresql@15
 
 # Verify connection
-psql -h localhost -U cryptosense -d cryptosense_dev
+psql -h localhost -U coinsphere -d coinsphere_dev
 ```
 
 ### 8.2 Redis Connection Errors
@@ -820,7 +820,7 @@ pytest                   # Run tests
 python scripts/train_model.py  # Train model
 
 # Database
-psql -h localhost -U cryptosense -d cryptosense_dev
+psql -h localhost -U coinsphere -d coinsphere_dev
 \dt                      # List tables
 \d users                 # Describe table
 

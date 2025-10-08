@@ -17,10 +17,10 @@ export function RecentTransactions() {
         {transactions.map((tx, index) => (
           <div
             key={index}
-            className="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors"
+            className="flex items-center justify-between p-3 rounded-lg hover:bg-white/[0.03] transition-colors"
           >
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${tx.type === "buy" ? "bg-[#10B981]/10" : "bg-[#EF4444]/10"}`}>
+              <div className={`p-2 rounded-lg ${tx.type === "buy" ? "bg-[#10B981]/[0.06]" : "bg-[#EF4444]/[0.06]"}`}>
                 {tx.type === "buy" ? (
                   <ArrowUpRight className={`w-4 h-4 text-[#10B981]`} />
                 ) : (

@@ -1,6 +1,6 @@
-# Contributing to CryptoSense
+# Contributing to Coinsphere
 
-Thank you for your interest in contributing to CryptoSense! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Coinsphere! This document provides guidelines and instructions for contributing.
 
 ## Table of Contents
 - [Code of Conduct](#code-of-conduct)
@@ -20,8 +20,8 @@ Thank you for your interest in contributing to CryptoSense! This document provid
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/Coinsphere.git`
-3. Add upstream remote: `git remote add upstream https://github.com/mkelam/Coinsphere.git`
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/coinsphere.git`
+3. Add upstream remote: `git remote add upstream https://github.com/coinsphere/coinsphere.git`
 4. Follow the [Developer Onboarding Guide](./Documentation/DEVELOPER_ONBOARDING.md)
 
 ## Development Workflow

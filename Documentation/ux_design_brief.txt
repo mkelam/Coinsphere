@@ -1,7 +1,7 @@
-# UX/UI Design Brief: CryptoSense Analytics Platform
+# UX/UI Design Brief: Coinsphere
 ## Glassmorphic Minimalist Design System
 
-**Project:** CryptoSense Analytics MVP  
+**Project:** Coinsphere Analytics MVP  
 **Repository:** `mkelam/Coinsphere`  
 **Timeline:** 8-week development cycle  
 **Design Deadline:** Week 1 (Dashboard + Predictions) → Week 2 (Risk + Onboarding)  
@@ -369,7 +369,7 @@ This is **NOT** another portfolio tracker. Our core value proposition:
 ┌─────────────────────────────────────┐
 │                                     │
 │           🔮                        │ ← Animated icon
-│     CryptoSense Analytics           │
+│     Coinsphere Analytics           │
 │                                     │
 │  AI-powered predictions and risk    │
 │  scoring for crypto traders         │
@@ -762,7 +762,7 @@ Show previous prediction (grayed out) while loading
 ### Figma File Structure
 
 ```
-📁 CryptoSense Design System
+📁 Coinsphere Design System
 ├── 📄 Cover Page (project overview, team)
 ├── 🎨 Design Tokens
 │   ├── Colors (all variables)
@@ -890,7 +890,7 @@ Show previous prediction (grayed out) while loading
 > "Design is not just what it looks like and feels like. Design is how it works."  
 > — Steve Jobs
 
-For CryptoSense, **"how it works"** means: clarity, transparency, speed.
+For Coinsphere, **"how it works"** means: clarity, transparency, speed.
 
 ---
 

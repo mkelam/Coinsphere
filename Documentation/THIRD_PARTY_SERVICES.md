@@ -24,7 +24,7 @@
 
 ## 1. Overview
 
-CryptoSense integrates with 15+ third-party services to provide real-time data, exchange connectivity, payments, and communications.
+Coinsphere integrates with 15+ third-party services to provide real-time data, exchange connectivity, payments, and communications.
 
 **Total Monthly Cost (Estimated):**
 - **Development:** $150/month

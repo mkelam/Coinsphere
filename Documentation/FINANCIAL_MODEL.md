@@ -1,4 +1,4 @@
-# Financial Model - CryptoSense Analytics
+# Financial Model - Coinsphere
 ## Retail Analytics Platform - 3 Year Projection
 
 **Version:** 1.0

@@ -1,5 +1,5 @@
 # Implementation Guide
-## CryptoSense Analytics Platform - Getting Started
+## Coinsphere - Getting Started
 
 **Version:** 1.0  
 **Date:** October 6, 2025  
@@ -10,7 +10,7 @@
 
 ## Document Purpose
 
-This guide provides **step-by-step instructions** for implementing the CryptoSense Analytics platform. Use this as your daily reference during the 8-week MVP build.
+This guide provides **step-by-step instructions** for implementing the Coinsphere Analytics platform. Use this as your daily reference during the 8-week MVP build.
 
 **Related Documents:**
 - [System Architecture Document](SYSTEM_ARCHITECTURE.md) - Technical blueprint
@@ -67,7 +67,7 @@ This guide provides **step-by-step instructions** for implementing the CryptoSen
 - [ ] Vercel account (frontend hosting)
 - [ ] CoinGecko Pro API key ($129/mo)
 - [ ] LunarCrush API key ($24/mo)
-- [ ] Domain purchased (cryptosense.io or similar)
+- [ ] Domain purchased (coinsphere.app or similar)
 - [ ] Cloudflare account (DNS + CDN)
 - [ ] Sentry account (error tracking)
 - [ ] Slack workspace
@@ -135,9 +135,9 @@ sudo apt install nodejs npm python3.11 postgresql-15 redis docker.io git
 **Create Repository Structure:**
 ```bash
 # Create GitHub repository
-gh repo create cryptosense-analytics --private --clone
+gh repo create coinsphere-analytics --private --clone
 
-cd cryptosense-analytics
+cd coinsphere-analytics
 
 # Initialize monorepo structure
 mkdir -p {backend,frontend,ml_service,mobile,docs,scripts}
@@ -147,7 +147,7 @@ npm init -y
 
 # Create README
 cat > README.md << 'EOF'
-# CryptoSense Analytics
+# Coinsphere Analytics
 
 AI-powered crypto portfolio tracking and prediction platform.
 
@@ -198,8 +198,8 @@ git push origin main
 
 #### 1. Clone Repository
 ```bash
-git clone https://github.com/your-org/cryptosense-analytics.git
-cd cryptosense-analytics
+git clone https://github.com/your-org/coinsphere-analytics.git
+cd coinsphere-analytics
 ```
 
 #### 2. Backend Setup
@@ -304,9 +304,9 @@ version: '3.8'
 services:
   postgres:
     image: timescale/timescaledb:latest-pg15
-    container_name: cryptosense-db
+    container_name: coinsphere-db
     environment:
-      POSTGRES_DB: cryptosense_dev
+      POSTGRES_DB: coinsphere_dev
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -321,7 +321,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: cryptosense-redis
+    container_name: coinsphere-redis
     ports:
       - "6379:6379"
     volumes:
@@ -425,7 +425,7 @@ INSERT INTO assets (symbol, name, coingecko_id, category) VALUES
 EOF
 
 # Run migration
-psql postgresql://postgres:postgres@localhost:5432/cryptosense_dev \
+psql postgresql://postgres:postgres@localhost:5432/coinsphere_dev \
   -f src/database/migrations/001_initial_schema.sql
 ```
 
@@ -436,7 +436,7 @@ cat > src/config/database.ts << 'EOF'
 import { Pool } from 'pg';
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/cryptosense_dev',
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/coinsphere_dev',
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -478,7 +478,7 @@ app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    service: 'cryptosense-api'
+    service: 'coinsphere-api'
   });
 });
 
@@ -492,7 +492,7 @@ EOF
 # Update package.json scripts
 cat > package.json << 'EOF'
 {
-  "name": "cryptosense-backend",
+  "name": "coinsphere-backend",
   "version": "1.0.0",
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
@@ -508,7 +508,7 @@ EOF
 cat > .env << 'EOF'
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cryptosense_dev
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/coinsphere_dev
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=your-secret-key-change-in-production
 EOF
@@ -1403,7 +1403,7 @@ npm run build
 ## Database
 ```bash
 # Connect to database
-psql postgresql://postgres:postgres@localhost:5432/cryptosense_dev
+psql postgresql://postgres:postgres@localhost:5432/coinsphere_dev
 
 # Run migration
 psql <database-url> -f src/database/migrations/001_initial_schema.sql

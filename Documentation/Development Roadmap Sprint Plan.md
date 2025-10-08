@@ -1,5 +1,5 @@
 # Development Roadmap & Sprint Plan
-## CoinStats Enhanced Analytics Platform
+## Coinsphere
 
 **Version:** 1.0 MVP  
 **Last Updated:** October 2025  
@@ -616,7 +616,7 @@ async def test_prediction_flow():
 # locustfile.py
 from locust import HttpUser, task, between
 
-class CoinStatsUser(HttpUser):
+class CoinsphereUser(HttpUser):
     wait_time = between(1, 3)
     
     def on_start(self):
@@ -901,7 +901,7 @@ class CoinStatsUser(HttpUser):
 - [Web3.py Docs](https://web3py.readthedocs.io/)
 
 **Support:**
-- Slack: #coinstats-dev
+- Slack: #coinsphere-dev
 - Weekly all-hands: Mondays 10am
 - Code reviews: Required for all PRs
 

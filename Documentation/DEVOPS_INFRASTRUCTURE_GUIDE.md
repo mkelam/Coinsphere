@@ -1,4 +1,4 @@
-# DevOps & Infrastructure Guide - CryptoSense Analytics Platform
+# DevOps & Infrastructure Guide - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 6, 2025
@@ -76,23 +76,23 @@
 ```bash
 # .env.local (development)
 NODE_ENV=development
-DATABASE_URL=postgresql://localhost:5432/cryptosense_dev
+DATABASE_URL=postgresql://localhost:5432/coinsphere_dev
 REDIS_URL=redis://localhost:6379
-API_BASE_URL=http://localhost:3000
+API_BASE_URL=http://localhost:3001
 LOG_LEVEL=debug
 
 # .env.staging
 NODE_ENV=staging
-DATABASE_URL=postgresql://staging-db.aws.com:5432/cryptosense
+DATABASE_URL=postgresql://staging-db.aws.com:5432/coinsphere
 REDIS_URL=redis://staging-redis.aws.com:6379
-API_BASE_URL=https://staging-api.cryptosense.com
+API_BASE_URL=https://staging-api.coinsphere.app
 LOG_LEVEL=info
 
 # .env.production
 NODE_ENV=production
-DATABASE_URL=postgresql://prod-db.aws.com:5432/cryptosense
+DATABASE_URL=postgresql://prod-db.aws.com:5432/coinsphere
 REDIS_URL=redis://prod-redis.aws.com:6379
-API_BASE_URL=https://api.cryptosense.com
+API_BASE_URL=https://api.coinsphere.app
 LOG_LEVEL=warn
 ```
 
@@ -249,9 +249,9 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: cryptosense-api
-  ECS_SERVICE: cryptosense-api-service
-  ECS_CLUSTER: cryptosense-prod-cluster
+  ECR_REPOSITORY: coinsphere-api
+  ECS_SERVICE: coinsphere-api-service
+  ECS_CLUSTER: coinsphere-prod-cluster
 
 jobs:
   deploy:
@@ -295,7 +295,7 @@ jobs:
 
       - name: Smoke test
         run: |
-          curl -f https://api.cryptosense.com/health || exit 1
+          curl -f https://api.coinsphere.app/health || exit 1
 
       - name: Notify team
         if: always()
@@ -356,10 +356,10 @@ COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
 
 USER nodejs
-EXPOSE 3000
+EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:3001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 CMD ["node", "dist/server.js"]
 ```
@@ -395,7 +395,7 @@ build
 
 ```json
 {
-  "family": "cryptosense-api",
+  "family": "coinsphere-api",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
@@ -403,7 +403,7 @@ build
   "containerDefinitions": [
     {
       "name": "api",
-      "image": "123456789.dkr.ecr.us-east-1.amazonaws.com/cryptosense-api:v1.0.0",
+      "image": "123456789.dkr.ecr.us-east-1.amazonaws.com/coinsphere-api:v1.0.0",
       "portMappings": [
         {
           "containerPort": 3000,
@@ -423,13 +423,13 @@ build
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/cryptosense-api",
+          "awslogs-group": "/ecs/coinsphere-api",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "api"
         }
       },
       "healthCheck": {
-        "command": ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"],
+        "command": ["CMD-SHELL", "curl -f http://localhost:3001/health || exit 1"],
         "interval": 30,
         "timeout": 5,
         "retries": 3,
@@ -532,8 +532,8 @@ CREATE INDEX "portfolios_user_id_idx" ON "portfolios"("user_id");
 # backup.sh
 
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="cryptosense_backup_$DATE.sql.gz"
-S3_BUCKET="s3://cryptosense-backups/daily"
+BACKUP_FILE="coinsphere_backup_$DATE.sql.gz"
+S3_BUCKET="s3://coinsphere-backups/daily"
 
 # Dump database and compress
 pg_dump $DATABASE_URL | gzip > /tmp/$BACKUP_FILE
@@ -546,7 +546,7 @@ rm /tmp/$BACKUP_FILE
 
 # Delete backups older than 30 days
 aws s3 ls $S3_BUCKET/ | awk '{print $4}' | \
-  grep -E 'cryptosense_backup_.*\.sql\.gz' | \
+  grep -E 'coinsphere_backup_.*\.sql\.gz' | \
   head -n -30 | \
   xargs -I {} aws s3 rm $S3_BUCKET/{}
 
@@ -566,7 +566,7 @@ echo "Backup completed: $BACKUP_FILE"
 
 ```sql
 -- Enable slow query logging
-ALTER DATABASE cryptosense SET log_min_duration_statement = 1000; -- 1 second
+ALTER DATABASE coinsphere SET log_min_duration_statement = 1000; -- 1 second
 
 -- Find slow queries
 SELECT
@@ -693,7 +693,7 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 
 const sdk = new NodeSDK({
-  serviceName: 'cryptosense-api',
+  serviceName: 'coinsphere-api',
   traceExporter: new JaegerExporter({
     endpoint: process.env.JAEGER_ENDPOINT,
   }),
@@ -771,7 +771,7 @@ sdk.start();
 
 ```ini
 [databases]
-cryptosense = host=db.example.com port=5432 dbname=cryptosense
+coinsphere = host=db.example.com port=5432 dbname=coinsphere
 
 [pgbouncer]
 listen_addr = *
@@ -950,7 +950,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "cryptosense-terraform-state"
+    bucket = "coinsphere-terraform-state"
     key    = "prod/terraform.tfstate"
     region = "us-east-1"
   }
@@ -966,21 +966,21 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags = {
-    Name        = "cryptosense-vpc"
+    Name        = "coinsphere-vpc"
     Environment = var.environment
   }
 }
 
 # RDS PostgreSQL
 resource "aws_db_instance" "postgres" {
-  identifier        = "cryptosense-${var.environment}"
+  identifier        = "coinsphere-${var.environment}"
   engine            = "postgres"
   engine_version    = "15.4"
   instance_class    = var.db_instance_class
   allocated_storage = 20
   storage_encrypted = true
 
-  db_name  = "cryptosense"
+  db_name  = "coinsphere"
   username = var.db_username
   password = var.db_password
 
@@ -996,14 +996,14 @@ resource "aws_db_instance" "postgres" {
   final_snapshot_identifier = "${var.environment}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
 
   tags = {
-    Name        = "cryptosense-db"
+    Name        = "coinsphere-db"
     Environment = var.environment
   }
 }
 
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
-  name = "cryptosense-${var.environment}"
+  name = "coinsphere-${var.environment}"
 
   setting {
     name  = "containerInsights"
@@ -1013,7 +1013,7 @@ resource "aws_ecs_cluster" "main" {
 
 # ECS Task Definition
 resource "aws_ecs_task_definition" "api" {
-  family                   = "cryptosense-api"
+  family                   = "coinsphere-api"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
@@ -1047,7 +1047,7 @@ resource "aws_ecs_task_definition" "api" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = "/ecs/cryptosense-api"
+          "awslogs-group"         = "/ecs/coinsphere-api"
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "api"
         }
@@ -1058,7 +1058,7 @@ resource "aws_ecs_task_definition" "api" {
 
 # Application Load Balancer
 resource "aws_lb" "main" {
-  name               = "cryptosense-${var.environment}"
+  name               = "coinsphere-${var.environment}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
@@ -1067,7 +1067,7 @@ resource "aws_lb" "main" {
   enable_deletion_protection = var.environment == "production"
 
   tags = {
-    Name        = "cryptosense-alb"
+    Name        = "coinsphere-alb"
     Environment = var.environment
   }
 }
@@ -1144,17 +1144,17 @@ terraform apply -var-file="environments/production.tfvars"
 **Investigation:**
 1. Check ECS service status:
    ```bash
-   aws ecs describe-services --cluster cryptosense-prod --services cryptosense-api
+   aws ecs describe-services --cluster coinsphere-prod --services coinsphere-api
    ```
 
 2. Check recent deployments:
    ```bash
-   aws ecs describe-task-definition --task-definition cryptosense-api
+   aws ecs describe-task-definition --task-definition coinsphere-api
    ```
 
 3. Check application logs:
    ```bash
-   aws logs tail /ecs/cryptosense-api --follow
+   aws logs tail /ecs/coinsphere-api --follow
    ```
 
 4. Check database connectivity:
@@ -1165,13 +1165,13 @@ terraform apply -var-file="environments/production.tfvars"
 **Resolution:**
 - If deployment issue: Rollback to previous version
   ```bash
-  aws ecs update-service --cluster cryptosense-prod --service cryptosense-api --task-definition cryptosense-api:PREVIOUS_REVISION
+  aws ecs update-service --cluster coinsphere-prod --service coinsphere-api --task-definition coinsphere-api:PREVIOUS_REVISION
   ```
 
 - If database issue: Check connection pool, restart if needed
 - If resource exhaustion: Scale up immediately
   ```bash
-  aws ecs update-service --cluster cryptosense-prod --service cryptosense-api --desired-count 10
+  aws ecs update-service --cluster coinsphere-prod --service coinsphere-api --desired-count 10
   ```
 
 ---
@@ -1218,7 +1218,7 @@ terraform apply -var-file="environments/production.tfvars"
 
 - Scale up database instance (if needed):
   ```bash
-  aws rds modify-db-instance --db-instance-identifier cryptosense-prod --db-instance-class db.t3.large --apply-immediately
+  aws rds modify-db-instance --db-instance-identifier coinsphere-prod --db-instance-class db.t3.large --apply-immediately
   ```
 
 ---
@@ -1233,7 +1233,7 @@ terraform apply -var-file="environments/production.tfvars"
 **Investigation:**
 1. Check memory usage:
    ```bash
-   aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name MemoryUtilization --dimensions Name=ServiceName,Value=cryptosense-api --statistics Average --start-time 2025-10-06T00:00:00Z --end-time 2025-10-06T23:59:59Z --period 300
+   aws cloudwatch get-metric-statistics --namespace AWS/ECS --metric-name MemoryUtilization --dimensions Name=ServiceName,Value=coinsphere-api --statistics Average --start-time 2025-10-06T00:00:00Z --end-time 2025-10-06T23:59:59Z --period 300
    ```
 
 2. Check for memory leaks (heap dump):
@@ -1244,14 +1244,14 @@ terraform apply -var-file="environments/production.tfvars"
 **Resolution:**
 - Restart service (temporary fix):
   ```bash
-  aws ecs update-service --cluster cryptosense-prod --service cryptosense-api --force-new-deployment
+  aws ecs update-service --cluster coinsphere-prod --service coinsphere-api --force-new-deployment
   ```
 
 - Increase memory allocation:
   ```bash
   # Update task definition with more memory (2048 MB)
   aws ecs register-task-definition --cli-input-json file://task-definition-2gb.json
-  aws ecs update-service --cluster cryptosense-prod --service cryptosense-api --task-definition cryptosense-api:NEW_REVISION
+  aws ecs update-service --cluster coinsphere-prod --service coinsphere-api --task-definition coinsphere-api:NEW_REVISION
   ```
 
 - Investigate and fix memory leak in code

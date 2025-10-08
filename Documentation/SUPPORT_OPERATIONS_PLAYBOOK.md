@@ -1,4 +1,4 @@
-# Support & Operations Playbook - CryptoSense Analytics Platform
+# Support & Operations Playbook - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 6, 2025
@@ -29,7 +29,7 @@
 ## 1. Overview
 
 ### Mission Statement
-Provide exceptional, community-driven support that educates users, resolves issues quickly, and builds long-term trust in CryptoSense.
+Provide exceptional, community-driven support that educates users, resolves issues quickly, and builds long-term trust in Coinsphere.
 
 ### Support Philosophy
 
@@ -143,7 +143,7 @@ Provide exceptional, community-driven support that educates users, resolves issu
 - Month 4-6: 500 messages/week
 - Month 7-12: 2,000 messages/week
 
-### 3.2 Email (support@cryptosense.com)
+### 3.2 Email (support@coinsphere.app)
 
 **Purpose:**
 - Formal support tickets
@@ -179,7 +179,7 @@ Provide exceptional, community-driven support that educates users, resolves issu
 
 **Availability:**
 - Hours: 9 AM - 6 PM PT (Monday-Friday)
-- Auto-response after hours: "We're offline. Email support@cryptosense.com or join Discord."
+- Auto-response after hours: "We're offline. Email support@coinsphere.app or join Discord."
 
 **Triage:**
 - Simple questions: Answer immediately (5 min)
@@ -335,8 +335,8 @@ Provide exceptional, community-driven support that educates users, resolves issu
    - Some exchanges expire keys after 90 days
    - Regenerate key if expired
 3. **Check IP Whitelist (if enabled):**
-   - If user enabled IP whitelist on exchange, add CryptoSense IPs
-   - Provide CryptoSense IP addresses: [list IPs]
+   - If user enabled IP whitelist on exchange, add Coinsphere IPs
+   - Provide Coinsphere IP addresses: [list IPs]
 4. **Re-Sync Manually:**
    - Settings → Exchanges → [Exchange Name] → Re-Sync
 5. **Check Exchange Status:**
@@ -344,7 +344,7 @@ Provide exceptional, community-driven support that educates users, resolves issu
 
 **If Still Failing:**
 - Ask for error message screenshot
-- Check CryptoSense status dashboard (are others reporting same issue?)
+- Check Coinsphere status dashboard (are others reporting same issue?)
 - Escalate to engineering if widespread
 
 **Template Response:**
@@ -355,12 +355,12 @@ Sorry to hear your Binance sync isn't working! Let's troubleshoot:
 
 1. Go to Binance → API Management → Edit your key
 2. Ensure "Can Read" permission is enabled (NOT "Can Trade")
-3. Save changes, then go to CryptoSense → Settings → Exchanges → Re-Sync
+3. Save changes, then go to Coinsphere → Settings → Exchanges → Re-Sync
 
 If that doesn't work, check if your API key has IP restrictions. If so, you'll need to whitelist our IPs: [list]
 
 Let me know if this helps!
-CryptoSense Support
+Coinsphere Support
 ```
 
 ### 5.2 Login Issues (15% of tickets)
@@ -391,7 +391,7 @@ Hi [Name],
 
 Let's get you logged in:
 
-1. Go to app.cryptosense.com/login
+1. Go to app.coinsphere.app/login
 2. Click "Forgot Password"
 3. Enter your email: [email]
 4. Check your inbox (and spam folder) for reset link
@@ -400,7 +400,7 @@ Let's get you logged in:
 **Note:** If you signed up with Google, use "Continue with Google" instead of email/password.
 
 Still stuck? Reply with a screenshot and I'll investigate!
-CryptoSense Support
+Coinsphere Support
 ```
 
 ### 5.3 Prediction Accuracy Questions (20% of tickets)
@@ -436,7 +436,7 @@ Great question! Our AI predictions are probabilities, not guarantees. Here's how
 **Tip:** Use predictions as ONE signal, not the only signal. Always manage risk!
 
 Hope this helps!
-CryptoSense Support
+Coinsphere Support
 ```
 
 ### 5.4 Billing Issues (10% of tickets)
@@ -450,7 +450,7 @@ CryptoSense Support
 2. **Check Stripe Dashboard:**
    - Verify payment succeeded (not failed or refunded)
 3. **Sync Issue (Rare):**
-   - Webhook delay (Stripe → CryptoSense)
+   - Webhook delay (Stripe → Coinsphere)
    - Manually activate subscription (admin panel)
 
 **If Overcharged:**
@@ -473,7 +473,7 @@ Our payment webhook had a 10-minute delay (now fixed). You should see Pro featur
 
 As an apology, I've added 1 extra month free to your subscription. Thanks for your patience!
 
-CryptoSense Support
+Coinsphere Support
 ```
 
 ### 5.5 Feature Requests (15% of tickets)
@@ -503,7 +503,7 @@ Currently 15 users have requested this (ranked #8). We're targeting Q2 2026 for 
 3. Join our Discord to discuss: [discord link]
 
 Appreciate the feedback!
-CryptoSense Support
+Coinsphere Support
 ```
 
 ### 5.6 Risk Score Confusion (10% of tickets)
@@ -536,7 +536,7 @@ Great question! Risk scores are calculated relative to ALL asset classes (stocks
 View full methodology: [link]
 
 Hope this helps!
-CryptoSense Support
+Coinsphere Support
 ```
 
 ---
@@ -553,7 +553,7 @@ User connects first exchange → Sees portfolio → Views first AI prediction �
 **Onboarding Steps:**
 
 **Step 1: Welcome Email (Immediately After Signup)**
-- Subject: "Welcome to CryptoSense! Let's Get Started 🚀"
+- Subject: "Welcome to Coinsphere! Let's Get Started 🚀"
 - Body: 3-step quick start guide
   1. Connect your exchange (Binance, Coinbase, etc.)
   2. View your AI prediction
@@ -599,7 +599,7 @@ User connects first exchange → Sees portfolio → Views first AI prediction �
 4. Managing Risk in a Volatile Market
 
 **Webinars (Monthly, Starting Month 6):**
-- "Live Q&A: Ask CryptoSense Anything"
+- "Live Q&A: Ask Coinsphere Anything"
 - "How to Use AI Predictions to Trade Smarter"
 - Audience: Free + paid users
 - Recording posted on YouTube
@@ -629,7 +629,7 @@ User connects first exchange → Sees portfolio → Views first AI prediction �
 - Welcome new members ("Welcome @User! Check out #getting-started")
 - Host weekly AMAs (optional)
 
-### 7.2 Reddit Community (r/CryptoSense)
+### 7.2 Reddit Community (r/Coinsphere)
 
 **Launch Date:** Month 3
 
@@ -653,7 +653,7 @@ User connects first exchange → Sees portfolio → Views first AI prediction �
 
 **Strategy:**
 - Respond to all mentions within 2-4 hours
-- Like and retweet user wins ("I made $5K using CryptoSense predictions!")
+- Like and retweet user wins ("I made $5K using Coinsphere predictions!")
 - Address complaints publicly (transparency)
 
 **Crisis Management:**
@@ -693,7 +693,7 @@ User connects first exchange → Sees portfolio → Views first AI prediction �
 - Exit survey: "Why are you canceling?" (required)
 - Offer discount: "Stay for 50% off next 3 months"
 - Downgrade option: "Try Plus tier instead of canceling"
-- Feedback thank-you: "Thanks for trying CryptoSense. We'll use your feedback to improve."
+- Feedback thank-you: "Thanks for trying Coinsphere. We'll use your feedback to improve."
 
 ---
 
@@ -707,7 +707,7 @@ User connects first exchange → Sees portfolio → Views first AI prediction �
 | **First Response Time (Power Trader)** | <1 hour | Time to first response for VIP users |
 | **Resolution Time** | <24 hours (80% of tickets) | Time from ticket creation to closure |
 | **Customer Satisfaction (CSAT)** | 4.5+ / 5.0 | Post-ticket survey: "How satisfied were you?" |
-| **Net Promoter Score (NPS)** | 40+ | "How likely are you to recommend CryptoSense?" |
+| **Net Promoter Score (NPS)** | 40+ | "How likely are you to recommend Coinsphere?" |
 | **Ticket Volume** | Track trend | Total tickets per week (should stabilize as KB improves) |
 | **Self-Service Rate** | 60%+ | % of users who find answers in KB (don't create ticket) |
 | **Escalation Rate** | <10% | % of tickets escalated to Tier 3 |
@@ -846,7 +846,7 @@ User connects first exchange → Sees portfolio → Views first AI prediction �
 ### 11.2 Content Standards
 
 **Article Structure:**
-1. **Title:** Clear, keyword-optimized ("How to Connect Binance to CryptoSense")
+1. **Title:** Clear, keyword-optimized ("How to Connect Binance to Coinsphere")
 2. **Summary:** 1-2 sentences (what this article covers)
 3. **Step-by-Step Instructions:** Numbered list with screenshots
 4. **Common Errors:** Troubleshooting section
@@ -1040,7 +1040,7 @@ Sorry for the disruption. We've added safeguards to prevent this.
 - Enforce community guidelines
 
 **Requirements:**
-- Active CryptoSense user (3+ months)
+- Active Coinsphere user (3+ months)
 - Helpful, patient, knowledgeable
 - Available 10+ hours per week
 
@@ -1056,13 +1056,13 @@ Sorry for the disruption. We've added safeguards to prevent this.
 
 ### Template 1: Welcome Email
 
-**Subject:** Welcome to CryptoSense! Let's Get You Started 🚀
+**Subject:** Welcome to Coinsphere! Let's Get You Started 🚀
 
 **Body:**
 ```
 Hi [Name],
 
-Welcome to CryptoSense! You're now part of 10,000+ traders using AI to make smarter crypto decisions.
+Welcome to Coinsphere! You're now part of 10,000+ traders using AI to make smarter crypto decisions.
 
 Here's how to get started in 5 minutes:
 
@@ -1079,12 +1079,12 @@ Here's how to get started in 5 minutes:
    [Check Risk]
 
 **Need Help?**
-- Knowledge Base: help.cryptosense.com
-- Discord: discord.gg/cryptosense
-- Email: support@cryptosense.com
+- Knowledge Base: help.coinsphere.app
+- Discord: discord.gg/coinsphere
+- Email: support@coinsphere.app
 
 Happy trading!
-The CryptoSense Team
+The Coinsphere Team
 ```
 
 ### Template 2: Bug Report Acknowledgment
@@ -1109,8 +1109,8 @@ Our engineering team is investigating now. We'll update you within 24 hours with
 
 You can track progress here: [link]
 
-Thanks for helping us improve CryptoSense!
-CryptoSense Support
+Thanks for helping us improve Coinsphere!
+Coinsphere Support
 ```
 
 ### Template 3: Feature Request Response
@@ -1136,7 +1136,7 @@ Currently [X] users have requested this (ranked #[Y]).
 
 We'll notify you when we start building this!
 
-CryptoSense Support
+Coinsphere Support
 ```
 
 ---

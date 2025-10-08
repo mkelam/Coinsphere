@@ -19,7 +19,7 @@ export function AssetAllocation() {
               <span className="font-medium">{asset.symbol}</span>
               <span className="text-white/70">{asset.percentage}%</span>
             </div>
-            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+            <div className="h-2 bg-white/[0.03] rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{

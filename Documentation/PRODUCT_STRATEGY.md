@@ -21,7 +21,7 @@ After comprehensive documentation review, we are pursuing the **Retail Analytics
 
 ### What We're Building
 
-**Product Name:** CryptoSense Analytics Platform
+**Product Name:** Coinsphere
 
 **One-Line Pitch:** AI-powered crypto portfolio analytics that predicts market movements and scores investment risks in real-time for active crypto traders.
 
@@ -426,11 +426,13 @@ Unlike CoinStats and Delta which focus on basic tracking, we provide:
 
 **Primary:** Monthly Recurring Revenue (MRR)
 
-**Target Trajectory:**
-- Month 3: $2,000 MRR (200 users, 10% paid)
-- Month 6: $10,000 MRR (10K users, 4% paid)
-- Month 12: $35,000 MRR (50K users, 4.3% paid)
+**Target Trajectory (Simplified):**
+- Month 3: $3,000-4,000 MRR (200-400 paid, 10% initial conversion)
+- Month 6: $7,000-10,000 MRR (500-750 paid, accounting for early churn)
+- Month 12: $28,000-35,000 MRR (2,150 paid, 4.3% conversion)
 - Month 24: $285,000 MRR (300K users, 5.5% paid)
+- **Note:** Exit MRR + annual prepay revenue = **$420K ARR target**
+- **See FINANCIAL_MODEL.md for detailed month-by-month projections**
 
 ### Acquisition Metrics
 

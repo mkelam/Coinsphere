@@ -1,4 +1,4 @@
-# CryptoSense Analytics Platform UI/UX Specification
+# Coinsphere UI/UX Specification
 
 **Document Version**: 1.0 (Draft)
 **Date**: October 6, 2025
@@ -8,7 +8,7 @@
 
 ## 1. Introduction
 
-This document defines the user experience goals, information architecture, user flows, and visual design specifications for CryptoSense Analytics Platform's user interface. It serves as the foundation for visual design and frontend development, ensuring a cohesive and user-centered experience.
+This document defines the user experience goals, information architecture, user flows, and visual design specifications for Coinsphere's user interface. It serves as the foundation for visual design and frontend development, ensuring a cohesive and user-centered experience.
 
 ---
 
@@ -380,7 +380,7 @@ graph TD
 
 **Design File Structure:**
 ```
-CryptoSense Design System/
+Coinsphere Design System/
 ├── 📱 Mobile Screens/
 │   ├── Onboarding Flow
 │   ├── Dashboard
@@ -1198,7 +1198,7 @@ CryptoSense Design System/
 
 **Document Complete!** 🎉
 
-This UI/UX Specification provides the foundation for visual design and frontend development of CryptoSense Analytics Platform.
+This UI/UX Specification provides the foundation for visual design and frontend development of Coinsphere.
 
 **Next Review Date:** After MVP launch (Week 12)
 

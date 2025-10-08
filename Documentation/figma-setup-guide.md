@@ -1,4 +1,4 @@
-# Figma Setup Guide - CryptoSense Analytics Platform
+# Figma Setup Guide - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 6, 2025
@@ -8,7 +8,7 @@
 
 ## Overview
 
-This guide provides step-by-step instructions for creating the CryptoSense design system in Figma, including design tokens, component library, and screen mockups.
+This guide provides step-by-step instructions for creating the Coinsphere design system in Figma, including design tokens, component library, and screen mockups.
 
 **Estimated Time:** 8-12 hours for complete setup
 
@@ -20,7 +20,7 @@ This guide provides step-by-step instructions for creating the CryptoSense desig
 
 1. Go to [figma.com](https://figma.com)
 2. Click **"New Design File"**
-3. Rename file to: **"CryptoSense Design System"**
+3. Rename file to: **"Coinsphere Design System"**
 4. Set up team sharing if working with multiple designers
 
 ### 1.2 File Structure (Pages)
@@ -646,7 +646,7 @@ Study these Figma design systems:
 
 **Document Complete!**
 
-This guide provides everything needed to create the CryptoSense design system in Figma. Estimated completion time: 8-12 hours for a designer familiar with Figma.
+This guide provides everything needed to create the Coinsphere design system in Figma. Estimated completion time: 8-12 hours for a designer familiar with Figma.
 
 **Next:** See [storybook-setup-guide.md](storybook-setup-guide.md) for implementing the design system in code.
 

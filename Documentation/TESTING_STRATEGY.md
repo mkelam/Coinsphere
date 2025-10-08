@@ -1,4 +1,4 @@
-# Testing Strategy - CryptoSense Analytics Platform
+# Testing Strategy - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 6, 2025
@@ -376,7 +376,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Onboarding Flow', () => {
   test('complete onboarding and view dashboard', async ({ page }) => {
     // Navigate to app
-    await page.goto('http://localhost:3000');
+    await page.goto('http://localhost:3001');
 
     // Sign up
     await page.click('text=Sign Up');
@@ -597,7 +597,7 @@ export default function () {
   const token = __ENV.AUTH_TOKEN;
 
   // Test portfolio endpoint
-  let res = http.get('https://api.cryptosense.com/api/portfolio', {
+  let res = http.get('https://api.coinsphere.app/api/portfolio', {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -633,7 +633,7 @@ export default function () {
 {
   "ci": {
     "collect": {
-      "url": ["http://localhost:3000", "http://localhost:3000/dashboard"],
+      "url": ["http://localhost:3001", "http://localhost:3001/dashboard"],
       "numberOfRuns": 3
     },
     "assert": {

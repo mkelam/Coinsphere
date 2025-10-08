@@ -1,4 +1,4 @@
-# Data Privacy Policy - CryptoSense Analytics Platform
+# Data Privacy Policy - Coinsphere
 
 **Effective Date**: October 6, 2025
 **Last Updated**: October 6, 2025
@@ -28,12 +28,12 @@
 
 ### Who We Are
 
-**CryptoSense Analytics Platform** ("CryptoSense", "we", "us", "our") provides AI-powered cryptocurrency portfolio tracking and market prediction services.
+**Coinsphere** ("Coinsphere", "we", "us", "our") provides AI-powered cryptocurrency portfolio tracking and market prediction services.
 
 **Contact Information:**
-- **Email**: privacy@cryptosense.com
+- **Email**: privacy@coinsphere.app
 - **Address**: [To be added upon incorporation]
-- **Data Protection Officer**: dpo@cryptosense.com (for EU/UK users)
+- **Data Protection Officer**: dpo@coinsphere.app (for EU/UK users)
 
 ### Our Commitment to Privacy
 
@@ -48,10 +48,10 @@ Your privacy and trust are fundamental to our business. We:
 ### Scope
 
 This policy applies to:
-- ✅ CryptoSense web application (app.cryptosense.com)
-- ✅ CryptoSense mobile apps (iOS and Android)
-- ✅ CryptoSense API
-- ✅ Marketing website (cryptosense.com)
+- ✅ Coinsphere web application (app.coinsphere.app)
+- ✅ Coinsphere mobile apps (iOS and Android)
+- ✅ Coinsphere API
+- ✅ Marketing website (coinsphere.app)
 - ✅ Email communications
 
 This policy does NOT apply to:
@@ -112,9 +112,9 @@ When you subscribe to a paid plan:
 | Data Type | How We Handle It | Who Stores It |
 |-----------|------------------|---------------|
 | **Credit Card** | We DO NOT store card numbers | Stripe (PCI DSS Level 1 compliant) |
-| **Billing Email** | Stored by us (may differ from account email) | CryptoSense database |
-| **Billing Country** | Stored by us (for tax compliance) | CryptoSense database |
-| **Invoice History** | Stored by us | CryptoSense database (7 years for tax) |
+| **Billing Email** | Stored by us (may differ from account email) | Coinsphere database |
+| **Billing Country** | Stored by us (for tax compliance) | Coinsphere database |
+| **Invoice History** | Stored by us | Coinsphere database (7 years for tax) |
 
 **Payment Processor:** Stripe Inc. ([Stripe Privacy Policy](https://stripe.com/privacy))
 
@@ -294,7 +294,7 @@ We may disclose data if required by law:
 
 ### 4.4 Business Transfers
 
-If CryptoSense is acquired, merges, or sells assets:
+If Coinsphere is acquired, merges, or sells assets:
 - Your data may be transferred to the new entity
 - You will be notified via email 30 days before the transfer
 - The new entity must honor this Privacy Policy
@@ -375,7 +375,7 @@ While we use industry best practices, no method of transmission or storage is co
 - Enable two-factor authentication (2FA)
 - Do NOT share your password or API keys
 - Keep your email account secure (password reset target)
-- Disconnect exchange APIs if you no longer use CryptoSense
+- Disconnect exchange APIs if you no longer use Coinsphere
 
 ---
 
@@ -430,7 +430,7 @@ If you are located in the European Union or United Kingdom, you have additional 
 - No automated decisions with legal or significant effects
 
 **How to Exercise Your Rights:**
-- Email: privacy@cryptosense.com
+- Email: privacy@coinsphere.app
 - Subject: "GDPR Request - [Your Request Type]"
 - We will respond within 30 days (may extend to 60 days for complex requests)
 
@@ -453,7 +453,7 @@ If you are a California resident, you have rights under the California Consumer 
 - We will NOT discriminate against you for exercising your privacy rights
 
 **How to Exercise Your Rights:**
-- Email: privacy@cryptosense.com
+- Email: privacy@coinsphere.app
 - Subject: "CCPA Request - [Your Request Type]"
 - We will verify your identity and respond within 45 days
 
@@ -552,7 +552,7 @@ We respect Do Not Track (DNT) browser signals:
 
 **Support Tickets:**
 - Retained 2 years after resolution
-- Can be deleted upon request (email privacy@cryptosense.com)
+- Can be deleted upon request (email privacy@coinsphere.app)
 
 ### 8.2 Why We Retain Data
 
@@ -595,7 +595,7 @@ We regularly review and delete data that is:
 - All processors sign Data Processing Agreements (DPAs)
 
 **Your Rights:**
-- You can request a copy of SCCs by emailing privacy@cryptosense.com
+- You can request a copy of SCCs by emailing privacy@coinsphere.app
 
 ### 9.3 Data Localization (Future Plans)
 
@@ -609,7 +609,7 @@ We regularly review and delete data that is:
 
 ### 10.1 Age Restrictions
 
-**CryptoSense is NOT intended for children under 18 years old.**
+**Coinsphere is NOT intended for children under 18 years old.**
 
 **We do NOT knowingly collect data from children under 18.**
 
@@ -625,7 +625,7 @@ If we learn that we have collected data from a child under 18:
 ### 10.3 Parental Rights
 
 If you believe your child has created an account:
-- Email: privacy@cryptosense.com
+- Email: privacy@coinsphere.app
 - Subject: "Child Account Deletion Request"
 - Include: Child's email address, your relationship to the child
 - We will delete the account within 7 days
@@ -647,12 +647,12 @@ If you believe your child has created an account:
 
 ### 11.2 Your Consent
 
-**By continuing to use CryptoSense after the effective date, you accept the updated Privacy Policy.**
+**By continuing to use Coinsphere after the effective date, you accept the updated Privacy Policy.**
 
 If you do NOT agree:
 - Stop using the service
 - Delete your account before the effective date
-- Email privacy@cryptosense.com with concerns
+- Email privacy@coinsphere.app with concerns
 
 ### 11.3 Version History
 
@@ -665,20 +665,20 @@ If you do NOT agree:
 ## 12. Contact Us
 
 ### General Privacy Questions
-**Email:** privacy@cryptosense.com
+**Email:** privacy@coinsphere.app
 **Response Time:** 3-5 business days
 
 ### Data Protection Officer (DPO) - EU/UK Users
-**Email:** dpo@cryptosense.com
+**Email:** dpo@coinsphere.app
 **Response Time:** 5-10 business days (30 days for formal requests)
 
 ### GDPR/CCPA Requests
-**Email:** privacy@cryptosense.com
+**Email:** privacy@coinsphere.app
 **Subject:** "GDPR Request - [Access/Deletion/Portability]"
 **Response Time:** 30 days (may extend to 60 days for complex requests)
 
 ### Security Incidents
-**Email:** security@cryptosense.com
+**Email:** security@coinsphere.app
 **Response Time:** Immediate (monitored 24/7)
 
 ### Mailing Address
@@ -696,7 +696,7 @@ This Privacy Policy was drafted with reference to:
 
 ---
 
-**Thank you for trusting CryptoSense with your data. Your privacy is our priority.**
+**Thank you for trusting Coinsphere with your data. Your privacy is our priority.**
 
 ---
 

@@ -1,7 +1,7 @@
 {
-  "name": "cryptosense-backend",
+  "name": "coinsphere-backend",
   "version": "0.1.0",
-  "description": "CryptoSense Backend API",
+  "description": "Coinsphere Backend API - Node.js + Express + TypeScript",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -15,7 +15,7 @@
     "test:coverage": "vitest --coverage",
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
-    "seed": "tsx src/scripts/seed.ts",
+    "seed": "tsx prisma/seed.ts",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio"
   },

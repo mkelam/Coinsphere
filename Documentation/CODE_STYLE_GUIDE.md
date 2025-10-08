@@ -23,7 +23,7 @@
 
 ## 1. Introduction
 
-This document defines the coding standards for the CryptoSense Analytics Platform codebase. Consistent style improves readability, maintainability, and reduces cognitive load during code reviews.
+This document defines the coding standards for the Coinsphere codebase. Consistent style improves readability, maintainability, and reduces cognitive load during code reviews.
 
 **Key Goals:**
 - **Consistency**: Code should look like it was written by a single developer

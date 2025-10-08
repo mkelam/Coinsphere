@@ -1,4 +1,4 @@
-# Storybook Setup Guide - CryptoSense Analytics Platform
+# Storybook Setup Guide - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 6, 2025
@@ -10,7 +10,7 @@
 
 ## Overview
 
-This guide provides step-by-step instructions for setting up Storybook with Shadcn/ui components, Tailwind CSS, and React for the CryptoSense design system.
+This guide provides step-by-step instructions for setting up Storybook with Shadcn/ui components, Tailwind CSS, and React for the Coinsphere design system.
 
 **Tech Stack:**
 - React 18 + TypeScript
@@ -46,10 +46,10 @@ npm --version   # Should show v10+
 
 ```bash
 # Create new Vite project
-npm create vite@latest cryptosense-ui -- --template react-ts
+npm create vite@latest coinsphere-ui -- --template react-ts
 
 # Navigate to project
-cd cryptosense-ui
+cd coinsphere-ui
 
 # Install dependencies
 npm install
@@ -157,7 +157,7 @@ npx shadcn-ui@latest init
 ### 3.2 Install Core Components
 
 ```bash
-# Install all components needed for CryptoSense
+# Install all components needed for Coinsphere
 npx shadcn-ui@latest add button
 npx shadcn-ui@latest add card
 npx shadcn-ui@latest add table
@@ -1075,13 +1075,13 @@ import { Meta } from '@storybook/blocks';
 
 <Meta title="Introduction" />
 
-# CryptoSense Design System
+# Coinsphere Design System
 
-Welcome to the CryptoSense Analytics Platform design system.
+Welcome to the Coinsphere design system.
 
 ## Getting Started
 
-This Storybook contains all components, patterns, and design tokens used in the CryptoSense application.
+This Storybook contains all components, patterns, and design tokens used in the Coinsphere application.
 
 ### Components
 
@@ -1195,7 +1195,7 @@ When adding new components:
 
 **Document Complete!**
 
-This guide provides everything needed to set up Storybook with the CryptoSense design system. Estimated completion time: 4-6 hours.
+This guide provides everything needed to set up Storybook with the Coinsphere design system. Estimated completion time: 4-6 hours.
 
 **Next:** Share the live Storybook URL with developers and designers for design handoff.
 

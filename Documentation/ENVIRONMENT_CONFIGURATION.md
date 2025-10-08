@@ -1,4 +1,4 @@
-# Environment Configuration Guide - CryptoSense Analytics Platform
+# Environment Configuration Guide - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 7, 2025
@@ -102,7 +102,7 @@ API_VERSION=v1
 # ==================================
 # DATABASE (PostgreSQL + TimescaleDB)
 # ==================================
-DATABASE_URL=postgresql://cryptosense:password@localhost:5432/cryptosense_dev
+DATABASE_URL=postgresql://coinsphere:password@localhost:5432/coinsphere_dev
 DATABASE_SSL=false                      # true in production
 DATABASE_POOL_MIN=5
 DATABASE_POOL_MAX=20
@@ -126,7 +126,7 @@ BCRYPT_ROUNDS=12                        # Password hashing rounds
 
 # Session cookies
 SESSION_SECRET=your-session-secret-key-change-this
-SESSION_COOKIE_NAME=cryptosense_session
+SESSION_COOKIE_NAME=coinsphere_session
 SESSION_MAX_AGE=604800000               # 7 days in milliseconds
 
 # CORS
@@ -168,8 +168,8 @@ STRIPE_PRICE_POWER_TRADER_MONTHLY=price_XXXXXXXXXXXX
 # EMAIL (SendGrid)
 # ==================================
 SENDGRID_API_KEY=SG.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-SENDGRID_FROM_EMAIL=noreply@cryptosense.com
-SENDGRID_FROM_NAME=CryptoSense
+SENDGRID_FROM_EMAIL=noreply@coinsphere.app
+SENDGRID_FROM_NAME=Coinsphere
 
 # Email templates
 SENDGRID_TEMPLATE_WELCOME=d-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -184,11 +184,11 @@ AWS_ACCESS_KEY_ID=AKIAXXXXXXXXXXXXXXXX
 AWS_SECRET_ACCESS_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 # S3 (for ML model storage)
-AWS_S3_BUCKET=cryptosense-models
+AWS_S3_BUCKET=coinsphere-models
 AWS_S3_REGION=us-east-1
 
 # Secrets Manager (for production secrets)
-AWS_SECRETS_MANAGER_ARN=arn:aws:secretsmanager:us-east-1:123456789012:secret:cryptosense-prod
+AWS_SECRETS_MANAGER_ARN=arn:aws:secretsmanager:us-east-1:123456789012:secret:coinsphere-prod
 
 # ==================================
 # MONITORING & LOGGING
@@ -247,13 +247,13 @@ VITE_ENV=development                    # development | staging | production
 # API ENDPOINTS
 # ==================================
 VITE_API_BASE_URL=http://localhost:3001/api/v1
-VITE_WS_URL=ws://localhost:3001         # WebSocket for real-time updates
+VITE_WS_URL=ws://localhost:3001/api/v1/ws         # WebSocket for real-time updates
 
 # ==================================
 # AUTHENTICATION
 # ==================================
-VITE_JWT_STORAGE_KEY=cryptosense_token
-VITE_REFRESH_TOKEN_KEY=cryptosense_refresh_token
+VITE_JWT_STORAGE_KEY=coinsphere_token
+VITE_REFRESH_TOKEN_KEY=coinsphere_refresh_token
 
 # ==================================
 # STRIPE (Public keys only)
@@ -280,9 +280,9 @@ VITE_FEATURE_BETA_PREDICTIONS=false
 # ==================================
 # APP CONFIGURATION
 # ==================================
-VITE_APP_NAME=CryptoSense
+VITE_APP_NAME=Coinsphere
 VITE_APP_URL=http://localhost:5173
-VITE_SUPPORT_EMAIL=support@cryptosense.com
+VITE_SUPPORT_EMAIL=support@coinsphere.app
 
 # ==================================
 # DEVELOPMENT TOOLS
@@ -305,7 +305,7 @@ PORT=8000
 # ==================================
 # DATABASE (Read-only for ML training)
 # ==================================
-DATABASE_URL=postgresql://cryptosense:password@localhost:5432/cryptosense_dev
+DATABASE_URL=postgresql://coinsphere:password@localhost:5432/coinsphere_dev
 
 # ==================================
 # REDIS (Model cache)
@@ -318,7 +318,7 @@ REDIS_DB=1                              # Use different DB than backend
 # ML MODEL CONFIGURATION
 # ==================================
 MODEL_VERSION=v1.0.0
-MODEL_S3_BUCKET=cryptosense-models
+MODEL_S3_BUCKET=coinsphere-models
 MODEL_S3_PREFIX=lstm/                   # models/lstm/btc_v1.0.0.pth
 
 # Model hyperparameters
@@ -353,7 +353,7 @@ AWS_SECRET_ACCESS_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # MLFLOW (Experiment tracking)
 # ==================================
 MLFLOW_TRACKING_URI=http://localhost:5000  # Local MLflow server
-# MLFLOW_TRACKING_URI=https://mlflow.cryptosense.com  # Production
+# MLFLOW_TRACKING_URI=https://mlflow.coinsphere.app  # Production
 
 # ==================================
 # INFERENCE CONFIGURATION
@@ -383,25 +383,25 @@ version: '3.8'
 services:
   postgres:
     image: timescale/timescaledb:latest-pg15
-    container_name: cryptosense_db
+    container_name: coinsphere_db
     environment:
-      POSTGRES_USER: cryptosense
+      POSTGRES_USER: coinsphere
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: cryptosense_dev
+      POSTGRES_DB: coinsphere_dev
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cryptosense"]
+      test: ["CMD-SHELL", "pg_isready -U coinsphere"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: cryptosense_redis
+    container_name: coinsphere_redis
     ports:
       - "6379:6379"
     volumes:
@@ -415,7 +415,7 @@ services:
   # Optional: MLflow (for experiment tracking)
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.8.0
-    container_name: cryptosense_mlflow
+    container_name: coinsphere_mlflow
     ports:
       - "5000:5000"
     command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns
@@ -549,12 +549,12 @@ nano .env
 ```bash
 # Create secret
 aws secretsmanager create-secret \
-  --name cryptosense-prod-secrets \
+  --name coinsphere-prod-secrets \
   --secret-string file://secrets.json
 
 # Retrieve secret (in app startup)
 aws secretsmanager get-secret-value \
-  --secret-id cryptosense-prod-secrets \
+  --secret-id coinsphere-prod-secrets \
   --query SecretString \
   --output text
 ```
@@ -569,7 +569,7 @@ export async function loadSecrets() {
 
   const response = await client.send(
     new GetSecretValueCommand({
-      SecretId: "cryptosense-prod-secrets",
+      SecretId: "coinsphere-prod-secrets",
     })
   );
 
@@ -585,7 +585,7 @@ export async function loadSecrets() {
 ### 6.3 1Password (Team Secrets)
 
 **Shared secrets vault**:
-- Vault name: `CryptoSense Engineering`
+- Vault name: `Coinsphere Engineering`
 - Categories:
   - `Development` - Local test keys
   - `Staging` - Staging environment keys
@@ -628,7 +628,7 @@ export async function loadSecrets() {
 **Task Definition** (`ecs-task-def.json`):
 ```json
 {
-  "family": "cryptosense-backend",
+  "family": "coinsphere-backend",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
@@ -636,7 +636,7 @@ export async function loadSecrets() {
   "containerDefinitions": [
     {
       "name": "backend",
-      "image": "123456789012.dkr.ecr.us-east-1.amazonaws.com/cryptosense-backend:latest",
+      "image": "123456789012.dkr.ecr.us-east-1.amazonaws.com/coinsphere-backend:latest",
       "portMappings": [
         {
           "containerPort": 3001,
@@ -652,13 +652,13 @@ export async function loadSecrets() {
       "secrets": [
         {
           "name": "DATABASE_URL",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:cryptosense-prod:DATABASE_URL::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789012:secret:coinsphere-prod:DATABASE_URL::"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/cryptosense-backend",
+          "awslogs-group": "/ecs/coinsphere-backend",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
@@ -700,7 +700,7 @@ export async function loadSecrets() {
 
    # Update in AWS Secrets Manager
    aws secretsmanager update-secret \
-     --secret-id cryptosense-prod-secrets \
+     --secret-id coinsphere-prod-secrets \
      --secret-string "{\"JWT_SECRET\":\"$NEW_SECRET\"}"
    ```
 
@@ -708,7 +708,7 @@ export async function loadSecrets() {
    ```bash
    # Trigger ECS task update (pulls new secrets)
    aws ecs update-service \
-     --cluster cryptosense-prod \
+     --cluster coinsphere-prod \
      --service backend \
      --force-new-deployment
    ```
@@ -724,7 +724,7 @@ export async function loadSecrets() {
 ```bash
 # View who accessed secrets
 aws cloudtrail lookup-events \
-  --lookup-attributes AttributeKey=ResourceName,AttributeValue=cryptosense-prod-secrets \
+  --lookup-attributes AttributeKey=ResourceName,AttributeValue=coinsphere-prod-secrets \
   --max-items 50
 ```
 
@@ -740,7 +740,7 @@ aws cloudtrail lookup-events \
 
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=postgresql://user:password@localhost:5432/cryptosense_dev
+DATABASE_URL=postgresql://user:password@localhost:5432/coinsphere_dev
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=change-this-to-a-random-32-char-string
 COINGECKO_API_KEY=your-api-key-here
@@ -761,7 +761,7 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your-key-here
 ```bash
 ENV=development
 PORT=8000
-DATABASE_URL=postgresql://user:password@localhost:5432/cryptosense_dev
+DATABASE_URL=postgresql://user:password@localhost:5432/coinsphere_dev
 REDIS_URL=redis://localhost:6379
 MODEL_VERSION=v1.0.0
 ```

@@ -1,45 +1,50 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Toaster } from '@/components/ui/toaster';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { Header } from "@/components/header"
+import { PortfolioHero } from "@/components/portfolio-hero"
+import { QuickActions } from "@/components/quick-actions"
+import { AssetAllocation } from "@/components/asset-allocation"
+import { HoldingsTable } from "@/components/holdings-table"
+import { RecentTransactions } from "@/components/recent-transactions"
+import { LoginPage } from "@/pages/LoginPage"
+import { SignupPage } from "@/pages/SignupPage"
+import { ProtectedRoute } from "@/components/ProtectedRoute"
 
-// Pages (to be created)
-import HomePage from '@/pages/HomePage';
-import DashboardPage from '@/pages/DashboardPage';
-import PortfolioPage from '@/pages/PortfolioPage';
-import AlertsPage from '@/pages/AlertsPage';
-import SettingsPage from '@/pages/SettingsPage';
-import LoginPage from '@/pages/LoginPage';
-import SignupPage from '@/pages/SignupPage';
-
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000, // 30 seconds
-      retry: 1,
-    },
-  },
-});
-
-function App() {
+function DashboardPage() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/portfolio" element={<PortfolioPage />} />
-          <Route path="/alerts" element={<AlertsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Routes>
-        <Toaster />
-      </BrowserRouter>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  );
+    <div className="min-h-screen bg-transparent">
+      <Header />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <PortfolioHero />
+        <QuickActions />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <AssetAllocation />
+          <HoldingsTable />
+        </div>
+
+        <RecentTransactions />
+      </main>
+    </div>
+  )
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  )
+}

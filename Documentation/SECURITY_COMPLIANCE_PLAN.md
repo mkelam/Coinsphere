@@ -1,4 +1,4 @@
-# Security & Compliance Plan - CryptoSense Analytics Platform
+# Security & Compliance Plan - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 6, 2025
@@ -390,7 +390,7 @@ app.use((req, res, next) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https:; " +
-    "connect-src 'self' https://api.cryptosense.com;"
+    "connect-src 'self' https://api.coinsphere.app;"
   );
   next();
 });
@@ -503,7 +503,7 @@ WORKDIR /app
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 USER nodejs
-EXPOSE 3000
+EXPOSE 3001
 CMD ["node", "dist/server.js"]
 ```
 
@@ -729,10 +729,10 @@ What You Should Do:
 
 We sincerely apologize for this incident. Your security is our top priority.
 
-For questions, contact: security@cryptosense.com
+For questions, contact: security@coinsphere.app
 
 Sincerely,
-CryptoSense Security Team
+Coinsphere Security Team
 ```
 
 ---

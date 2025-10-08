@@ -1,4 +1,4 @@
-# Go-to-Market Plan - CryptoSense Analytics Platform
+# Go-to-Market Plan - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 6, 2025
@@ -30,7 +30,7 @@
 ## 1. Executive Summary
 
 ### Mission
-Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfolio tracker for active traders within 12 months.
+Launch Coinsphere to become the #1 AI-powered crypto portfolio tracker for active traders within 12 months.
 
 ### Strategic Approach
 **Bottom-Up, Community-First Growth** - Build product credibility through daily public predictions on Twitter, engage crypto communities authentically, and let users become advocates.
@@ -47,10 +47,13 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 |--------|---------|---------|----------|
 | **Total Users** | 2,000 | 10,000 | 50,000 |
 | **Paid Users** | 200 (10%) | 430 (4.3%) | 2,150 (4.3%) |
-| **MRR** | $4,000 | $10,000 | $35,000 |
+| **MRR** | $3,000-4,000* | $10,000** | $35,000** |
 | **ARR** | - | - | $420,000 |
 | **CAC** | $20 | $15 | $12 |
 | **LTV:CAC** | 2:1 | 2.5:1 | 3:1 |
+
+*Rounded targets. See FINANCIAL_MODEL.md for detailed monthly projections with churn.
+**Annual prepays boost effective MRR by 25-30% to reach $420K ARR.
 
 ### Total Marketing Budget (Year 1)
 - **Month 1-3 (MVP Launch):** $5,000 (bootstrap)
@@ -236,7 +239,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 ### 4.2 Core Messaging Framework
 
 **Primary Message:**
-"CryptoSense uses AI to predict market movements and score investment risks, so you can trade with confidence instead of FOMO."
+"Coinsphere uses AI to predict market movements and score investment risks, so you can trade with confidence instead of FOMO."
 
 **Supporting Messages:**
 
@@ -255,7 +258,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 ### 4.3 Value Propositions by Tier
 
 **Free Tier:**
-- "Try CryptoSense free. Track up to 5 portfolios and see basic predictions."
+- "Try Coinsphere free. Track up to 5 portfolios and see basic predictions."
 
 **Plus Tier ($9.99/mo):**
 - "Upgrade to Plus for BTC/ETH predictions and 10 custom alerts."
@@ -270,7 +273,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 
 ### 4.4 Competitive Positioning
 
-| Attribute | CoinStats | Delta | Glassnode | CryptoSense |
+| Attribute | CoinStats | Delta | Glassnode | Coinsphere |
 |-----------|-----------|-------|-----------|-------------|
 | **AI Predictions** | ❌ | ❌ | ⚠️ (complex) | ✅ Simple + transparent |
 | **Risk Scoring** | ❌ | ❌ | ⚠️ (on-chain only) | ✅ Multi-factor |
@@ -279,7 +282,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 | **Target User** | Casual trackers | Casual trackers | Institutions | Active traders |
 
 **Positioning Statement:**
-"For active crypto traders who want predictive insights, CryptoSense is the AI-powered portfolio tracker that predicts market movements with transparent accuracy, unlike CoinStats and Delta which only show historical data."
+"For active crypto traders who want predictive insights, Coinsphere is the AI-powered portfolio tracker that predicts market movements with transparent accuracy, unlike CoinStats and Delta which only show historical data."
 
 ---
 
@@ -295,7 +298,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 **Tactics:**
 
 1. **Twitter Presence (Week -8)**
-   - Create @CryptoSenseAI account
+   - Create @CoinsphereAI account
    - Post daily: crypto market insights, prediction backtests, AI/ML content
    - Engage with crypto influencers (likes, thoughtful replies)
    - Goal: 500+ followers by launch
@@ -331,13 +334,13 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 
 **Day 1: Soft Launch (Private Beta Expansion)**
 - Open beta to all 500 waitlist signups
-- Email: "You're in! Here's your exclusive access to CryptoSense."
+- Email: "You're in! Here's your exclusive access to Coinsphere."
 - Ask for feedback in Discord
 - Monitor for critical bugs
 
 **Day 3: Product Hunt Launch**
 - Post at 12:01 AM PT (maximize visibility)
-- Title: "CryptoSense - AI-powered crypto tracker that predicts the future"
+- Title: "Coinsphere - AI-powered crypto tracker that predicts the future"
 - Description: Value props, demo video, call to action
 - Engage in comments all day (respond within 5 minutes)
 - Goal: #1 Product of the Day
@@ -353,7 +356,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
   - r/CryptoCurrency: "I built an AI crypto tracker that predicts trends (70% accuracy). Here's how."
   - r/CryptoTechnology: Technical deep-dive post
   - r/Bitcoin, r/Ethereum: Asset-specific insights
-- HackerNews post: "Show HN: CryptoSense - AI predictions for crypto portfolios"
+- HackerNews post: "Show HN: Coinsphere - AI predictions for crypto portfolios"
 
 **Day 7: Launch Recap**
 - Twitter thread: "We launched 1 week ago. Here's what happened:"
@@ -428,7 +431,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 1. **Value-First Posts (Not Promotional):**
    - Share insights: "I analyzed 5 years of BTC data. Here's what predicts bull runs."
    - Show work: Share Jupyter notebook, charts, methodology
-   - Mention CryptoSense in comments only if asked
+   - Mention Coinsphere in comments only if asked
 
 2. **Weekly AMAs:**
    - r/CryptoCurrency: "I built an AI crypto predictor. AMA."
@@ -438,7 +441,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 3. **Community Participation:**
    - Daily comment in Daily Discussion threads
    - Award quality posts (Reddit Gold, $5-10/week)
-   - Flair: "CryptoSense - AI Predictions"
+   - Flair: "Coinsphere - AI Predictions"
 
 **Metrics:**
 - Karma earned: 1K (Mo 1) → 10K (Mo 12)
@@ -463,7 +466,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
    - Track conversions via code
 
 2. **Content:**
-   - "Stop using CoinStats. Here's why I switched to CryptoSense."
+   - "Stop using CoinStats. Here's why I switched to Coinsphere."
    - Demo: Show live predictions, risk scores, alerts
    - Authenticity: Let influencer critique honestly (builds trust)
 
@@ -482,7 +485,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 1. **Awareness Campaigns:**
    - Objective: Reach
    - Audience: Crypto Twitter followers, engaged with @CoinDesk, @CoinGecko, @CoinStats
-   - Creative: "Your portfolio tracker should predict the future. Meet CryptoSense." + demo video
+   - Creative: "Your portfolio tracker should predict the future. Meet Coinsphere." + demo video
    - Budget: $1,000/mo
 
 2. **Conversion Campaigns:**
@@ -508,7 +511,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 
 **Ad Copy:**
 - Headline: "AI-Powered Crypto Tracker | Predict Market Trends"
-- Description: "Stop guessing. CryptoSense predicts BTC/ETH with 70% accuracy. Free trial."
+- Description: "Stop guessing. Coinsphere predicts BTC/ETH with 70% accuracy. Free trial."
 - CTA: "Start Free Trial"
 
 **Metrics:**
@@ -564,10 +567,10 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 
 **Built-In Sharing:**
 - "Share Your Wins" button:
-  - One-click tweet: "My portfolio is up 45% this month thanks to @CryptoSenseAI predictions 🚀"
-  - Auto-generates image (portfolio chart with CryptoSense branding)
+  - One-click tweet: "My portfolio is up 45% this month thanks to @CoinsphereAI predictions 🚀"
+  - Auto-generates image (portfolio chart with Coinsphere branding)
 - "Share Prediction Accuracy" button:
-  - Tweet: "CryptoSense predicted BTC would hit $50K this week. Nailed it. 🎯"
+  - Tweet: "Coinsphere predicted BTC would hit $50K this week. Nailed it. 🎯"
 
 **Gamification:**
 - Leaderboard: Top predictors (users who follow predictions and profit)
@@ -582,7 +585,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 
 **Conversion Funnel:**
 
-1. **Awareness** → User hears about CryptoSense (Twitter, YouTube, Reddit)
+1. **Awareness** → User hears about Coinsphere (Twitter, YouTube, Reddit)
 2. **Interest** → Visits website, reads blog post
 3. **Trial** → Signs up for Free tier
 4. **Activation** → Connects first exchange, sees portfolio
@@ -659,7 +662,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 3. **Kraken** - Strong reputation, API-friendly
 
 **Partnership Benefits:**
-- **For CryptoSense:**
+- **For Coinsphere:**
   - Featured in exchange's app marketplace
   - Co-marketing (email blast to users, social media shoutout)
   - API rate limit increases
@@ -668,7 +671,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
   - Revenue share (10-20% of subscriptions from referred users)
 
 **Pitch:**
-"CryptoSense helps your users make smarter trades with AI predictions. We'll drive engagement and retention, and share revenue with you."
+"Coinsphere helps your users make smarter trades with AI predictions. We'll drive engagement and retention, and share revenue with you."
 
 **Outreach:**
 - Month 6: Reach out to Binance BD team
@@ -773,7 +776,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 
 ### 9.3 Reddit Presence
 
-**Subreddit: r/CryptoSense (Launch Month 3)**
+**Subreddit: r/Coinsphere (Launch Month 3)**
 
 **Purpose:**
 - Centralized community for discussions
@@ -793,7 +796,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 ### 9.4 Ambassador Program (Launch Month 6)
 
 **Ambassadors:**
-- 10-20 power users who evangelize CryptoSense
+- 10-20 power users who evangelize Coinsphere
 - Requirements: Active on Twitter/Discord, 500+ followers, helpful community member
 
 **Benefits:**
@@ -804,7 +807,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 - Revenue share (10% of referrals, up to $500/mo)
 
 **Responsibilities:**
-- Share CryptoSense content 2x per week
+- Share Coinsphere content 2x per week
 - Answer community questions in Discord
 - Provide product feedback
 - Optional: Create content (YouTube reviews, blog posts)
@@ -857,7 +860,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 **Content Types:**
 
 1. **Product Tutorials (50%):**
-   - "How to Connect Your Binance Account to CryptoSense"
+   - "How to Connect Your Binance Account to Coinsphere"
    - "Understanding Degen Risk Scores"
    - "Setting Up Custom Alerts"
 
@@ -867,7 +870,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 
 3. **Behind the Scenes (20%):**
    - "How We Train Our Prediction Models"
-   - "Building CryptoSense: Founder's Journey"
+   - "Building Coinsphere: Founder's Journey"
 
 **Publishing Frequency:**
 - 1 video per week (start Month 6)
@@ -916,11 +919,11 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 ### 11.1 Public Prediction Loop (Core Growth Loop)
 
 **Mechanism:**
-1. CryptoSense posts daily BTC/ETH predictions on Twitter (public, free)
+1. Coinsphere posts daily BTC/ETH predictions on Twitter (public, free)
 2. Users see predictions, check accuracy history (70%+ builds trust)
 3. Users sign up for free to get personalized predictions
 4. Users see value, upgrade to Pro for full features
-5. Users share wins on Twitter ("CryptoSense predicted this! 🚀")
+5. Users share wins on Twitter ("Coinsphere predicted this! 🚀")
 6. Loop repeats: More people see tweets → Sign up → Share wins
 
 **Why It Works:**
@@ -935,7 +938,7 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 ### 11.2 Referral Loop
 
 **Mechanism:**
-1. User loves CryptoSense, wants to share
+1. User loves Coinsphere, wants to share
 2. User sends referral link to friend ("Get 10% off + I get $10 credit")
 3. Friend signs up, stays active 30 days
 4. Both user and friend get rewards ($10 credit, 10% off)
@@ -954,11 +957,11 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 
 **Mechanism:**
 1. User has a question ("How do Degen Risk Scores work?")
-2. User searches Google → Finds CryptoSense blog post (SEO)
-3. User reads post, clicks CTA ("Try CryptoSense Free")
+2. User searches Google → Finds Coinsphere blog post (SEO)
+3. User reads post, clicks CTA ("Try Coinsphere Free")
 4. User signs up, uses product
 5. User writes testimonial or case study
-6. CryptoSense publishes testimonial as new content
+6. Coinsphere publishes testimonial as new content
 7. Loop repeats
 
 **Content Flywheel:**
@@ -1288,11 +1291,11 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 5. On-Chain Metrics Explained: What Are They and Why They Matter
 
 **Product:**
-6. How We Built CryptoSense: Tech Stack & Architecture
+6. How We Built Coinsphere: Tech Stack & Architecture
 7. Degen Risk Scores: How We Calculate Risk (0-100)
 8. Why We Show Prediction Accuracy Publicly (Even Failures)
 9. The Missing Middle: Why Crypto Tools Are $0 or $100/Month
-10. CryptoSense vs CoinStats: Feature Comparison
+10. Coinsphere vs CoinStats: Feature Comparison
 
 **Market Analysis:**
 11. Weekly Crypto Predictions: AI Insights for [Week]
@@ -1314,12 +1317,12 @@ Launch CryptoSense Analytics Platform to become the #1 AI-powered crypto portfol
 
 ### Welcome Email (Transactional)
 
-**Subject:** Welcome to CryptoSense! Let's Get You Started 🚀
+**Subject:** Welcome to Coinsphere! Let's Get You Started 🚀
 
 **Body:**
 Hi [Name],
 
-Welcome to CryptoSense! You're now part of a community of 10,000+ traders using AI to make smarter crypto decisions.
+Welcome to Coinsphere! You're now part of a community of 10,000+ traders using AI to make smarter crypto decisions.
 
 Here's how to get started in 5 minutes:
 
@@ -1329,10 +1332,10 @@ Here's how to get started in 5 minutes:
 
 **Quick Tip:** Enable alerts to get notified when our AI predicts big moves. [Set Up Alerts]
 
-Got questions? Reply to this email or join our Discord: [discord.gg/cryptosense]
+Got questions? Reply to this email or join our Discord: [discord.gg/coinsphere]
 
 Happy trading!
-The CryptoSense Team
+The Coinsphere Team
 
 ---
 
@@ -1367,7 +1370,7 @@ Here are this week's AI predictions for your portfolio:
 Want predictions for more assets? Upgrade to Pro: [Upgrade Now]
 
 See you next week!
-The CryptoSense Team
+The Coinsphere Team
 
 ---
 

@@ -1,5 +1,5 @@
 # Business Requirements Document
-## CryptoSense Analytics Platform - Retail Focus
+## Coinsphere - Retail Focus
 
 **Document Version**: 2.0 (Aligned)
 **Date**: October 6, 2025
@@ -26,7 +26,7 @@ The crypto portfolio tracking market is experiencing a **critical inflection poi
 
 ### 1.2 Product Vision
 
-Build **CryptoSense Analytics** - the first AI-powered crypto portfolio platform that:
+Build **Coinsphere** - the first AI-powered crypto portfolio platform that:
 1. **Predicts market movements** using transparent LSTM models
 2. **Scores investment risk** for every asset in real-time
 3. **Synchronizes reliably** (99%+ accuracy vs competitors' 70-80%)
@@ -865,7 +865,7 @@ def calculate_risk_score(asset_data):
 
 ## 13. APPROVAL & SIGN-OFF
 
-This document represents the aligned business requirements for CryptoSense Analytics Platform.
+This document represents the aligned business requirements for Coinsphere.
 
 **Approved By:**
 - CEO/Founder: _________________ Date: _______

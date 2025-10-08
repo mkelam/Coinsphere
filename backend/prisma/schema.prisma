@@ -1,0 +1,245 @@
+// Coinsphere - Prisma Schema
+// Database: PostgreSQL 15 + TimescaleDB
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Authentication & Profile
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  emailVerified Boolean  @default(false) @map("email_verified")
+
+  // Profile
+  firstName     String?  @map("first_name")
+  lastName      String?  @map("last_name")
+  avatarUrl     String?  @map("avatar_url")
+
+  // Subscription
+  subscriptionTier String @default("free") @map("subscription_tier") // free, plus, pro, power_trader
+  subscriptionStatus String @default("active") @map("subscription_status") // active, cancelled, past_due
+  stripeCustomerId String? @unique @map("stripe_customer_id")
+  stripeSubscriptionId String? @unique @map("stripe_subscription_id")
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  lastLoginAt   DateTime? @map("last_login_at")
+
+  // Relations
+  portfolios    Portfolio[]
+  alerts        Alert[]
+  apiKeys       ApiKey[]
+
+  @@map("users")
+}
+
+// Crypto Token Metadata
+model Token {
+  id            String   @id @default(uuid())
+  symbol        String   @unique // BTC, ETH, SOL
+  name          String   // Bitcoin, Ethereum, Solana
+  coingeckoId   String?  @unique @map("coingecko_id")
+
+  // Token Details
+  blockchain    String   // ethereum, solana, bitcoin, etc
+  contractAddress String? @map("contract_address")
+  decimals      Int?
+  logoUrl       String?  @map("logo_url")
+
+  // Market Data (cached)
+  currentPrice  Float?   @map("current_price")
+  marketCap     Float?   @map("market_cap")
+  volume24h     Float?   @map("volume_24h")
+  priceChange24h Float?  @map("price_change_24h")
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  holdings      Holding[]
+  predictions   Prediction[]
+  riskScores    RiskScore[]
+
+  @@map("tokens")
+}
+
+// User Portfolio Holdings
+model Portfolio {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  name          String   @default("Main Portfolio")
+  description   String?
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  holdings      Holding[]
+
+  @@map("portfolios")
+  @@index([userId])
+}
+
+// Individual Holdings
+model Holding {
+  id            String   @id @default(uuid())
+  portfolioId   String   @map("portfolio_id")
+  tokenId       String   @map("token_id")
+
+  // Holding Details
+  amount        Float
+  averageBuyPrice Float? @map("average_buy_price")
+  source        String?  // exchange, wallet, manual
+  sourceId      String?  @map("source_id") // exchange account ID or wallet address
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  token         Token     @relation(fields: [tokenId], references: [id])
+
+  @@map("holdings")
+  @@index([portfolioId])
+  @@index([tokenId])
+}
+
+// Price Predictions
+model Prediction {
+  id            String   @id @default(uuid())
+  tokenId       String   @map("token_id")
+
+  // Prediction Details
+  predictionType String  @map("prediction_type") // 7d, 14d, 30d
+  predictedPrice Float   @map("predicted_price")
+  confidence    Float    // 0-1
+
+  // Model Info
+  modelVersion  String   @map("model_version")
+  features      Json?    // Store feature values used
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  expiresAt     DateTime @map("expires_at")
+
+  // Relations
+  token         Token    @relation(fields: [tokenId], references: [id])
+
+  @@map("predictions")
+  @@index([tokenId])
+  @@index([createdAt])
+}
+
+// Degen Risk Scores
+model RiskScore {
+  id            String   @id @default(uuid())
+  tokenId       String   @map("token_id")
+
+  // Risk Score (0-100)
+  overallScore  Int      @map("overall_score")
+
+  // Component Scores
+  liquidityScore Int?    @map("liquidity_score")
+  volatilityScore Int?   @map("volatility_score")
+  contractScore Int?     @map("contract_score")
+  holderScore   Int?     @map("holder_score")
+
+  // Details
+  analysis      Json?    // Store detailed analysis
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  expiresAt     DateTime @map("expires_at")
+
+  // Relations
+  token         Token    @relation(fields: [tokenId], references: [id])
+
+  @@map("risk_scores")
+  @@index([tokenId])
+  @@index([createdAt])
+}
+
+// User Alerts
+model Alert {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+
+  // Alert Configuration
+  alertType     String   @map("alert_type") // price, risk, prediction
+  tokenSymbol   String   @map("token_symbol")
+  condition     String   // above, below, equals
+  threshold     Float
+
+  // Status
+  isActive      Boolean  @default(true) @map("is_active")
+  lastTriggered DateTime? @map("last_triggered")
+  triggerCount  Int      @default(0) @map("trigger_count")
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("alerts")
+  @@index([userId])
+  @@index([isActive])
+}
+
+// API Keys for Programmatic Access
+model ApiKey {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+
+  // Key Details
+  name          String
+  keyHash       String   @unique @map("key_hash") // Hashed API key
+  lastUsedAt    DateTime? @map("last_used_at")
+
+  // Permissions
+  scopes        String[] @default(["read:portfolio"]) // read:portfolio, write:portfolio, etc
+
+  // Status
+  isActive      Boolean  @default(true) @map("is_active")
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  expiresAt     DateTime? @map("expires_at")
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+  @@index([userId])
+}
+
+// Time-Series Price Data (TimescaleDB hypertable)
+// Note: This will be created via raw SQL after migration
+model PriceData {
+  time          DateTime
+  tokenId       String   @map("token_id")
+
+  // OHLCV
+  open          Float
+  high          Float
+  low           Float
+  close         Float
+  volume        Float
+
+  @@id([time, tokenId])
+  @@map("price_data")
+  @@index([tokenId])
+}

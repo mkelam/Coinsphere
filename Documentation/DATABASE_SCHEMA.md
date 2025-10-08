@@ -1,4 +1,4 @@
-# Database Schema Specification - CryptoSense Analytics Platform
+# Database Schema Specification - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 7, 2025
@@ -834,9 +834,9 @@ async def migrate_price_data(coins, days):
 -- Test users
 INSERT INTO users (id, email, password_hash, first_name, tier, email_verified)
 VALUES
-    ('11111111-1111-1111-1111-111111111111', 'admin@cryptosense.dev', '$2b$12$...', 'Admin', 'power-trader', TRUE),
-    ('22222222-2222-2222-2222-222222222222', 'pro@cryptosense.dev', '$2b$12$...', 'Pro User', 'pro', TRUE),
-    ('33333333-3333-3333-3333-333333333333', 'free@cryptosense.dev', '$2b$12$...', 'Free User', 'free', TRUE);
+    ('11111111-1111-1111-1111-111111111111', 'admin@coinsphere.dev', '$2b$12$...', 'Admin', 'power-trader', TRUE),
+    ('22222222-2222-2222-2222-222222222222', 'pro@coinsphere.dev', '$2b$12$...', 'Pro User', 'pro', TRUE),
+    ('33333333-3333-3333-3333-333333333333', 'free@coinsphere.dev', '$2b$12$...', 'Free User', 'free', TRUE);
 
 -- Test portfolios
 INSERT INTO portfolios (id, user_id, name, is_primary)
@@ -891,10 +891,10 @@ VALUES
 
 ```bash
 # Daily backup script
-pg_dump -h $DB_HOST -U $DB_USER -Fc cryptosense > backups/cryptosense_$(date +%Y%m%d).dump
+pg_dump -h $DB_HOST -U $DB_USER -Fc coinsphere > backups/coinsphere_$(date +%Y%m%d).dump
 
 # Upload to S3
-aws s3 cp backups/cryptosense_$(date +%Y%m%d).dump s3://cryptosense-backups/
+aws s3 cp backups/coinsphere_$(date +%Y%m%d).dump s3://coinsphere-backups/
 ```
 
 **Incremental Backups**:
@@ -911,10 +911,10 @@ aws s3 cp backups/cryptosense_$(date +%Y%m%d).dump s3://cryptosense-backups/
 **Full Restore**:
 ```bash
 # Download backup from S3
-aws s3 cp s3://cryptosense-backups/cryptosense_20251007.dump .
+aws s3 cp s3://coinsphere-backups/coinsphere_20251007.dump .
 
 # Restore database
-pg_restore -h $DB_HOST -U $DB_USER -d cryptosense_restored cryptosense_20251007.dump
+pg_restore -h $DB_HOST -U $DB_USER -d coinsphere_restored coinsphere_20251007.dump
 ```
 
 **Point-in-Time Restore** (using WAL):

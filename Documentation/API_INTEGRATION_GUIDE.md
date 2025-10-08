@@ -1,4 +1,4 @@
-# API Integration Guide - CryptoSense Analytics Platform
+# API Integration Guide - Coinsphere
 
 **Document Version**: 1.0
 **Date**: October 7, 2025
