@@ -6,6 +6,8 @@
 
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../utils/logger.js';
+import { toDecimal, divide, subtract, multiply, add, toNumber } from '../utils/decimal.js';
+import Decimal from 'decimal.js';
 
 interface PredictionResult {
   predictedPrice: number;
@@ -101,15 +103,15 @@ export class PredictionEngine {
   }
 
   /**
-   * Calculate technical indicators
+   * Calculate technical indicators (using Decimal for precision)
    */
   private calculateTechnicalIndicators(data: any[]) {
     if (data.length < 14) {
       return {}; // Not enough data for indicators
     }
 
-    const closePrices = data.map((d) => d.close);
-    const volumes = data.map((d) => d.volume);
+    const closePrices = data.map((d) => toDecimal(d.close));
+    const volumes = data.map((d) => toDecimal(d.volume));
 
     return {
       rsi: this.calculateRSI(closePrices),
@@ -120,32 +122,32 @@ export class PredictionEngine {
   }
 
   /**
-   * Calculate RSI (Relative Strength Index)
+   * Calculate RSI (Relative Strength Index) using Decimal for precision
    */
-  private calculateRSI(prices: number[], period: number = 14): number {
+  private calculateRSI(prices: Decimal[], period: number = 14): number {
     if (prices.length < period + 1) return 50;
 
-    let gains = 0;
-    let losses = 0;
+    let gains = new Decimal(0);
+    let losses = new Decimal(0);
 
     for (let i = prices.length - period; i < prices.length; i++) {
-      const change = prices[i] - prices[i - 1];
-      if (change > 0) {
-        gains += change;
+      const change = prices[i].minus(prices[i - 1]);
+      if (change.greaterThan(0)) {
+        gains = gains.plus(change);
       } else {
-        losses += Math.abs(change);
+        losses = losses.plus(change.abs());
       }
     }
 
-    const avgGain = gains / period;
-    const avgLoss = losses / period;
+    const avgGain = gains.dividedBy(period);
+    const avgLoss = losses.dividedBy(period);
 
-    if (avgLoss === 0) return 100;
+    if (avgLoss.isZero()) return 100;
 
-    const rs = avgGain / avgLoss;
-    const rsi = 100 - 100 / (1 + rs);
+    const rs = avgGain.dividedBy(avgLoss);
+    const rsi = new Decimal(100).minus(new Decimal(100).dividedBy(rs.plus(1)));
 
-    return Number(rsi.toFixed(2));
+    return toNumber(rsi, 2);
   }
 
   /**

@@ -6,6 +6,8 @@
 
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../utils/logger.js';
+import { toDecimal, divide, subtract, toNumber } from '../utils/decimal.js';
+import Decimal from 'decimal.js';
 
 interface RiskScoreResult {
   overallScore: number; // 0-100
@@ -95,14 +97,14 @@ export class RiskEngine {
   }
 
   /**
-   * Calculate liquidity score based on volume and market cap
+   * Calculate liquidity score based on volume and market cap (using Decimal for precision)
    */
   private calculateLiquidityScore(token: any): number {
-    const volume24h = token.volume24h || 0;
-    const marketCap = token.marketCap || 1;
+    const volume24h = toDecimal(token.volume24h);
+    const marketCap = toDecimal(token.marketCap).greaterThan(0) ? toDecimal(token.marketCap) : new Decimal(1);
 
     // Volume to market cap ratio (higher is better for liquidity)
-    const volumeToMarketCapRatio = volume24h / marketCap;
+    const volumeToMarketCapRatio = divide(volume24h, marketCap).toNumber();
 
     // Score: 0-100 (0 = highly liquid, 100 = illiquid/risky)
     if (volumeToMarketCapRatio > 0.5) return 10; // Very liquid
@@ -114,26 +116,45 @@ export class RiskEngine {
   }
 
   /**
-   * Calculate volatility score from historical price data
+   * Calculate volatility score from historical price data (using Decimal for precision)
    */
   private calculateVolatilityScore(data: any[]): number {
     if (data.length < 2) return 50; // Default moderate score
 
-    // Calculate daily returns
-    const returns: number[] = [];
+    // Calculate daily returns using Decimal
+    const returns: Decimal[] = [];
     for (let i = 1; i < data.length; i++) {
-      const dailyReturn = (data[i].close - data[i - 1].close) / data[i - 1].close;
-      returns.push(dailyReturn);
+      const currentClose = toDecimal(data[i].close);
+      const previousClose = toDecimal(data[i - 1].close);
+
+      if (previousClose.greaterThan(0)) {
+        const dailyReturn = divide(subtract(currentClose, previousClose), previousClose);
+        returns.push(dailyReturn);
+      }
     }
 
-    // Calculate standard deviation (volatility)
-    const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-    const variance =
-      returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
-    const stdDev = Math.sqrt(variance);
+    if (returns.length === 0) return 50;
+
+    // Calculate mean
+    let sum = new Decimal(0);
+    for (const r of returns) {
+      sum = sum.plus(r);
+    }
+    const mean = sum.dividedBy(returns.length);
+
+    // Calculate variance
+    let varianceSum = new Decimal(0);
+    for (const r of returns) {
+      const diff = r.minus(mean);
+      varianceSum = varianceSum.plus(diff.times(diff));
+    }
+    const variance = varianceSum.dividedBy(returns.length);
+
+    // Standard deviation
+    const stdDev = new Decimal(Math.sqrt(variance.toNumber()));
 
     // Convert to percentage
-    const volatilityPercent = stdDev * 100;
+    const volatilityPercent = stdDev.times(100).toNumber();
 
     // Score: 0-100 (higher volatility = higher risk)
     if (volatilityPercent < 2) return 15; // Very stable
@@ -145,27 +166,30 @@ export class RiskEngine {
   }
 
   /**
-   * Calculate market cap score
+   * Calculate market cap score (using Decimal for precision)
    */
-  private calculateMarketCapScore(marketCap: number): number {
+  private calculateMarketCapScore(marketCap: number | Decimal): number {
     // Larger market cap = more established = lower risk
+    const mcap = toDecimal(marketCap).toNumber();
 
-    if (marketCap > 100_000_000_000) return 10; // $100B+ (BTC, ETH)
-    if (marketCap > 10_000_000_000) return 20; // $10B+ (Top 20)
-    if (marketCap > 1_000_000_000) return 35; // $1B+ (Top 100)
-    if (marketCap > 100_000_000) return 55; // $100M+ (Mid cap)
-    if (marketCap > 10_000_000) return 75; // $10M+ (Small cap)
-    if (marketCap > 1_000_000) return 90; // $1M+ (Micro cap - very risky)
+    if (mcap > 100_000_000_000) return 10; // $100B+ (BTC, ETH)
+    if (mcap > 10_000_000_000) return 20; // $10B+ (Top 20)
+    if (mcap > 1_000_000_000) return 35; // $1B+ (Top 100)
+    if (mcap > 100_000_000) return 55; // $100M+ (Mid cap)
+    if (mcap > 10_000_000) return 75; // $10M+ (Small cap)
+    if (mcap > 1_000_000) return 90; // $1M+ (Micro cap - very risky)
     return 98; // < $1M (Extreme risk/scam potential)
   }
 
   /**
-   * Calculate volume score (volume relative to market cap)
+   * Calculate volume score (volume relative to market cap using Decimal)
    */
-  private calculateVolumeScore(volume24h: number, marketCap: number): number {
-    if (marketCap === 0) return 100; // No market cap = maximum risk
+  private calculateVolumeScore(volume24h: number | Decimal, marketCap: number | Decimal): number {
+    const mcap = toDecimal(marketCap);
+    if (mcap.isZero()) return 100; // No market cap = maximum risk
 
-    const volumeRatio = volume24h / marketCap;
+    const vol = toDecimal(volume24h);
+    const volumeRatio = divide(vol, mcap).toNumber();
 
     // Healthy volume ratio indicates active trading
     if (volumeRatio > 0.3) return 15; // Very healthy volume

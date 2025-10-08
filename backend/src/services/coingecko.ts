@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { config } from '../config/index.js';
 import { logger } from '../utils/logger.js';
+import { cacheService, CACHE_KEYS, CACHE_TTL } from './cacheService.js';
 
 interface CoinGeckoPrice {
   id: string;
@@ -69,54 +70,70 @@ class CoinGeckoService {
   }
 
   /**
-   * Get current market data for multiple coins
+   * Get current market data for multiple coins (with Redis caching)
    */
   async getMarketData(coinIds: string[]): Promise<CoinGeckoPrice[]> {
-    await this.enforceRateLimit();
+    const cacheKey = CACHE_KEYS.COINGECKO_PRICES(coinIds.sort().join(','));
 
-    try {
-      const response = await this.client.get('/coins/markets', {
-        params: {
-          vs_currency: 'usd',
-          ids: coinIds.join(','),
-          order: 'market_cap_desc',
-          per_page: 250,
-          page: 1,
-          sparkline: false,
-          price_change_percentage: '24h',
-        },
-      });
+    return cacheService.getOrSet(
+      cacheKey,
+      CACHE_TTL.COINGECKO_PRICES,
+      async () => {
+        await this.enforceRateLimit();
 
-      logger.info(`Fetched market data for ${response.data.length} coins`);
-      return response.data;
-    } catch (error) {
-      logger.error('Error fetching market data:', error);
-      throw error;
-    }
+        try {
+          const response = await this.client.get('/coins/markets', {
+            params: {
+              vs_currency: 'usd',
+              ids: coinIds.join(','),
+              order: 'market_cap_desc',
+              per_page: 250,
+              page: 1,
+              sparkline: false,
+              price_change_percentage: '24h',
+            },
+          });
+
+          logger.info(`Fetched market data for ${response.data.length} coins`);
+          return response.data;
+        } catch (error) {
+          logger.error('Error fetching market data:', error);
+          throw error;
+        }
+      }
+    );
   }
 
   /**
-   * Get single coin details
+   * Get single coin details (with Redis caching)
    */
   async getCoinDetails(coinId: string) {
-    await this.enforceRateLimit();
+    const cacheKey = CACHE_KEYS.COINGECKO_MARKET_DATA(coinId);
 
-    try {
-      const response = await this.client.get(`/coins/${coinId}`, {
-        params: {
-          localization: false,
-          tickers: false,
-          market_data: true,
-          community_data: false,
-          developer_data: false,
-        },
-      });
+    return cacheService.getOrSet(
+      cacheKey,
+      CACHE_TTL.COINGECKO_MARKET_DATA,
+      async () => {
+        await this.enforceRateLimit();
 
-      return response.data;
-    } catch (error) {
-      logger.error(`Error fetching coin details for ${coinId}:`, error);
-      throw error;
-    }
+        try {
+          const response = await this.client.get(`/coins/${coinId}`, {
+            params: {
+              localization: false,
+              tickers: false,
+              market_data: true,
+              community_data: false,
+              developer_data: false,
+            },
+          });
+
+          return response.data;
+        } catch (error) {
+          logger.error(`Error fetching coin details for ${coinId}:`, error);
+          throw error;
+        }
+      }
+    );
   }
 
   /**

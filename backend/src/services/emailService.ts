@@ -281,6 +281,107 @@ class EmailService {
     });
   }
 
+  async sendVerificationEmail(to: string, token: string): Promise<boolean> {
+    const verificationUrl = `${config.frontendUrl}/verify-email?token=${token}`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #000; color: #fff; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 30px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo { font-size: 48px; margin-bottom: 10px; }
+            .title { font-size: 28px; font-weight: bold; color: #3B82F6; margin-bottom: 20px; }
+            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.5); font-size: 14px; }
+            .btn { display: inline-block; background: #3B82F6; color: #fff; padding: 14px 32px; text-decoration: none; border-radius: 8px; margin-top: 20px; font-weight: 600; }
+            .warning { background: rgba(245, 158, 11, 0.1); border-left: 4px solid #F59E0B; padding: 12px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">✉️</div>
+              <div class="title">Verify Your Email</div>
+            </div>
+            <div class="content">
+              <p>Welcome to Coinsphere! To complete your registration and access all features, please verify your email address.</p>
+              <center>
+                <a href="${verificationUrl}" class="btn">Verify Email Address</a>
+              </center>
+              <p style="margin-top: 20px; font-size: 14px; color: rgba(255, 255, 255, 0.7);">Or copy and paste this link into your browser:</p>
+              <p style="word-break: break-all; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 4px; font-size: 12px;">${verificationUrl}</p>
+              <div class="warning">
+                <strong>⏰ Expires in 24 hours</strong> - This verification link will expire in 24 hours for security.
+              </div>
+              <p style="font-size: 14px; color: rgba(255, 255, 255, 0.7);">If you didn't create a Coinsphere account, please ignore this email.</p>
+            </div>
+            <div class="footer">
+              <p>© 2025 Coinsphere. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to,
+      subject: '✉️ Verify your email address - Coinsphere',
+      html,
+    });
+  }
+
+  async sendPasswordResetEmail(to: string, token: string): Promise<boolean> {
+    const resetUrl = `${config.frontendUrl}/reset-password?token=${token}`;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #000; color: #fff; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 30px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo { font-size: 48px; margin-bottom: 10px; }
+            .title { font-size: 28px; font-weight: bold; color: #EF4444; margin-bottom: 20px; }
+            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.5); font-size: 14px; }
+            .btn { display: inline-block; background: #EF4444; color: #fff; padding: 14px 32px; text-decoration: none; border-radius: 8px; margin-top: 20px; font-weight: 600; }
+            .warning { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #EF4444; padding: 12px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">🔐</div>
+              <div class="title">Password Reset</div>
+            </div>
+            <div class="content">
+              <p>We received a request to reset your password for your Coinsphere account.</p>
+              <center>
+                <a href="${resetUrl}" class="btn">Reset Password</a>
+              </center>
+              <p style="margin-top: 20px; font-size: 14px; color: rgba(255, 255, 255, 0.7);">Or copy and paste this link into your browser:</p>
+              <p style="word-break: break-all; background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 4px; font-size: 12px;">${resetUrl}</p>
+              <div class="warning">
+                <strong>⚠️ Security Notice:</strong> This link will expire in 1 hour for your security. If you didn't request this password reset, please ignore this email and your password will remain unchanged.
+              </div>
+            </div>
+            <div class="footer">
+              <p>© 2025 Coinsphere. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to,
+      subject: '🔐 Reset your password - Coinsphere',
+      html,
+    });
+  }
+
   async sendWelcomeEmail(to: string, firstName: string): Promise<boolean> {
     const html = `
       <!DOCTYPE html>

@@ -3,19 +3,24 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import http from 'http';
+import * as Sentry from '@sentry/node';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { authLimiter, apiLimiter } from './middleware/rateLimit.js';
 import { getCsrfToken, validateCsrfToken } from './middleware/csrf.js';
 import { authenticate } from './middleware/auth.js';
+import { sanitizeInput } from './middleware/sanitize.js';
 import { priceUpdaterService } from './services/priceUpdater.js';
 import { websocketService } from './services/websocket.js';
+import { checkRedisHealth, closeRedisConnection } from './lib/redis.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
+import twoFactorRoutes from './routes/twoFactor.js';
 import tokensRoutes from './routes/tokens.js';
 import portfoliosRoutes from './routes/portfolios.js';
+import holdingsRoutes from './routes/holdings.js';
 import predictionsRoutes from './routes/predictions.js';
 import riskRoutes from './routes/risk.js';
 import alertsRoutes from './routes/alerts.js';
@@ -24,16 +29,101 @@ import transactionsRoutes from './routes/transactions.js';
 const app = express();
 const server = http.createServer(app);
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(compression());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Initialize Sentry for error monitoring
+if (process.env.SENTRY_DSN && config.env === 'production') {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: config.env,
+    tracesSampleRate: 0.1, // 10% of transactions for performance monitoring
+    integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Sentry.Integrations.Express({ app }),
+    ],
+  });
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  // Sentry request handler must be the first middleware
+  app.use(Sentry.Handlers.requestHandler());
+  // Sentry tracing middleware
+  app.use(Sentry.Handlers.tracingHandler());
+
+  logger.info('Sentry monitoring initialized');
+}
+
+// Middleware - Enhanced security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'ws:', 'wss:'],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: true,
+  crossOriginOpenerPolicy: { policy: 'same-origin' },
+  crossOriginResourcePolicy: { policy: 'same-origin' },
+  dnsPrefetchControl: { allow: false },
+  frameguard: { action: 'deny' },
+  hidePoweredBy: true,
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true,
+  },
+  ieNoOpen: true,
+  noSniff: true,
+  originAgentCluster: true,
+  permittedCrossDomainPolicies: { permittedPolicies: 'none' },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  xssFilter: true,
+}));
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      config.appUrl,  // Production frontend URL
+      'http://localhost:5173',  // Vite dev server
+      'http://localhost:3000',  // Alternative dev server
+    ];
+
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      logger.warn(`Blocked CORS request from unauthorized origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,  // Allow cookies and auth headers
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  maxAge: 86400,  // 24 hours
+}));
+app.use(compression());
+app.use(express.json({ limit: '1mb' }));  // Add size limit
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// Input sanitization (XSS and SQL injection prevention)
+app.use(sanitizeInput);
+
+// Health check with Redis status
+app.get('/health', async (req, res) => {
+  const redisHealth = await checkRedisHealth();
+
+  res.json({
+    status: redisHealth.status === 'ok' ? 'ok' : 'degraded',
+    timestamp: new Date().toISOString(),
+    services: {
+      api: 'ok',
+      redis: redisHealth.status,
+    },
+  });
 });
 
 // CSRF token endpoint (requires authentication)
@@ -41,12 +131,19 @@ app.get('/api/v1/csrf-token', authenticate, getCsrfToken);
 
 // API Routes with Rate Limiting and CSRF Protection
 app.use('/api/v1/auth', authLimiter, authRoutes); // Strict rate limit for auth (no CSRF on login/signup)
+app.use('/api/v1/2fa', authenticate, validateCsrfToken, authLimiter, twoFactorRoutes); // 2FA routes require authentication
 app.use('/api/v1/tokens', authenticate, validateCsrfToken, apiLimiter, tokensRoutes);
 app.use('/api/v1/portfolios', authenticate, validateCsrfToken, apiLimiter, portfoliosRoutes);
+app.use('/api/v1/holdings', authenticate, validateCsrfToken, apiLimiter, holdingsRoutes);
 app.use('/api/v1/predictions', authenticate, validateCsrfToken, apiLimiter, predictionsRoutes);
 app.use('/api/v1/risk', authenticate, validateCsrfToken, apiLimiter, riskRoutes);
 app.use('/api/v1/alerts', authenticate, validateCsrfToken, apiLimiter, alertsRoutes);
 app.use('/api/v1/transactions', authenticate, validateCsrfToken, apiLimiter, transactionsRoutes);
+
+// Sentry error handler must be before custom error handlers
+if (process.env.SENTRY_DSN && config.env === 'production') {
+  app.use(Sentry.Handlers.errorHandler());
+}
 
 // Error handling
 app.use(errorHandler);
@@ -70,12 +167,25 @@ server.listen(PORT, () => {
 });
 
 // Handle graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   logger.info('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
+  server.close(async () => {
     logger.info('HTTP server closed');
     priceUpdaterService.stop();
     websocketService.stop();
+    await closeRedisConnection();
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT signal received: closing HTTP server');
+  server.close(async () => {
+    logger.info('HTTP server closed');
+    priceUpdaterService.stop();
+    websocketService.stop();
+    await closeRedisConnection();
+    process.exit(0);
   });
 });
 

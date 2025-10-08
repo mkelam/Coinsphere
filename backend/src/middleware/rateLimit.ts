@@ -1,24 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import { rateLimitService } from '../services/rateLimitService.js';
 import { logger } from '../utils/logger.js';
-
-interface RateLimitStore {
-  [key: string]: {
-    count: number;
-    resetTime: number;
-  };
-}
-
-const store: RateLimitStore = {};
-
-// Clean up old entries every 10 minutes
-setInterval(() => {
-  const now = Date.now();
-  Object.keys(store).forEach((key) => {
-    if (store[key].resetTime < now) {
-      delete store[key];
-    }
-  });
-}, 10 * 60 * 1000);
 
 export interface RateLimitOptions {
   windowMs: number; // Time window in milliseconds
@@ -37,75 +19,68 @@ export function rateLimit(options: RateLimitOptions) {
     skipFailedRequests = false,
   } = options;
 
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     // Get client identifier (IP address or user ID if authenticated)
-    const identifier = req.ip || req.socket.remoteAddress || 'unknown';
-    const key = `rateLimit:${identifier}`;
+    const userId = (req as any).user?.userId;
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    const identifier = userId ? `user:${userId}` : `ip:${ip}`;
+    const key = `${req.path}:${identifier}`;
 
-    const now = Date.now();
-    const record = store[key];
+    try {
+      // Check rate limit using Redis
+      const result = await rateLimitService.checkLimit(key, windowMs, max);
 
-    // Initialize or reset if window expired
-    if (!record || record.resetTime < now) {
-      store[key] = {
-        count: 0,
-        resetTime: now + windowMs,
-      };
-    }
-
-    const currentRecord = store[key];
-
-    // Check if limit exceeded
-    if (currentRecord.count >= max) {
-      const retryAfter = Math.ceil((currentRecord.resetTime - now) / 1000);
-
-      logger.warn(`Rate limit exceeded for ${identifier}`, {
-        ip: identifier,
-        path: req.path,
-        count: currentRecord.count,
-      });
-
+      // Add rate limit headers
       res.set({
-        'Retry-After': retryAfter.toString(),
         'X-RateLimit-Limit': max.toString(),
-        'X-RateLimit-Remaining': '0',
-        'X-RateLimit-Reset': new Date(currentRecord.resetTime).toISOString(),
+        'X-RateLimit-Remaining': result.remaining.toString(),
+        'X-RateLimit-Reset': new Date(result.resetTime).toISOString(),
       });
 
-      return res.status(429).json({
-        error: message,
-        retryAfter,
-      });
+      // Check if limit exceeded
+      if (!result.allowed) {
+        res.set({
+          'Retry-After': result.retryAfter?.toString() || '60',
+        });
+
+        logger.warn(`Rate limit exceeded for ${identifier}`, {
+          path: req.path,
+          ip,
+          userId,
+        });
+
+        return res.status(429).json({
+          error: message,
+          retryAfter: result.retryAfter,
+        });
+      }
+
+      // Handle skip options
+      if (skipSuccessfulRequests || skipFailedRequests) {
+        const originalSend = res.send;
+        res.send = function (body) {
+          const statusCode = res.statusCode;
+
+          if (
+            (skipSuccessfulRequests && statusCode < 400) ||
+            (skipFailedRequests && statusCode >= 400)
+          ) {
+            // Decrement counter asynchronously
+            rateLimitService.decrementCount(key).catch((error) => {
+              logger.error('Error decrementing rate limit:', error);
+            });
+          }
+
+          return originalSend.call(this, body);
+        };
+      }
+
+      next();
+    } catch (error) {
+      logger.error('Rate limit middleware error:', error);
+      // Fail open - allow request if rate limiting fails
+      next();
     }
-
-    // Increment counter (will be decremented if skipSuccessfulRequests/skipFailedRequests is true)
-    currentRecord.count++;
-
-    // Add rate limit headers
-    res.set({
-      'X-RateLimit-Limit': max.toString(),
-      'X-RateLimit-Remaining': (max - currentRecord.count).toString(),
-      'X-RateLimit-Reset': new Date(currentRecord.resetTime).toISOString(),
-    });
-
-    // Handle skip options
-    if (skipSuccessfulRequests || skipFailedRequests) {
-      const originalSend = res.send;
-      res.send = function (body) {
-        const statusCode = res.statusCode;
-
-        if (
-          (skipSuccessfulRequests && statusCode < 400) ||
-          (skipFailedRequests && statusCode >= 400)
-        ) {
-          currentRecord.count--;
-        }
-
-        return originalSend.call(this, body);
-      };
-    }
-
-    next();
   };
 }
 

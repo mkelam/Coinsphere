@@ -21,6 +21,11 @@ model User {
   firstName     String?  @map("first_name")
   lastName      String?  @map("last_name")
   avatarUrl     String?  @map("avatar_url")
+  role          String   @default("user") // user, admin
+
+  // Two-Factor Authentication
+  twoFactorEnabled Boolean @default(false) @map("two_factor_enabled")
+  twoFactorSecret  String?  @map("two_factor_secret") // Encrypted TOTP secret
 
   // Subscription
   subscriptionTier String @default("free") @map("subscription_tier") // free, plus, pro, power_trader
@@ -34,9 +39,12 @@ model User {
   lastLoginAt   DateTime? @map("last_login_at")
 
   // Relations
-  portfolios    Portfolio[]
-  alerts        Alert[]
-  apiKeys       ApiKey[]
+  portfolios           Portfolio[]
+  alerts               Alert[]
+  apiKeys              ApiKey[]
+  emailVerifications   EmailVerification[]
+  passwordResets       PasswordReset[]
+  auditLogs            AuditLog[]
 
   @@map("users")
 }
@@ -54,11 +62,11 @@ model Token {
   decimals      Int?
   logoUrl       String?  @map("logo_url")
 
-  // Market Data (cached)
-  currentPrice  Float?   @map("current_price")
-  marketCap     Float?   @map("market_cap")
-  volume24h     Float?   @map("volume_24h")
-  priceChange24h Float?  @map("price_change_24h")
+  // Market Data (cached) - Using Decimal for precision
+  currentPrice  Decimal? @db.Decimal(18, 8) @map("current_price")
+  marketCap     Decimal? @db.Decimal(24, 2) @map("market_cap")
+  volume24h     Decimal? @db.Decimal(24, 2) @map("volume_24h")
+  priceChange24h Decimal? @db.Decimal(10, 4) @map("price_change_24h")
 
   // Timestamps
   createdAt     DateTime @default(now()) @map("created_at")
@@ -66,6 +74,7 @@ model Token {
 
   // Relations
   holdings      Holding[]
+  transactions  Transaction[]
   predictions   Prediction[]
   riskScores    RiskScore[]
 
@@ -86,6 +95,7 @@ model Portfolio {
   // Relations
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   holdings      Holding[]
+  transactions  Transaction[]
 
   @@map("portfolios")
   @@index([userId])
@@ -97,9 +107,9 @@ model Holding {
   portfolioId   String   @map("portfolio_id")
   tokenId       String   @map("token_id")
 
-  // Holding Details
-  amount        Float
-  averageBuyPrice Float? @map("average_buy_price")
+  // Holding Details - Using Decimal for precision
+  amount        Decimal  @db.Decimal(24, 8)
+  averageBuyPrice Decimal? @db.Decimal(18, 8) @map("average_buy_price")
   source        String?  // exchange, wallet, manual
   sourceId      String?  @map("source_id") // exchange account ID or wallet address
 
@@ -116,15 +126,49 @@ model Holding {
   @@index([tokenId])
 }
 
+// Portfolio Transactions
+model Transaction {
+  id            String   @id @default(uuid())
+  portfolioId   String   @map("portfolio_id")
+  tokenId       String   @map("token_id")
+
+  // Transaction Details - Using Decimal for precision
+  type          String   // buy, sell, transfer_in, transfer_out, swap
+  amount        Decimal  @db.Decimal(24, 8) // Amount of token
+  price         Decimal  @db.Decimal(18, 8) // Price per token at time of transaction
+  fee           Decimal  @db.Decimal(18, 8) @default(0) // Transaction fee
+  feeToken      String?  @map("fee_token") // Token used for fee (e.g., ETH for gas)
+
+  // Transaction Context
+  notes         String?  // User notes
+  txHash        String?  @map("tx_hash") // Blockchain transaction hash
+  exchange      String?  // Exchange where transaction occurred
+  timestamp     DateTime @default(now()) // When transaction occurred
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  token         Token     @relation(fields: [tokenId], references: [id])
+
+  @@map("transactions")
+  @@index([portfolioId])
+  @@index([tokenId])
+  @@index([timestamp])
+  @@index([type])
+}
+
 // Price Predictions
 model Prediction {
   id            String   @id @default(uuid())
   tokenId       String   @map("token_id")
 
-  // Prediction Details
+  // Prediction Details - Using Decimal for precision
   predictionType String  @map("prediction_type") // 7d, 14d, 30d
-  predictedPrice Float   @map("predicted_price")
-  confidence    Float    // 0-1
+  predictedPrice Decimal @db.Decimal(18, 8) @map("predicted_price")
+  confidence    Decimal  @db.Decimal(5, 4) // 0.0000-1.0000
 
   // Model Info
   modelVersion  String   @map("model_version")
@@ -176,11 +220,11 @@ model Alert {
   id            String   @id @default(uuid())
   userId        String   @map("user_id")
 
-  // Alert Configuration
+  // Alert Configuration - Using Decimal for price thresholds
   alertType     String   @map("alert_type") // price, risk, prediction
   tokenSymbol   String   @map("token_symbol")
   condition     String   // above, below, equals
-  threshold     Float
+  threshold     Decimal  @db.Decimal(18, 8)
 
   // Status
   isActive      Boolean  @default(true) @map("is_active")
@@ -232,14 +276,93 @@ model PriceData {
   time          DateTime
   tokenId       String   @map("token_id")
 
-  // OHLCV
-  open          Float
-  high          Float
-  low           Float
-  close         Float
-  volume        Float
+  // OHLCV - Using Decimal for precision
+  open          Decimal  @db.Decimal(18, 8)
+  high          Decimal  @db.Decimal(18, 8)
+  low           Decimal  @db.Decimal(18, 8)
+  close         Decimal  @db.Decimal(18, 8)
+  volume        Decimal  @db.Decimal(24, 8)
 
   @@id([time, tokenId])
   @@map("price_data")
   @@index([tokenId])
+}
+
+// Email Verification Tokens
+model EmailVerification {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  token         String   @unique
+
+  // Status
+  isUsed        Boolean  @default(false) @map("is_used")
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  expiresAt     DateTime @map("expires_at")
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verifications")
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+// Password Reset Tokens
+model PasswordReset {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  token         String   @unique
+
+  // Status
+  isUsed        Boolean  @default(false) @map("is_used")
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  expiresAt     DateTime @map("expires_at")
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+// Audit Logs for Security-Sensitive Operations
+model AuditLog {
+  id            String   @id @default(uuid())
+  userId        String?  @map("user_id") // Nullable for failed auth attempts
+
+  // Event Details
+  action        String   // login, logout, password_reset, token_create, user_update, admin_action, etc.
+  resource      String?  // Resource type (user, token, portfolio, etc.)
+  resourceId    String?  @map("resource_id") // ID of the affected resource
+  status        String   // success, failure, error
+
+  // Request Context
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  method        String?  // GET, POST, PUT, DELETE
+  path          String?  // API endpoint path
+
+  // Additional Details
+  metadata      Json?    // Store additional context (e.g., changed fields, error messages)
+  errorMessage  String?  @map("error_message")
+
+  // Timestamp
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([status])
+  @@index([ipAddress])
 }

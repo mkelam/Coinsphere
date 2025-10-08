@@ -2,12 +2,15 @@ import { Router, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
+import { requireAdmin } from '../middleware/requireAdmin.js';
 import { logger } from '../utils/logger.js';
+import { cache, invalidateCache } from '../middleware/cache.js';
+import { auditLogService } from '../services/auditLog.js';
 
 const router = Router();
 
-// GET /api/v1/tokens - List all tokens
-router.get('/', async (req: AuthRequest, res: Response) => {
+// GET /api/v1/tokens - List all tokens (cached for 30 seconds)
+router.get('/', cache({ ttl: 30, prefix: 'tokens' }), async (req: AuthRequest, res: Response) => {
   try {
     const tokens = await prisma.token.findMany({
       select: {
@@ -34,8 +37,8 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// GET /api/v1/tokens/:symbol/history - Get price history for token
-router.get('/:symbol/history', async (req: AuthRequest, res: Response) => {
+// GET /api/v1/tokens/:symbol/history - Get price history for token (cached for 60 seconds, vary by timeframe)
+router.get('/:symbol/history', cache({ ttl: 60, prefix: 'token-history', varyBy: ['timeframe'] }), async (req: AuthRequest, res: Response) => {
   try {
     const { symbol } = req.params;
     const { timeframe = '7d' } = req.query;
@@ -110,8 +113,8 @@ router.get('/:symbol/history', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// GET /api/v1/tokens/:symbol - Get specific token
-router.get('/:symbol', async (req: AuthRequest, res: Response) => {
+// GET /api/v1/tokens/:symbol - Get specific token (cached for 30 seconds)
+router.get('/:symbol', cache({ ttl: 30, prefix: 'token' }), async (req: AuthRequest, res: Response) => {
   try {
     const { symbol } = req.params;
 
@@ -130,8 +133,8 @@ router.get('/:symbol', async (req: AuthRequest, res: Response) => {
   }
 });
 
-// POST /api/v1/tokens - Create token (admin only, for now unprotected for seeding)
-router.post('/', async (req: AuthRequest, res: Response) => {
+// POST /api/v1/tokens - Create token (admin only)
+router.post('/', requireAdmin, async (req: AuthRequest, res: Response) => {
   try {
     const tokenSchema = z.object({
       symbol: z.string(),
@@ -153,12 +156,35 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     });
 
     logger.info(`Token created: ${token.symbol}`);
+
+    // Audit log token creation
+    auditLogService.logAdmin({
+      action: 'token_create',
+      userId: req.user!.userId,
+      resourceId: token.id,
+      status: 'success',
+      req,
+      metadata: { symbol: token.symbol, name: token.name },
+    }).catch((err) => logger.error('Failed to log token creation audit:', err));
+
     res.status(201).json({ token });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
     logger.error('Error creating token:', error);
+
+    // Audit log error
+    if (req.user?.userId) {
+      auditLogService.logAdmin({
+        action: 'token_create',
+        userId: req.user.userId,
+        status: 'failure',
+        req,
+        errorMessage: error instanceof Error ? error.message : 'Token creation failed',
+      }).catch((err) => logger.error('Failed to log token creation failure audit:', err));
+    }
+
     res.status(500).json({ error: 'Internal server error' });
   }
 });

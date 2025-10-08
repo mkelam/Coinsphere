@@ -39,7 +39,14 @@
       "Bash(del \"c:\\Users\\Mac\\OneDrive\\Desktop\\Projects\\crypo scanner\\frontend\\src\\styles\\index.css\")",
       "Bash(netstat:*)",
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwYWJiYTk2Mi00MDQyLTQxNzctOWVlYy0xYmY3ODdmMzE4MjgiLCJlbWFpbCI6ImUyZXRlc3RAY29pbnNwaGVyZS5jb20iLCJpYXQiOjE3NTk5MDgxMDAsImV4cCI6MTc1OTkxMTcwMH0.3UgFatXsThR2S_3TiOROXMFrpLGGWmqESVlZYTgV4s4\")",
-      "Bash(npm test)"
+      "Bash(npm test)",
+      "Bash(npm audit:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm test:*)",
+      "Bash(wmic:*)",
+      "Bash(npm run test:e2e:*)",
+      "Bash(npm ls:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []

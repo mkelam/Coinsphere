@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { coingeckoService } from './coingecko.js';
 import { logger } from '../utils/logger.js';
+import { invalidateCache } from '../middleware/cache.js';
 
 class PriceUpdaterService {
   private updateInterval: NodeJS.Timeout | null = null;
@@ -121,6 +122,11 @@ class PriceUpdaterService {
 
       await Promise.all(updatePromises);
       logger.info(`Successfully updated prices for ${marketData.length} tokens`);
+
+      // Invalidate cache for token data
+      await invalidateCache('tokens:*');
+      await invalidateCache('token:*');
+      await invalidateCache('token-history:*');
     } catch (error) {
       logger.error('Error in updateAllTokenPrices:', error);
     }

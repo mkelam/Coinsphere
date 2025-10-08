@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { alertsApi, Alert } from "@/services/api"
+import { alertsApi, Alert } from "@/services/alerts"
 import { LoadingSpinner } from "@/components/LoadingScreen"
 
 export function AlertsPage() {
