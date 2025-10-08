@@ -29,13 +29,20 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = []
 }
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and CSRF token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // Add CSRF token for state-changing operations
+    const csrfToken = localStorage.getItem('csrfToken')
+    if (csrfToken && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method?.toUpperCase() || '')) {
+      config.headers['X-CSRF-Token'] = csrfToken
+    }
+
     return config
   },
   (error) => {
@@ -151,15 +158,33 @@ export interface ApiError {
   details?: any
 }
 
+// Helper function to fetch CSRF token
+const fetchCsrfToken = async (): Promise<void> => {
+  try {
+    const { data } = await api.get<{ csrfToken: string }>('/csrf-token')
+    localStorage.setItem('csrfToken', data.csrfToken)
+  } catch (error) {
+    console.error('Failed to fetch CSRF token', error)
+  }
+}
+
 // Authentication API
 export const authApi = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
     const { data } = await api.post<AuthResponse>('/auth/login', credentials)
+
+    // Fetch CSRF token after successful login
+    await fetchCsrfToken()
+
     return data
   },
 
   signup: async (userData: SignupRequest): Promise<AuthResponse> => {
     const { data } = await api.post<AuthResponse>('/auth/register', userData)
+
+    // Fetch CSRF token after successful signup
+    await fetchCsrfToken()
+
     return data
   },
 
@@ -172,6 +197,7 @@ export const authApi = {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
+    localStorage.removeItem('csrfToken')
   },
 }
 

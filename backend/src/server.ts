@@ -6,6 +6,9 @@ import http from 'http';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { authLimiter, apiLimiter } from './middleware/rateLimit.js';
+import { getCsrfToken, validateCsrfToken } from './middleware/csrf.js';
+import { authenticate } from './middleware/auth.js';
 import { priceUpdaterService } from './services/priceUpdater.js';
 import { websocketService } from './services/websocket.js';
 
@@ -33,14 +36,17 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/tokens', tokensRoutes);
-app.use('/api/v1/portfolios', portfoliosRoutes);
-app.use('/api/v1/predictions', predictionsRoutes);
-app.use('/api/v1/risk', riskRoutes);
-app.use('/api/v1/alerts', alertsRoutes);
-app.use('/api/v1/transactions', transactionsRoutes);
+// CSRF token endpoint (requires authentication)
+app.get('/api/v1/csrf-token', authenticate, getCsrfToken);
+
+// API Routes with Rate Limiting and CSRF Protection
+app.use('/api/v1/auth', authLimiter, authRoutes); // Strict rate limit for auth (no CSRF on login/signup)
+app.use('/api/v1/tokens', authenticate, validateCsrfToken, apiLimiter, tokensRoutes);
+app.use('/api/v1/portfolios', authenticate, validateCsrfToken, apiLimiter, portfoliosRoutes);
+app.use('/api/v1/predictions', authenticate, validateCsrfToken, apiLimiter, predictionsRoutes);
+app.use('/api/v1/risk', authenticate, validateCsrfToken, apiLimiter, riskRoutes);
+app.use('/api/v1/alerts', authenticate, validateCsrfToken, apiLimiter, alertsRoutes);
+app.use('/api/v1/transactions', authenticate, validateCsrfToken, apiLimiter, transactionsRoutes);
 
 // Error handling
 app.use(errorHandler);

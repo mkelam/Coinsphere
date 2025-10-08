@@ -8,16 +8,25 @@ export interface JwtPayload {
 
 export const generateAccessToken = (payload: JwtPayload): string => {
   return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: '1h', // 1 hour
+    expiresIn: config.jwt.expiresIn,
   });
 };
 
 export const generateRefreshToken = (payload: JwtPayload): string => {
-  return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: '7d', // 7 days
+  return jwt.sign(payload, config.jwt.refreshSecret, {
+    expiresIn: config.jwt.refreshExpiresIn,
   });
 };
 
-export const verifyToken = (token: string): JwtPayload => {
+export const verifyAccessToken = (token: string): JwtPayload => {
   return jwt.verify(token, config.jwt.secret) as JwtPayload;
+};
+
+export const verifyRefreshToken = (token: string): JwtPayload => {
+  return jwt.verify(token, config.jwt.refreshSecret) as JwtPayload;
+};
+
+// Backward compatibility - uses access token secret
+export const verifyToken = (token: string): JwtPayload => {
+  return verifyAccessToken(token);
 };

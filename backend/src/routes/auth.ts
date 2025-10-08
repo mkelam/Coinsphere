@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
@@ -124,6 +124,49 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
     logger.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/v1/auth/refresh - Refresh access token using refresh token
+router.post('/refresh', async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({ error: 'Refresh token required' });
+    }
+
+    // Verify refresh token
+    let payload;
+    try {
+      payload = verifyRefreshToken(refreshToken);
+    } catch (error) {
+      logger.warn('Invalid refresh token attempt', { error });
+      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    }
+
+    // Verify user still exists and is active
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    // Generate new tokens (token rotation)
+    const newAccessToken = generateAccessToken({ userId: user.id, email: user.email });
+    const newRefreshToken = generateRefreshToken({ userId: user.id, email: user.email });
+
+    logger.info(`Token refreshed for user: ${user.email}`);
+
+    res.json({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    });
+  } catch (error) {
+    logger.error('Token refresh error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
