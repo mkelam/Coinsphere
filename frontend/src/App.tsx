@@ -5,6 +5,7 @@ import { QuickActions } from "@/components/quick-actions"
 import { AssetAllocation } from "@/components/asset-allocation"
 import { HoldingsTable } from "@/components/holdings-table"
 import { RecentTransactions } from "@/components/recent-transactions"
+import { MarketInsights } from "@/components/market-insights"
 import { LoginPage } from "@/pages/LoginPage"
 import { SignupPage } from "@/pages/SignupPage"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
@@ -17,6 +18,12 @@ function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <PortfolioHero />
         <QuickActions />
+
+        {/* Market Insights - ML Predictions & Risk Scores */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-4">Market Insights</h2>
+          <MarketInsights symbol="BTC" />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <AssetAllocation />
