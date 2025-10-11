@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios'
+import type { AxiosResponse } from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1'
 
@@ -275,6 +276,160 @@ export const exchangeApi = {
 
   syncAll: async (): Promise<ExchangeResponse> => {
     const { data } = await api.post('/exchanges/sync-all')
+    return data
+  },
+}
+
+// Token Types
+export interface Token {
+  id: string
+  symbol: string
+  name: string
+  blockchain: string
+  logoUrl?: string
+  currentPrice?: number
+  priceChange24h?: number
+  priceChangePercent24h?: number
+  marketCap?: number
+  volume24h?: number
+  high24h?: number
+  low24h?: number
+  ath?: number
+  athDate?: string
+  atl?: number
+  atlDate?: string
+  circulatingSupply?: number
+  maxSupply?: number
+  totalSupply?: number
+  lastUpdated?: string
+}
+
+export interface PricePoint {
+  timestamp: string
+  open: number
+  high: number
+  low: number
+  close: number
+  volume: number
+}
+
+export interface Prediction {
+  id?: string
+  symbol: string
+  currentPrice: number
+  predictedPrice: number
+  predictionChange: number
+  predictionChangePercent: number
+  confidence: number
+  daysAhead: number
+  createdAt?: string
+  timestamp: string
+}
+
+export interface RiskScore {
+  id?: string
+  symbol: string
+  riskScore: number
+  riskLevel: string  // conservative, moderate, degen
+  volatility: number
+  createdAt?: string
+  timestamp: string
+}
+
+// Token API
+export const tokenApi = {
+  /**
+   * Get all tokens
+   */
+  getAllTokens: async (): Promise<Token[]> => {
+    const { data } = await api.get<Token[]>('/tokens')
+    return data
+  },
+
+  /**
+   * Get single token by symbol
+   */
+  getToken: async (symbol: string): Promise<Token> => {
+    const { data } = await api.get<Token>(`/tokens/${symbol}`)
+    return data
+  },
+
+  /**
+   * Get price history for a token
+   */
+  getPriceHistory: async (
+    symbol: string,
+    timeframe: string = '7d'
+  ): Promise<PricePoint[]> => {
+    const { data } = await api.get<PricePoint[]>(`/tokens/${symbol}/history`, {
+      params: { timeframe }
+    })
+    return data
+  },
+
+  /**
+   * Search tokens by query
+   */
+  searchTokens: async (query: string): Promise<Token[]> => {
+    const { data } = await api.get<Token[]>('/tokens/search', {
+      params: { q: query }
+    })
+    return data
+  },
+}
+
+// ML Service URL
+const ML_SERVICE_URL = import.meta.env.VITE_ML_SERVICE_URL || 'http://localhost:8000'
+
+// Prediction API (backend proxies to ML service)
+export const predictionApi = {
+  /**
+   * Get price prediction for a symbol
+   * Backend will fetch from ML service or cache
+   */
+  getPrediction: async (symbol: string, daysAhead: number = 7): Promise<Prediction> => {
+    const { data } = await api.get<Prediction>(`/predictions/${symbol}`, {
+      params: { daysAhead }
+    })
+    return data
+  },
+
+  /**
+   * Get risk score for a symbol
+   * Backend will fetch from ML service or cache
+   */
+  getRiskScore: async (symbol: string): Promise<RiskScore> => {
+    const { data } = await api.get<RiskScore>(`/risk/${symbol}`)
+    return data
+  },
+
+  /**
+   * Direct call to ML service (if backend proxy doesn't exist yet)
+   */
+  getPredictionDirect: async (
+    symbol: string,
+    historicalPrices: number[],
+    daysAhead: number = 7
+  ): Promise<Prediction> => {
+    const { data } = await axios.post<Prediction>(`${ML_SERVICE_URL}/predict`, {
+      symbol,
+      historical_prices: historicalPrices,
+      days_ahead: daysAhead
+    })
+    return data
+  },
+
+  /**
+   * Direct call to ML service for risk score
+   */
+  getRiskScoreDirect: async (
+    symbol: string,
+    historicalPrices: number[]
+  ): Promise<RiskScore> => {
+    const { data } = await axios.post<RiskScore>(`${ML_SERVICE_URL}/risk-score`, {
+      symbol,
+      historical_prices: historicalPrices
+    })
     return data
   },
 }

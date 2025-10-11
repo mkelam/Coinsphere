@@ -680,10 +680,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: position.pool.token0.symbol,
             },
           },
@@ -691,6 +692,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'liquidity',
             tokenSymbol: position.pool.token0.symbol,
             amount: token0Amount,
@@ -715,10 +717,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: position.pool.token1.symbol,
             },
           },
@@ -726,6 +729,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'liquidity',
             tokenSymbol: position.pool.token1.symbol,
             amount: token1Amount,
@@ -766,10 +770,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: position.reserve.symbol,
             },
           },
@@ -777,6 +782,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'lending',
             tokenSymbol: position.reserve.symbol,
             amount: lendingAmount,
@@ -797,10 +803,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: `${position.reserve.symbol}-BORROW`,
             },
           },
@@ -808,6 +815,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'borrowing',
             tokenSymbol: position.reserve.symbol,
             amount: borrowingAmount,
@@ -840,10 +848,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: position.market.underlyingSymbol,
             },
           },
@@ -851,6 +860,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'lending',
             tokenSymbol: position.market.underlyingSymbol,
             amount: supplyAmount,
@@ -871,10 +881,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: `${position.market.underlyingSymbol}-BORROW`,
             },
           },
@@ -882,6 +893,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'borrowing',
             tokenSymbol: position.market.underlyingSymbol,
             amount: borrowAmount,
@@ -912,10 +924,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: poolName,
             },
           },
@@ -923,6 +936,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'liquidity',
             tokenSymbol: poolName,
             amount: balance,
@@ -957,10 +971,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: 'stETH',
             },
           },
@@ -968,6 +983,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'staking',
             tokenSymbol: 'stETH',
             amount: stethAmount,
@@ -999,10 +1015,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: 'rETH',
             },
           },
@@ -1010,6 +1027,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'staking',
             tokenSymbol: 'rETH',
             amount: rethBalance,
@@ -1043,10 +1061,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: position.vault.symbol,
             },
           },
@@ -1054,6 +1073,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'yield',
             tokenSymbol: tokenSymbol,
             amount: balanceTokens,
@@ -1084,10 +1104,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: lpTokenSymbol,
             },
           },
@@ -1095,6 +1116,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'yield',
             tokenSymbol: lpTokenSymbol,
             amount: balance,
@@ -1127,10 +1149,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: `BPT-${tokenSymbol}`,
             },
           },
@@ -1138,6 +1161,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'liquidity',
             tokenSymbol: tokenSymbol,
             amount: balance,
@@ -1174,10 +1198,11 @@ export async function syncDefiPositions(
 
         await prisma.defiPosition.upsert({
           where: {
-            userId_protocolId_walletAddress_tokenSymbol: {
+            userId_protocolId_walletAddress_blockchain_tokenSymbol: {
               userId,
               protocolId: protocol.id,
               walletAddress,
+              blockchain,
               tokenSymbol: `SLP-${token0Symbol}-${token1Symbol}`,
             },
           },
@@ -1185,6 +1210,7 @@ export async function syncDefiPositions(
             userId,
             protocolId: protocol.id,
             walletAddress,
+            blockchain,
             positionType: 'liquidity',
             tokenSymbol: token0Symbol,
             amount: lpBalance,

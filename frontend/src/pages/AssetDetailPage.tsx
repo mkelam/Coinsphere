@@ -8,6 +8,7 @@ import { PriceHistoryChart } from "@/components/price-history-chart"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { useAuth } from "@/contexts/AuthContext"
 import { LoadingSpinner } from "@/components/LoadingScreen"
+import { tokenApi, predictionApi, type Token, type Prediction, type RiskScore } from "@/services/api"
 
 type Tab = 'overview' | 'predictions' | 'risk' | 'holdings' | 'news'
 
@@ -36,39 +37,70 @@ export function AssetDetailPage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'overview')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [asset, setAsset] = useState<AssetData | null>(null)
   const [chartTimeframe, setChartTimeframe] = useState('7d')
 
   const isPro = user?.subscriptionTier === 'pro' || user?.subscriptionTier === 'power'
 
+  // Helper function to get token icon
+  const getTokenIcon = (symbol: string): string => {
+    const icons: Record<string, string> = {
+      'BTC': '₿',
+      'ETH': 'Ξ',
+      'SOL': '◎',
+      'BNB': '🔶',
+      'USDT': '₮',
+      'USDC': '$',
+      'XRP': '✕',
+      'ADA': '₳',
+      'DOGE': 'Ð',
+      'DOT': '●'
+    }
+    return icons[symbol.toUpperCase()] || '🪙'
+  }
+
+  // Helper function to format date
+  const formatDate = (dateStr: string | undefined): string => {
+    if (!dateStr) return 'Unknown'
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+  }
+
   useEffect(() => {
     const fetchAssetData = async () => {
-      setLoading(true)
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/v1/tokens/${symbol}`)
-      // const data = await response.json()
+      if (!symbol) return
 
-      // Mock data
-      const mockData: AssetData = {
-        symbol: symbol?.toUpperCase() || 'BTC',
-        name: symbol === 'BTC' ? 'Bitcoin' : symbol === 'ETH' ? 'Ethereum' : symbol === 'SOL' ? 'Solana' : 'Unknown',
-        icon: '₿',
-        currentPrice: 67234.50,
-        change24h: 1234.20,
-        changePercent24h: 1.87,
-        marketCap: 1320000000000,
-        volume24h: 42300000000,
-        athPrice: 69000,
-        athDate: 'Nov 2021',
-        atlPrice: 67.81,
-        atlDate: 'Jul 2013',
-        circulatingSupply: 19800000,
-        maxSupply: 21000000,
-        totalSupply: 19800000
+      try {
+        setLoading(true)
+        setError(null)
+
+        // Fetch real token data from backend
+        const tokenData = await tokenApi.getToken(symbol)
+
+        setAsset({
+          symbol: tokenData.symbol,
+          name: tokenData.name,
+          icon: getTokenIcon(tokenData.symbol),
+          currentPrice: tokenData.currentPrice || 0,
+          change24h: tokenData.priceChange24h || 0,
+          changePercent24h: tokenData.priceChangePercent24h || 0,
+          marketCap: tokenData.marketCap || 0,
+          volume24h: tokenData.volume24h || 0,
+          athPrice: tokenData.ath || 0,
+          athDate: formatDate(tokenData.athDate),
+          atlPrice: tokenData.atl || 0,
+          atlDate: formatDate(tokenData.atlDate),
+          circulatingSupply: tokenData.circulatingSupply || 0,
+          maxSupply: tokenData.maxSupply || 0,
+          totalSupply: tokenData.totalSupply || 0
+        })
+      } catch (err: any) {
+        console.error('Error fetching asset data:', err)
+        setError(err.response?.data?.error || 'Failed to load asset data')
+      } finally {
+        setLoading(false)
       }
-
-      setAsset(mockData)
-      setLoading(false)
     }
 
     fetchAssetData()
@@ -99,7 +131,22 @@ export function AssetDetailPage() {
       <div className="min-h-screen bg-transparent">
         <Header />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <LoadingSpinner />
+          {error ? (
+            <GlassCard hover={false}>
+              <div className="text-center py-8">
+                <h2 className="text-xl font-semibold text-white mb-2">Failed to Load Asset</h2>
+                <p className="text-white/70 mb-4">{error}</p>
+                <Button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-4 py-2 rounded-lg bg-[#3b82f6] hover:bg-[#3b82f6]/90 text-white transition-colors"
+                >
+                  Back to Dashboard
+                </Button>
+              </div>
+            </GlassCard>
+          ) : (
+            <LoadingSpinner />
+          )}
         </main>
       </div>
     )
@@ -215,6 +262,15 @@ function OverviewTab({ asset, chartTimeframe, setChartTimeframe }: { asset: Asse
     return new Intl.NumberFormat('en-US').format(value)
   }
 
+  // Map chart timeframe to valid PriceHistoryChart values
+  const mapChartTimeframe = (tf: string): '24h' | '7d' | '30d' | '1y' => {
+    if (tf === '1d') return '24h'
+    if (tf === '7d') return '7d'
+    if (tf === '30d' || tf === '90d') return '30d'
+    if (tf === '1y' || tf === 'all') return '1y'
+    return '7d'
+  }
+
   return (
     <div className="space-y-6">
       {/* Price Chart */}
@@ -238,7 +294,7 @@ function OverviewTab({ asset, chartTimeframe, setChartTimeframe }: { asset: Asse
             ))}
           </div>
         </div>
-        <PriceHistoryChart symbol={asset.symbol} timeframe={chartTimeframe} />
+        <PriceHistoryChart symbol={asset.symbol} timeframe={mapChartTimeframe(chartTimeframe)} />
       </GlassCard>
 
       {/* Market Stats Grid */}
@@ -295,6 +351,38 @@ function OverviewTab({ asset, chartTimeframe, setChartTimeframe }: { asset: Asse
 function PredictionsTab({ asset, isPro }: { asset: AssetData, isPro: boolean }) {
   const navigate = useNavigate()
   const [timeframe, setTimeframe] = useState('7d')
+  const [prediction, setPrediction] = useState<Prediction | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Convert timeframe string to days
+  const getDaysAhead = (tf: string): number => {
+    if (tf === '7d') return 7
+    if (tf === '14d') return 14
+    if (tf === '30d') return 30
+    return 7
+  }
+
+  useEffect(() => {
+    if (!isPro) return
+
+    const fetchPrediction = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const days = getDaysAhead(timeframe)
+        const data = await predictionApi.getPrediction(asset.symbol, days)
+        setPrediction(data)
+      } catch (err: any) {
+        console.error('Error fetching prediction:', err)
+        setError(err.response?.data?.error || 'Failed to load prediction')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPrediction()
+  }, [asset.symbol, timeframe, isPro])
 
   if (!isPro) {
     return (
@@ -330,6 +418,51 @@ function PredictionsTab({ asset, isPro }: { asset: AssetData, isPro: boolean }) 
     )
   }
 
+  // Loading state for Pro users
+  if (loading) {
+    return (
+      <GlassCard hover={false}>
+        <div className="text-center py-8">
+          <LoadingSpinner />
+        </div>
+      </GlassCard>
+    )
+  }
+
+  // Error state for Pro users
+  if (error) {
+    return (
+      <GlassCard hover={false}>
+        <div className="text-center py-8">
+          <h3 className="text-xl font-semibold text-white mb-2">Failed to Load Prediction</h3>
+          <p className="text-white/70">{error}</p>
+        </div>
+      </GlassCard>
+    )
+  }
+
+  if (!prediction) {
+    return (
+      <GlassCard hover={false}>
+        <div className="text-center py-8">
+          <p className="text-white/70">No prediction data available</p>
+        </div>
+      </GlassCard>
+    )
+  }
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(value)
+  }
+
+  const confidencePercent = Math.round(prediction.confidence * 100)
+  const confidenceLevel = confidencePercent >= 80 ? 'High' : confidencePercent >= 60 ? 'Medium' : 'Low'
+  const isBullish = prediction.predictionChangePercent >= 0
+
   return (
     <div className="space-y-6">
       <GlassCard hover={false} data-testid="prediction-card">
@@ -355,27 +488,31 @@ function PredictionsTab({ asset, isPro }: { asset: AssetData, isPro: boolean }) 
 
         <div className="space-y-6">
           <div>
-            <div className="text-sm text-white/50 mb-2">Predicted Price</div>
-            <div className="text-4xl font-bold text-white mb-2" data-testid="predicted-price">$72,450</div>
-            <div className="text-sm text-white/70">Current Price: $67,234</div>
-            <div className="text-lg text-[#10b981] mt-2">Expected Change: +$5,216 (+7.8%)</div>
+            <div className="text-sm text-white/50 mb-2">Predicted Price ({getDaysAhead(timeframe)} days)</div>
+            <div className="text-4xl font-bold text-white mb-2" data-testid="predicted-price">
+              {formatCurrency(prediction.predictedPrice)}
+            </div>
+            <div className="text-sm text-white/70">Current Price: {formatCurrency(prediction.currentPrice)}</div>
+            <div className={`text-lg mt-2 ${isBullish ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
+              Expected Change: {isBullish ? '+' : ''}{formatCurrency(prediction.predictionChange)} ({isBullish ? '+' : ''}{prediction.predictionChangePercent.toFixed(2)}%)
+            </div>
           </div>
 
           <div>
             <div className="text-sm text-white/50 mb-2">Confidence</div>
             <div className="flex items-center gap-3">
               <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-[#10b981]" style={{ width: '82%' }}></div>
+                <div className="h-full bg-[#10b981]" style={{ width: `${confidencePercent}%` }}></div>
               </div>
-              <span className="text-white font-medium" data-testid="confidence-score">82% (High)</span>
+              <span className="text-white font-medium" data-testid="confidence-score">{confidencePercent}% ({confidenceLevel})</span>
             </div>
           </div>
 
           <div>
             <div className="text-sm text-white/50 mb-2">Direction</div>
-            <div className="flex items-center gap-2 text-[#10b981]" data-testid="direction">
-              <TrendingUp className="w-5 h-5" />
-              <span className="font-semibold">BULLISH</span>
+            <div className={`flex items-center gap-2 ${isBullish ? 'text-[#10b981]' : 'text-[#ef4444]'}`} data-testid="direction">
+              {isBullish ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+              <span className="font-semibold">{isBullish ? 'BULLISH' : 'BEARISH'}</span>
             </div>
           </div>
 
@@ -451,6 +588,29 @@ function PredictionsTab({ asset, isPro }: { asset: AssetData, isPro: boolean }) 
 // Risk Tab Component
 function RiskTab({ asset, isPro }: { asset: AssetData, isPro: boolean }) {
   const navigate = useNavigate()
+  const [riskScore, setRiskScore] = useState<RiskScore | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isPro) return
+
+    const fetchRiskScore = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const data = await predictionApi.getRiskScore(asset.symbol)
+        setRiskScore(data)
+      } catch (err: any) {
+        console.error('Error fetching risk score:', err)
+        setError(err.response?.data?.error || 'Failed to load risk score')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRiskScore()
+  }, [asset.symbol, isPro])
 
   if (!isPro) {
     return (
@@ -484,7 +644,39 @@ function RiskTab({ asset, isPro }: { asset: AssetData, isPro: boolean }) {
     )
   }
 
-  const riskScore = 18
+  // Loading state for Pro users
+  if (loading) {
+    return (
+      <GlassCard hover={false}>
+        <div className="text-center py-8">
+          <LoadingSpinner />
+        </div>
+      </GlassCard>
+    )
+  }
+
+  // Error state for Pro users
+  if (error) {
+    return (
+      <GlassCard hover={false}>
+        <div className="text-center py-8">
+          <h3 className="text-xl font-semibold text-white mb-2">Failed to Load Risk Score</h3>
+          <p className="text-white/70">{error}</p>
+        </div>
+      </GlassCard>
+    )
+  }
+
+  if (!riskScore) {
+    return (
+      <GlassCard hover={false}>
+        <div className="text-center py-8">
+          <p className="text-white/70">No risk score data available</p>
+        </div>
+      </GlassCard>
+    )
+  }
+
   const getRiskColor = (score: number) => {
     if (score < 30) return '#10b981'
     if (score < 60) return '#f59e0b'
@@ -505,19 +697,22 @@ function RiskTab({ asset, isPro }: { asset: AssetData, isPro: boolean }) {
         <h2 className="text-xl font-semibold text-white mb-6">Degen Risk Score</h2>
 
         <div className="mb-6">
-          <div className="text-5xl font-bold mb-2" style={{ color: getRiskColor(riskScore) }} data-testid="risk-score">
-            {riskScore} / 100
+          <div className="text-5xl font-bold mb-2" style={{ color: getRiskColor(riskScore.riskScore) }} data-testid="risk-score">
+            {riskScore.riskScore} / 100
           </div>
           <div className="h-3 bg-white/10 rounded-full overflow-hidden mb-2">
-            <div className="h-full transition-all" style={{ width: `${riskScore}%`, backgroundColor: getRiskColor(riskScore) }}></div>
+            <div className="h-full transition-all" style={{ width: `${riskScore.riskScore}%`, backgroundColor: getRiskColor(riskScore.riskScore) }}></div>
           </div>
-          <div className="text-lg font-semibold" style={{ color: getRiskColor(riskScore) }} data-testid="risk-level">
-            {getRiskLevel(riskScore)}
+          <div className="text-lg font-semibold" style={{ color: getRiskColor(riskScore.riskScore) }} data-testid="risk-level">
+            {getRiskLevel(riskScore.riskScore)}
+          </div>
+          <div className="text-sm text-white/50 mt-2">
+            Volatility: {(riskScore.volatility * 100).toFixed(2)}%
           </div>
         </div>
 
         <div className="mb-6">
-          <div className="text-sm text-white/70 mb-3">{asset.name} is considered {getRiskLevel(riskScore)} due to:</div>
+          <div className="text-sm text-white/70 mb-3">{asset.name} is considered {getRiskLevel(riskScore.riskScore)} due to:</div>
           <div className="space-y-2 text-sm">
             <div className="flex items-start gap-2">
               <span className="text-[#10b981]">✓</span>

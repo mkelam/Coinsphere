@@ -4,13 +4,19 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Loader2, RefreshCw, TrendingUp, Layers, DollarSign, AlertCircle } from 'lucide-react';
+import { Loader2, RefreshCw, TrendingUp, Layers, DollarSign, AlertCircle, Wallet } from 'lucide-react';
 import { defiService, DefiPosition, DefiProtocol } from '../services/defiService';
 import { DefiProtocolCard } from '../components/DefiProtocolCard';
 import { DefiPositionTable } from '../components/DefiPositionTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { ConnectWallet } from '../components/ConnectWallet';
+import { useWallet } from '../contexts/WalletContext';
+import { Button } from '../components/ui/button';
+import { CHAIN_NAMES } from '../lib/wagmi';
 
 export function DefiPage() {
+  const { address, isConnected, chainId } = useWallet();
+  const [walletModalOpen, setWalletModalOpen] = useState(false);
   const [positions, setPositions] = useState<DefiPosition[]>([]);
   const [protocols, setProtocols] = useState<DefiProtocol[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -110,14 +116,46 @@ export function DefiPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             DeFi Portfolio
           </h1>
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            {syncing ? 'Syncing...' : 'Sync Positions'}
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Wallet Connection Status */}
+            {isConnected ? (
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                  {address?.slice(0, 6)}...{address?.slice(-4)}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {chainId && CHAIN_NAMES[chainId]}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setWalletModalOpen(true)}
+                  className="ml-2 text-xs"
+                >
+                  Change
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={() => setWalletModalOpen(true)}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <Wallet className="w-4 h-4" />
+                Connect Wallet
+              </Button>
+            )}
+
+            {/* Sync Button */}
+            <button
+              onClick={handleSync}
+              disabled={syncing || !isConnected}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Syncing...' : 'Sync Positions'}
+            </button>
+          </div>
         </div>
         <p className="text-gray-500 dark:text-gray-400">
           Track your DeFi positions across {protocols.length} protocols
@@ -128,6 +166,9 @@ export function DefiPage() {
           </p>
         )}
       </div>
+
+      {/* Wallet Connect Modal */}
+      <ConnectWallet open={walletModalOpen} onOpenChange={setWalletModalOpen} />
 
       {/* Error Message */}
       {error && (
@@ -215,15 +256,28 @@ export function DefiPage() {
             <div className="text-6xl mb-4">🏦</div>
             <CardTitle className="text-xl mb-2">No DeFi Positions Found</CardTitle>
             <CardDescription className="mb-6">
-              Connect a wallet and sync to see your DeFi positions across protocols
+              {isConnected
+                ? 'Sync to see your DeFi positions across protocols'
+                : 'Connect a wallet to track your DeFi positions'
+              }
             </CardDescription>
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              {syncing ? 'Syncing...' : 'Sync Positions'}
-            </button>
+            {!isConnected ? (
+              <Button
+                onClick={() => setWalletModalOpen(true)}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700"
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                Connect Wallet
+              </Button>
+            ) : (
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {syncing ? 'Syncing...' : 'Sync Positions'}
+              </button>
+            )}
           </CardContent>
         </Card>
       )}
