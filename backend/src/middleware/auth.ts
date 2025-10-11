@@ -5,8 +5,9 @@ import { logger } from '../utils/logger.js';
 
 export interface AuthRequest extends Request {
   user?: {
-    userId: string;
+    id: string;
     email: string;
+    role?: string;
   };
 }
 
@@ -32,8 +33,9 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     const payload = verifyToken(token);
 
     req.user = {
-      userId: payload.userId,
+      id: payload.userId,
       email: payload.email,
+      role: payload.role,
     };
 
     next();

@@ -14,7 +14,7 @@ router.use(authenticate);
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const { portfolioId, limit = '50', offset = '0' } = req.query;
 
     const where: any = {
@@ -70,7 +70,7 @@ router.get('/', async (req: Request, res: Response) => {
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const { id } = req.params;
 
     const transaction = await prisma.transaction.findFirst({
@@ -114,7 +114,7 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const {
       portfolioId,
       tokenSymbol,
@@ -194,7 +194,7 @@ router.post('/', async (req: Request, res: Response) => {
  */
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const { id } = req.params;
     const { type, amount, price, fee, notes, timestamp } = req.body;
 
@@ -254,7 +254,7 @@ router.put('/:id', async (req: Request, res: Response) => {
  */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const { id } = req.params;
 
     // Find transaction and verify ownership
@@ -288,7 +288,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
  */
 router.post('/bulk', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const { portfolioId, transactions } = req.body;
 
     if (!portfolioId || !Array.isArray(transactions) || transactions.length === 0) {

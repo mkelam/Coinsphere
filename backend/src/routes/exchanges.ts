@@ -46,7 +46,7 @@ router.get('/supported', (req, res) => {
 router.post('/test', async (req, res) => {
   try {
     const body = TestConnectionSchema.parse(req.body);
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
 
     const result = await ExchangeService.testConnection(body.exchange, {
       apiKey: body.apiKey,
@@ -79,7 +79,7 @@ router.post('/test', async (req, res) => {
 router.post('/connect', async (req, res) => {
   try {
     const body = ConnectExchangeSchema.parse(req.body);
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
 
     const result = await ExchangeService.connectExchange(
       userId,
@@ -130,7 +130,7 @@ router.post('/connect', async (req, res) => {
  */
 router.get('/connections', async (req, res) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
 
     const connections = await ExchangeService.getUserConnections(userId);
 
@@ -151,7 +151,7 @@ router.get('/connections', async (req, res) => {
 router.post('/connections/:id/sync', async (req, res) => {
   try {
     const connectionId = req.params.id;
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
 
     // Trigger immediate high-priority sync via queue
     await triggerImmediateSync(connectionId, userId);
@@ -176,7 +176,7 @@ router.post('/connections/:id/sync', async (req, res) => {
 router.delete('/connections/:id', async (req, res) => {
   try {
     const connectionId = req.params.id;
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
 
     // Remove scheduled sync job first
     await removeScheduledSync(connectionId);
@@ -203,7 +203,7 @@ router.delete('/connections/:id', async (req, res) => {
  */
 router.post('/sync-all', async (req, res) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
 
     await ExchangeService.syncAllUserConnections(userId);
 

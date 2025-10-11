@@ -75,7 +75,7 @@ const checkoutSchema = z.object({
 
 router.post('/payfast/checkout', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const { plan, name_first, name_last } = checkoutSchema.parse(req.body);
 
     // Get user details
@@ -261,7 +261,7 @@ router.post('/payfast/notify', async (req: Request, res: Response) => {
  */
 router.get('/payfast/manage', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
 
     // In PayFast, users manage subscriptions through their account
     const managementUrl = PAYFAST_SANDBOX
@@ -281,7 +281,7 @@ router.get('/payfast/manage', authenticate, async (req: Request, res: Response) 
  */
 router.get('/history', authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
 
     const payments = await prisma.paymentIntent.findMany({
       where: { userId },

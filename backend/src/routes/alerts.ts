@@ -14,7 +14,7 @@ router.use(authenticate);
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
 
     const alerts = await prisma.alert.findMany({
       where: { userId },
@@ -34,7 +34,7 @@ router.get('/', async (req: Request, res: Response) => {
  */
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const { alertType, tokenSymbol, condition, threshold } = req.body;
 
     if (!alertType || !tokenSymbol || !condition || threshold === undefined) {
@@ -66,7 +66,7 @@ router.post('/', async (req: Request, res: Response) => {
  */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const { id } = req.params;
 
     const alert = await prisma.alert.findFirst({
@@ -94,7 +94,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
  */
 router.patch('/:id/toggle', async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.userId;
+    const userId = (req as any).user.id;
     const { id } = req.params;
 
     const alert = await prisma.alert.findFirst({

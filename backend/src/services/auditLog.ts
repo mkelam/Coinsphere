@@ -55,7 +55,7 @@ class AuditLogService {
    * Log authentication events
    */
   async logAuth(data: {
-    action: 'login' | 'logout' | 'signup' | 'email_verification' | 'password_reset_request' | 'password_reset_complete';
+    action: 'login' | 'logout' | 'signup' | 'email_verification' | 'password_reset_request' | 'password_reset_complete' | 'profile_update' | 'change_password';
     userId?: string;
     email?: string;
     status: 'success' | 'failure';
