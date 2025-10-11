@@ -5,6 +5,7 @@ import { randomBytes } from 'crypto';
 export interface JwtPayload {
   userId: string;
   email: string;
+  role?: string;
 }
 
 export interface RefreshTokenPayload extends JwtPayload {

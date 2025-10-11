@@ -39,7 +39,7 @@ const topPerformersQuerySchema = z.object({
  */
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const data = createHoldingSchema.parse(req.body);
 
     const holding = await holdingsService.addHolding(data, userId);
@@ -75,7 +75,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     logger.error('Error creating holding:', error);
 
     await auditLogService.log({
-      userId: req.user!.userId,
+      userId: req.user!.id,
       action: 'holding_create',
       resource: 'holding',
       status: 'error',
@@ -100,7 +100,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
  */
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const holdingId = req.params.id;
 
     const holding = await holdingsService.getHoldingById(holdingId, userId);
@@ -122,7 +122,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
  */
 router.get('/portfolio/:portfolioId', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const portfolioId = req.params.portfolioId;
 
     const holdings = await holdingsService.getPortfolioHoldings(portfolioId, userId);
@@ -147,7 +147,7 @@ router.get('/portfolio/:portfolioId', async (req: AuthRequest, res: Response) =>
  */
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const holdingId = req.params.id;
     const data = updateHoldingSchema.parse(req.body);
 
@@ -180,7 +180,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
     logger.error('Error updating holding:', error);
 
     await auditLogService.log({
-      userId: req.user!.userId,
+      userId: req.user!.id,
       action: 'holding_update',
       resource: 'holding',
       resourceId: req.params.id,
@@ -202,7 +202,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
  */
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const holdingId = req.params.id;
 
     const result = await holdingsService.deleteHolding(holdingId, userId);
@@ -229,7 +229,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
     logger.error('Error deleting holding:', error);
 
     await auditLogService.log({
-      userId: req.user!.userId,
+      userId: req.user!.id,
       action: 'holding_delete',
       resource: 'holding',
       resourceId: req.params.id,
@@ -251,7 +251,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
  */
 router.get('/summary/all', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
 
     const summary = await holdingsService.getUserHoldingsSummary(userId);
 
@@ -268,7 +268,7 @@ router.get('/summary/all', async (req: AuthRequest, res: Response) => {
  */
 router.get('/top-performers', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const { limit } = topPerformersQuerySchema.parse(req.query);
 
     const topPerformers = await holdingsService.getTopPerformingHoldings(userId, limit);

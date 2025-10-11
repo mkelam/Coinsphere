@@ -21,7 +21,7 @@ export function rateLimit(options: RateLimitOptions) {
 
   return async (req: Request, res: Response, next: NextFunction) => {
     // Get client identifier (IP address or user ID if authenticated)
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.id;
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
     const identifier = userId ? `user:${userId}` : `ip:${ip}`;
     const key = `${req.path}:${identifier}`;

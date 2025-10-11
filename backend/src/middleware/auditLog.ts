@@ -11,7 +11,7 @@ import { AuthRequest } from './auth.js';
 export function auditLogMiddleware(action: string, resource?: string) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const authReq = req as AuthRequest;
-    const userId = authReq.user?.userId;
+    const userId = authReq.user?.id;
 
     // Capture the original res.json to intercept response
     const originalJson = res.json.bind(res);

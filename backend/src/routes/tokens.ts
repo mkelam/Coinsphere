@@ -160,7 +160,7 @@ router.post('/', requireAdmin, async (req: AuthRequest, res: Response) => {
     // Audit log token creation
     auditLogService.logAdmin({
       action: 'token_create',
-      userId: req.user!.userId,
+      userId: req.user!.id,
       resourceId: token.id,
       status: 'success',
       req,
@@ -175,7 +175,7 @@ router.post('/', requireAdmin, async (req: AuthRequest, res: Response) => {
     logger.error('Error creating token:', error);
 
     // Audit log error
-    if (req.user?.userId) {
+    if (req.user?.id) {
       auditLogService.logAdmin({
         action: 'token_create',
         userId: req.user.id,

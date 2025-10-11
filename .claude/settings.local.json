@@ -54,10 +54,15 @@
       "Bash(cp:*)",
       "Bash(tasklist:*)",
       "Bash(bash:*)",
-      "Bash(rm:*)",
+  "Bash(rm -f /safe/path/*)",
+  "Bash(rm -f ./frontend/build/*)"
+  "Bash(rm -f /safe/path/*)",
+  "Bash(rm -f ./frontend/build/*)",
       "Bash(xargs -r docker rm -f)"
     ],
     "deny": [],
     "ask": []
+  },
+  "allowJustification": "Wildcard rm is disallowed to prevent accidental recursive or destructive deletions. Only explicit safe patterns are permitted. See https://company-internal/policy/safe-shell-commands"
   }
 }

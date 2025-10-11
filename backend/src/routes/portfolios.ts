@@ -33,7 +33,7 @@ const performanceQuerySchema = z.object({
 // GET /api/v1/portfolios - Get user's portfolios with stats
 router.get('/', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
 
     const portfolios = await portfolioService.getUserPortfolios(userId);
 
@@ -50,7 +50,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
 // POST /api/v1/portfolios - Create portfolio
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const data = createPortfolioSchema.parse(req.body);
 
     const portfolio = await portfolioService.createPortfolio({
@@ -81,7 +81,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     }
 
     await auditLogService.log({
-      userId: req.user!.userId,
+      userId: req.user!.id,
       action: 'portfolio_create',
       resource: 'portfolio',
       status: 'error',
@@ -100,7 +100,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
 // POST /api/v1/portfolios/:id/holdings - Add holding to portfolio
 router.post('/:id/holdings', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const { id: portfolioId } = req.params;
 
     // Verify portfolio belongs to user
@@ -164,7 +164,7 @@ router.post('/:id/holdings', async (req: AuthRequest, res: Response) => {
 // GET /api/v1/portfolios/:id - Get specific portfolio with full details
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const portfolioId = req.params.id;
 
     const portfolio = await portfolioService.getPortfolioById(portfolioId, userId);
@@ -183,7 +183,7 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
 // PUT /api/v1/portfolios/:id - Update portfolio
 router.put('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const portfolioId = req.params.id;
     const data = updatePortfolioSchema.parse(req.body);
 
@@ -214,7 +214,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
     }
 
     await auditLogService.log({
-      userId: req.user!.userId,
+      userId: req.user!.id,
       action: 'portfolio_update',
       resource: 'portfolio',
       resourceId: req.params.id,
@@ -234,7 +234,7 @@ router.put('/:id', async (req: AuthRequest, res: Response) => {
 // DELETE /api/v1/portfolios/:id - Delete portfolio
 router.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const portfolioId = req.params.id;
 
     const result = await portfolioService.deletePortfolio(portfolioId, userId);
@@ -259,7 +259,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
     res.json({ message: 'Portfolio deleted successfully' });
   } catch (error) {
     await auditLogService.log({
-      userId: req.user!.userId,
+      userId: req.user!.id,
       action: 'portfolio_delete',
       resource: 'portfolio',
       resourceId: req.params.id,
@@ -279,7 +279,7 @@ router.delete('/:id', async (req: AuthRequest, res: Response) => {
 // GET /api/v1/portfolios/:id/performance - Get portfolio performance
 router.get('/:id/performance', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const portfolioId = req.params.id;
     const { days } = performanceQuerySchema.parse(req.query);
 
@@ -307,7 +307,7 @@ router.get('/:id/performance', async (req: AuthRequest, res: Response) => {
 // GET /api/v1/portfolios/:id/allocation - Get portfolio allocation
 router.get('/:id/allocation', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const portfolioId = req.params.id;
 
     const allocation = await portfolioService.getPortfolioAllocation(portfolioId, userId);
@@ -326,7 +326,7 @@ router.get('/:id/allocation', async (req: AuthRequest, res: Response) => {
 // POST /api/v1/portfolios/:id/set-active - Set portfolio as active
 router.post('/:id/set-active', async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const portfolioId = req.params.id;
 
     // Verify portfolio belongs to user
@@ -366,7 +366,7 @@ router.post('/:id/set-active', async (req: AuthRequest, res: Response) => {
     res.json({ portfolio: updatedPortfolio });
   } catch (error) {
     await auditLogService.log({
-      userId: req.user!.userId,
+      userId: req.user!.id,
       action: 'portfolio_set_active',
       resource: 'portfolio',
       resourceId: req.params.id,

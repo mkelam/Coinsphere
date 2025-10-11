@@ -11,7 +11,7 @@ const router = Router();
 // POST /api/v1/2fa/setup - Initiate 2FA setup (generates QR code)
 router.post('/setup', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -73,7 +73,7 @@ router.post('/verify', authenticate, async (req: AuthRequest, res: Response) => 
       token: z.string().length(6), // 6-digit TOTP code
     }).parse(req.body);
 
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -168,7 +168,7 @@ router.post('/disable', authenticate, async (req: AuthRequest, res: Response) =>
       token: z.string().length(6), // 6-digit TOTP code or 8-char backup code
     }).parse(req.body);
 
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -278,7 +278,7 @@ router.post('/disable', authenticate, async (req: AuthRequest, res: Response) =>
 // GET /api/v1/2fa/status - Check if 2FA is enabled
 router.get('/status', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });

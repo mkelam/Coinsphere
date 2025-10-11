@@ -44,7 +44,7 @@ router.get('/protocols', async (req, res) => {
  */
 router.get('/positions', authenticate, async (req, res) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const positions = await getUserDefiPositions(userId);
     const totalValue = await getUserDefiValue(userId);
 
@@ -77,7 +77,7 @@ router.get('/positions', authenticate, async (req, res) => {
  */
 router.post('/sync', authenticate, async (req, res) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const { blockchains = ['ethereum'] } = req.body;
 
     // Validate blockchains parameter
@@ -174,7 +174,7 @@ router.post('/sync', authenticate, async (req, res) => {
  */
 router.get('/protocols/:protocolId/positions', authenticate, async (req, res) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
     const { protocolId } = req.params;
 
     // Verify protocol exists
@@ -233,7 +233,7 @@ router.get('/protocols/:protocolId/positions', authenticate, async (req, res) =>
  */
 router.get('/stats', authenticate, async (req, res) => {
   try {
-    const userId = req.user!.userId;
+    const userId = req.user!.id;
 
     const positions = await prisma.defiPosition.findMany({
       where: {

@@ -416,7 +416,7 @@ router.post('/logout', async (req: Request, res: Response) => {
 // POST /api/v1/auth/logout-all - Logout from all devices (revoke all refresh tokens)
 router.post('/logout-all', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -439,7 +439,7 @@ router.post('/logout-all', authenticate, async (req: AuthRequest, res: Response)
 // GET /api/v1/auth/me (requires authentication)
 router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -686,7 +686,7 @@ router.post('/reset-password', async (req: Request, res: Response) => {
 // POST /api/v1/auth/resend-verification
 router.post('/resend-verification', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -753,7 +753,7 @@ const updateProfileSchema = z.object({
 
 router.put('/profile', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -811,7 +811,7 @@ router.put('/profile', authenticate, async (req: AuthRequest, res: Response) => 
     logger.error('Profile update error:', error);
 
     auditLogService.logAuth({
-      userId: req.user?.userId || '',
+      userId: req.user?.id || '',
       action: 'profile_update',
       ipAddress: req.ip || '',
       userAgent: req.get('user-agent') || '',
@@ -835,7 +835,7 @@ const changePasswordSchema = z.object({
 
 router.post('/change-password', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -906,7 +906,7 @@ router.post('/change-password', authenticate, async (req: AuthRequest, res: Resp
     logger.error('Password change error:', error);
 
     auditLogService.logAuth({
-      userId: req.user?.userId || '',
+      userId: req.user?.id || '',
       action: 'change_password',
       ipAddress: req.ip || '',
       userAgent: req.get('user-agent') || '',

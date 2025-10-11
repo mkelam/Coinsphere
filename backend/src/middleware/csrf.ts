@@ -18,7 +18,7 @@ export async function validateCsrfToken(req: Request, res: Response, next: NextF
   }
 
   // Get user ID from request (set by auth middleware)
-  const userId = (req as any).user?.userId;
+  const userId = (req as any).user?.id;
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -60,7 +60,7 @@ export async function validateCsrfToken(req: Request, res: Response, next: NextF
  * This should be called after login
  */
 export async function getCsrfToken(req: Request, res: Response) {
-  const userId = (req as any).user?.userId;
+  const userId = (req as any).user?.id;
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
