@@ -112,7 +112,7 @@ async def predict_price(request: PredictionRequest):
 
             # Try to load pre-trained model
             try:
-                predictor.load(save_dir="/app/models")
+                predictor.load(save_dir="/models/checkpoints")
             except FileNotFoundError:
                 # If no pre-trained model, train on provided data
                 # (In production, models should be pre-trained)
@@ -124,7 +124,7 @@ async def predict_price(request: PredictionRequest):
 
                 price_array = np.array(request.historical_prices)
                 predictor.train(price_array, epochs=50, batch_size=32)
-                predictor.save(save_dir="/app/models")
+                predictor.save(save_dir="/models/checkpoints")
 
             model_cache[model_key] = predictor
         else:
