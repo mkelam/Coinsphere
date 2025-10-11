@@ -108,7 +108,9 @@ export async function closeRedisConnection(): Promise<void> {
     } catch (error) {
       logger.error('Error closing Redis connection:', error);
       // Force close if graceful quit fails
-      redisClient.disconnect();
+      if (redisClient) {
+        redisClient.disconnect();
+      }
       redisClient = null;
       isConnected = false;
     }

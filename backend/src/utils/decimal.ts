@@ -122,7 +122,7 @@ export function weightedAverage(
  * Sum an array of values with precision
  */
 export function sum(values: (number | string | Decimal)[]): Decimal {
-  return values.reduce(
+  return values.reduce<Decimal>(
     (acc, val) => acc.plus(toDecimal(val)),
     new Decimal(0)
   );
