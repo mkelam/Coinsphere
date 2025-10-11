@@ -22,6 +22,10 @@ export function toDecimal(value: number | string | Decimal | null | undefined): 
   if (value === null || value === undefined) {
     return new Decimal(0);
   }
+  // If already a Decimal, return it directly (preserve instance)
+  if (value instanceof Decimal) {
+    return value;
+  }
   return new Decimal(value);
 }
 
@@ -136,6 +140,13 @@ export function isPositive(value: number | string | Decimal): boolean {
  */
 export function isZero(value: number | string | Decimal): boolean {
   return toDecimal(value).isZero();
+}
+
+/**
+ * Check if value is negative
+ */
+export function isNegative(value: number | string | Decimal): boolean {
+  return toDecimal(value).lessThan(0);
 }
 
 /**
