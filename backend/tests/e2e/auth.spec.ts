@@ -12,6 +12,9 @@ import { randomBytes } from 'crypto';
  * - Logout
  */
 
+const BASE_URL = 'http://localhost:3001';
+const API_URL = `${BASE_URL}/api/v1`;
+
 // Test data
 let testEmail: string;
 let testPassword: string;
@@ -28,7 +31,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('01. Health check - API is running', async ({ request }) => {
-    const response = await request.get('http://localhost:3001/health');
+    const response = await request.get(`${BASE_URL}/health`);
     expect(response.ok()).toBeTruthy();
 
     const data = await response.json();
@@ -37,7 +40,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('02. Register new user', async ({ request }) => {
-    const response = await request.post('/auth/register', {
+    const response = await request.post(`${API_URL}/auth/register`, {
       data: {
         email: testEmail,
         password: testPassword,
@@ -64,7 +67,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('03. Duplicate registration should fail', async ({ request }) => {
-    const response = await request.post('/auth/register', {
+    const response = await request.post(`${API_URL}/auth/register`, {
       data: {
         email: testEmail,
         password: testPassword,
@@ -80,7 +83,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('04. Login with correct credentials', async ({ request }) => {
-    const response = await request.post('/auth/login', {
+    const response = await request.post(`${API_URL}/auth/login`, {
       data: {
         email: testEmail,
         password: testPassword,
@@ -101,7 +104,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('05. Login with incorrect password should fail', async ({ request }) => {
-    const response = await request.post('/auth/login', {
+    const response = await request.post(`${API_URL}/auth/login`, {
       data: {
         email: testEmail,
         password: 'WrongPassword123!',
@@ -115,7 +118,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('06. Access protected route with valid token', async ({ request }) => {
-    const response = await request.get('/auth/me', {
+    const response = await request.get(`${API_URL}/auth/me`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -130,7 +133,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('07. Access protected route without token should fail', async ({ request }) => {
-    const response = await request.get('/auth/me');
+    const response = await request.get(`${API_URL}/auth/me`);
 
     expect(response.status()).toBe(401);
 
@@ -139,7 +142,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('08. Access protected route with invalid token should fail', async ({ request }) => {
-    const response = await request.get('/auth/me', {
+    const response = await request.get(`${API_URL}/auth/me`, {
       headers: {
         Authorization: 'Bearer invalid-token-12345',
       },
@@ -149,7 +152,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('09. Refresh access token', async ({ request }) => {
-    const response = await request.post('/auth/refresh', {
+    const response = await request.post(`${API_URL}/auth/refresh`, {
       data: {
         refreshToken,
       },
@@ -170,7 +173,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('10. Update user profile', async ({ request }) => {
-    const response = await request.put('/auth/profile', {
+    const response = await request.put(`${API_URL}/auth/profile`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -188,7 +191,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('11. Logout - invalidate tokens', async ({ request }) => {
-    const response = await request.post('/auth/logout', {
+    const response = await request.post(`${API_URL}/auth/logout`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -201,7 +204,7 @@ test.describe('Authentication E2E Flow', () => {
   });
 
   test('12. Access protected route after logout should fail', async ({ request }) => {
-    const response = await request.get('/auth/me', {
+    const response = await request.get(`${API_URL}/auth/me`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -225,7 +228,7 @@ test.describe('Password Management E2E Flow', () => {
   });
 
   test('01. Register user for password tests', async ({ request }) => {
-    const response = await request.post('/auth/register', {
+    const response = await request.post(`${API_URL}/auth/register`, {
       data: {
         email: userEmail,
         password: userPassword,
@@ -242,7 +245,7 @@ test.describe('Password Management E2E Flow', () => {
   test('02. Change password with correct old password', async ({ request }) => {
     const newPassword = 'NewP@ssw0rd456!';
 
-    const response = await request.post('/auth/change-password', {
+    const response = await request.post(`${API_URL}/auth/change-password`, {
       headers: {
         Authorization: `Bearer ${userAccessToken}`,
       },
@@ -262,7 +265,7 @@ test.describe('Password Management E2E Flow', () => {
   });
 
   test('03. Login with new password should work', async ({ request }) => {
-    const response = await request.post('/auth/login', {
+    const response = await request.post(`${API_URL}/auth/login`, {
       data: {
         email: userEmail,
         password: userPassword,
@@ -275,7 +278,7 @@ test.describe('Password Management E2E Flow', () => {
   });
 
   test('04. Request password reset', async ({ request }) => {
-    const response = await request.post('/auth/forgot-password', {
+    const response = await request.post(`${API_URL}/auth/forgot-password`, {
       data: {
         email: userEmail,
       },

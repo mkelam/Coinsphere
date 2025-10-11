@@ -10,6 +10,9 @@ import { randomBytes } from 'crypto';
  * - Price history retrieval
  */
 
+const BASE_URL = 'http://localhost:3001';
+const API_URL = `${BASE_URL}/api/v1`;
+
 let accessToken: string;
 
 test.describe('Token Management E2E Flow', () => {
@@ -18,7 +21,7 @@ test.describe('Token Management E2E Flow', () => {
     const randomId = randomBytes(8).toString('hex');
     const testEmail = `tokentest+${randomId}@coinsphere.com`;
 
-    const response = await request.post('/auth/register', {
+    const response = await request.post(`${API_URL}/auth/register`, {
       data: {
         email: testEmail,
         password: 'SecureP@ssw0rd123!',
@@ -32,7 +35,7 @@ test.describe('Token Management E2E Flow', () => {
   });
 
   test('01. List all tokens', async ({ request }) => {
-    const response = await request.get('/tokens', {
+    const response = await request.get(`${API_URL}/tokens`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -56,7 +59,7 @@ test.describe('Token Management E2E Flow', () => {
   });
 
   test('02. Get specific token - BTC', async ({ request }) => {
-    const response = await request.get('/tokens/BTC', {
+    const response = await request.get(`${API_URL}/tokens/BTC`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -72,7 +75,7 @@ test.describe('Token Management E2E Flow', () => {
   });
 
   test('03. Get specific token - ETH', async ({ request }) => {
-    const response = await request.get('/tokens/ETH', {
+    const response = await request.get(`${API_URL}/tokens/ETH`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -87,7 +90,7 @@ test.describe('Token Management E2E Flow', () => {
   });
 
   test('04. Get non-existent token should return 404', async ({ request }) => {
-    const response = await request.get('/tokens/NOTREAL', {
+    const response = await request.get(`${API_URL}/tokens/NOTREAL`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -100,7 +103,7 @@ test.describe('Token Management E2E Flow', () => {
   });
 
   test('05. Get price history - 24h', async ({ request }) => {
-    const response = await request.get('/tokens/BTC/history?timeframe=24h', {
+    const response = await request.get(`${API_URL}/tokens/BTC/history?timeframe=24h`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -115,7 +118,7 @@ test.describe('Token Management E2E Flow', () => {
   });
 
   test('06. Get price history - 7d', async ({ request }) => {
-    const response = await request.get('/tokens/ETH/history?timeframe=7d', {
+    const response = await request.get(`${API_URL}/tokens/ETH/history?timeframe=7d`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -129,7 +132,7 @@ test.describe('Token Management E2E Flow', () => {
   });
 
   test('07. Get price history - 30d', async ({ request }) => {
-    const response = await request.get('/tokens/SOL/history?timeframe=30d', {
+    const response = await request.get(`${API_URL}/tokens/SOL/history?timeframe=30d`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -143,7 +146,7 @@ test.describe('Token Management E2E Flow', () => {
   });
 
   test('08. List tokens without auth should fail', async ({ request }) => {
-    const response = await request.get('/tokens');
+    const response = await request.get(`${API_URL}/tokens`);
 
     expect(response.status()).toBe(401);
 
@@ -153,7 +156,7 @@ test.describe('Token Management E2E Flow', () => {
 
   test('09. Verify token caching (same request twice)', async ({ request }) => {
     // First request
-    const response1 = await request.get('/tokens', {
+    const response1 = await request.get(`${API_URL}/tokens`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -163,7 +166,7 @@ test.describe('Token Management E2E Flow', () => {
     const data1 = await response1.json();
 
     // Second request (should hit cache)
-    const response2 = await request.get('/tokens', {
+    const response2 = await request.get(`${API_URL}/tokens`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -179,7 +182,7 @@ test.describe('Token Management E2E Flow', () => {
   test('10. Verify multiple token symbols', async ({ request }) => {
     const expectedTokens = ['BTC', 'ETH', 'SOL', 'USDC', 'USDT'];
 
-    const response = await request.get('/tokens', {
+    const response = await request.get(`${API_URL}/tokens`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
