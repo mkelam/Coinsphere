@@ -82,7 +82,14 @@ export function EditTransactionModal({
       setAmount(transaction.amount.toString())
       setPricePerUnit(transaction.pricePerUnit.toString())
       setFee(transaction.fee.toString())
-      setDate(new Date(transaction.date).toISOString().slice(0, 16))
+  // Build local datetime-local string (YYYY-MM-DDTHH:MM) from Date object
+  const d = new Date(transaction.date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  setDate(`${year}-${month}-${day}T${hours}:${minutes}`)
 
       // Find portfolio ID from name
       const foundPortfolio = portfolios.find((p) => p.name === transaction.portfolio)

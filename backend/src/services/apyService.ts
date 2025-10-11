@@ -156,23 +156,33 @@ export async function getProtocolApy(
     }
 
     if (matchingPools.length === 0) {
-      logger.debug(`No pools found for ${project} on ${chain}`);
-      return null;
+    logger.debug(`No pools found for ${project} on ${chain}`);
+    return null;
     }
 
-    // Calculate weighted average APY (weighted by TVL)
-    const totalTvl = matchingPools.reduce((sum, pool) => sum + pool.tvlUsd, 0);
+    // Validate and coerce pool.apy and pool.tvlUsd to numbers, skip invalid entries
+    const validatedPools: { apy: number; tvl: number }[] = matchingPools
+      .map(pool => {
+        const apy = Number(pool.apy);
+        const tvl = Number(pool.tvlUsd);
+        if (Number.isFinite(apy) && Number.isFinite(tvl) && tvl >= 0) {
+          return { apy, tvl };
+        }
+        return undefined;
+      })
+      .filter((pool): pool is { apy: number; tvl: number } => pool !== undefined);
+
+    const totalTvl = validatedPools.reduce((sum, pool) => sum + pool.tvl, 0);
 
     if (totalTvl === 0) {
-      // If no TVL data, use simple average
-      const avgApy =
-        matchingPools.reduce((sum, pool) => sum + pool.apy, 0) /
-        matchingPools.length;
-      return avgApy;
+  // If no valid TVL data, use simple average of valid APYs
+  if (validatedPools.length === 0) return 0;
+  const avgApy = validatedPools.reduce((sum, pool) => sum + pool.apy, 0) / validatedPools.length;
+  return avgApy;
     }
 
-    const weightedApy = matchingPools.reduce(
-      (sum, pool) => sum + pool.apy * (pool.tvlUsd / totalTvl),
+    const weightedApy = validatedPools.reduce(
+      (sum, pool) => sum + pool.apy * (pool.tvl / totalTvl),
       0
     );
 
@@ -226,16 +236,28 @@ export async function getBatchProtocolApy(
       if (matchingPools.length === 0) continue;
 
       // Calculate weighted average
-      const totalTvl = matchingPools.reduce((sum, pool) => sum + pool.tvlUsd, 0);
+      // Validate and coerce pool.apy and pool.tvlUsd to numbers, skip invalid entries
+      const validatedPools: { apy: number; tvl: number }[] = matchingPools
+        .map(pool => {
+          const apy = Number(pool.apy);
+          const tvl = Number(pool.tvlUsd);
+          if (Number.isFinite(apy) && Number.isFinite(tvl) && tvl >= 0) {
+            return { apy, tvl };
+          }
+          return undefined;
+        })
+        .filter((pool): pool is { apy: number; tvl: number } => pool !== undefined);
 
-      const apy =
-        totalTvl === 0
-          ? matchingPools.reduce((sum, pool) => sum + pool.apy, 0) /
-            matchingPools.length
-          : matchingPools.reduce(
-              (sum, pool) => sum + pool.apy * (pool.tvlUsd / totalTvl),
-              0
-            );
+      const totalTvl = validatedPools.reduce((sum, pool) => sum + pool.tvl, 0);
+
+      let apy = 0;
+      if (totalTvl === 0) {
+        if (validatedPools.length > 0) {
+          apy = validatedPools.reduce((sum, pool) => sum + pool.apy, 0) / validatedPools.length;
+        }
+      } else {
+        apy = validatedPools.reduce((sum, pool) => sum + pool.apy * (pool.tvl / totalTvl), 0);
+      }
 
       result.set(key, apy);
     }
