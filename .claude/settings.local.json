@@ -53,7 +53,9 @@
       "Bash(copy .env.example .env)",
       "Bash(cp:*)",
       "Bash(tasklist:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(rm:*)",
+      "Bash(xargs -r docker rm -f)"
     ],
     "deny": [],
     "ask": []

@@ -229,8 +229,12 @@ class HoldingsService {
 
       // Calculate value and P&L for each holding
       const enrichedHoldings = holdings.map((holding) => {
-        const currentValue = (holding.token.currentPrice || 0) * holding.amount;
-        const costBasis = (holding.averageBuyPrice || 0) * holding.amount;
+        const currentPrice = Number(holding.token.currentPrice || 0);
+        const amount = Number(holding.amount);
+        const avgBuyPrice = Number(holding.averageBuyPrice || 0);
+
+        const currentValue = currentPrice * amount;
+        const costBasis = avgBuyPrice * amount;
         const unrealizedPnL = currentValue - costBasis;
         const unrealizedPnLPercentage = costBasis > 0 ? (unrealizedPnL / costBasis) * 100 : 0;
 
@@ -362,8 +366,12 @@ class HoldingsService {
       // Calculate P&L for each holding
       const holdingsWithPnL = holdings
         .map((holding) => {
-          const currentValue = (holding.token.currentPrice || 0) * holding.amount;
-          const costBasis = (holding.averageBuyPrice || 0) * holding.amount;
+          const currentPrice = Number(holding.token.currentPrice || 0);
+          const amount = Number(holding.amount);
+          const avgBuyPrice = Number(holding.averageBuyPrice || 0);
+
+          const currentValue = currentPrice * amount;
+          const costBasis = avgBuyPrice * amount;
           const unrealizedPnL = currentValue - costBasis;
           const unrealizedPnLPercentage = costBasis > 0 ? (unrealizedPnL / costBasis) * 100 : 0;
 
@@ -412,8 +420,12 @@ class HoldingsService {
       const uniqueTokens = new Set<string>();
 
       for (const holding of holdings) {
-        totalValue += (holding.token.currentPrice || 0) * holding.amount;
-        totalCost += (holding.averageBuyPrice || 0) * holding.amount;
+        const currentPrice = Number(holding.token.currentPrice || 0);
+        const amount = Number(holding.amount);
+        const avgBuyPrice = Number(holding.averageBuyPrice || 0);
+
+        totalValue += currentPrice * amount;
+        totalCost += avgBuyPrice * amount;
         uniqueTokens.add(holding.token.symbol);
       }
 

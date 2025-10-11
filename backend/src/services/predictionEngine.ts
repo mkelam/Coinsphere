@@ -50,7 +50,7 @@ export class PredictionEngine {
         throw new Error('Token or current price not found');
       }
 
-      const currentPrice = token.currentPrice;
+      const currentPrice = Number(token.currentPrice);
 
       // Calculate technical indicators
       const indicators = this.calculateTechnicalIndicators(historicalData);
@@ -117,7 +117,9 @@ export class PredictionEngine {
     }
 
     const closePrices = data.map((d) => toDecimal(d.close));
+    const closePricesNum = closePrices.map(p => p.toNumber());
     const volumes = data.map((d) => toDecimal(d.volume));
+    const volumesNum = volumes.map(v => v.toNumber());
 
     // Calculate trend from price momentum
     const priceChange = ((closePrices[closePrices.length - 1].toNumber() - closePrices[0].toNumber()) / closePrices[0].toNumber()) * 100;
@@ -127,10 +129,10 @@ export class PredictionEngine {
 
     return {
       rsi: this.calculateRSI(closePrices),
-      macd: this.calculateMACD(closePrices),
+      macd: this.calculateMACD(closePricesNum),
       trend,
-      bollingerBands: this.calculateBollingerBands(closePrices),
-      volumeTrend: this.calculateVolumeTrend(volumes),
+      bollingerBands: this.calculateBollingerBands(closePricesNum),
+      volumeTrend: this.calculateVolumeTrend(volumesNum),
     };
   }
 
@@ -434,8 +436,8 @@ export class PredictionEngine {
     timeframe: string
   ): Promise<PredictionResult> {
     const token = await prisma.token.findUnique({ where: { id: tokenId } });
-    const currentPrice = token?.currentPrice || 0;
-    const priceChange24h = token?.priceChange24h || 0;
+    const currentPrice = Number(token?.currentPrice || 0);
+    const priceChange24h = Number(token?.priceChange24h || 0);
 
     const randomChange = (Math.random() * 10 - 5) * (priceChange24h / 5);
     const predictedPrice = currentPrice * (1 + randomChange / 100);
