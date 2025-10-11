@@ -9,7 +9,29 @@ import { auditLogService } from '../services/auditLog.js';
 
 const router = Router();
 
-// GET /api/v1/tokens - List all tokens (cached for 30 seconds)
+/**
+ * @swagger
+ * /tokens:
+ *   get:
+ *     summary: List all cryptocurrency tokens
+ *     tags: [Tokens]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of tokens retrieved successfully (cached 30s)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 tokens:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Token'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.get('/', cache({ ttl: 30, prefix: 'tokens' }), async (req: AuthRequest, res: Response) => {
   try {
     const tokens = await prisma.token.findMany({
@@ -37,7 +59,63 @@ router.get('/', cache({ ttl: 30, prefix: 'tokens' }), async (req: AuthRequest, r
   }
 });
 
-// GET /api/v1/tokens/:symbol/history - Get price history for token (cached for 60 seconds, vary by timeframe)
+/**
+ * @swagger
+ * /tokens/{symbol}/history:
+ *   get:
+ *     summary: Get price history for a token
+ *     tags: [Tokens]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: symbol
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token symbol
+ *       - in: query
+ *         name: timeframe
+ *         schema:
+ *           type: string
+ *           enum: [24h, 7d, 30d, 1y]
+ *           default: 7d
+ *         description: Timeframe for price history
+ *     responses:
+ *       200:
+ *         description: Price history retrieved successfully (cached 60s)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 symbol:
+ *                   type: string
+ *                 timeframe:
+ *                   type: string
+ *                 priceHistory:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       time:
+ *                         type: number
+ *                         description: Unix timestamp
+ *                       price:
+ *                         type: number
+ *                       open:
+ *                         type: number
+ *                       high:
+ *                         type: number
+ *                       low:
+ *                         type: number
+ *                       volume:
+ *                         type: number
+ *                 currentPrice:
+ *                   type: number
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/:symbol/history', cache({ ttl: 60, prefix: 'token-history', varyBy: ['timeframe'] }), async (req: AuthRequest, res: Response) => {
   try {
     const { symbol } = req.params;
@@ -113,7 +191,34 @@ router.get('/:symbol/history', cache({ ttl: 60, prefix: 'token-history', varyBy:
   }
 });
 
-// GET /api/v1/tokens/:symbol - Get specific token (cached for 30 seconds)
+/**
+ * @swagger
+ * /tokens/{symbol}:
+ *   get:
+ *     summary: Get specific token by symbol
+ *     tags: [Tokens]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: symbol
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Token symbol (e.g., BTC, ETH)
+ *     responses:
+ *       200:
+ *         description: Token retrieved successfully (cached 30s)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   $ref: '#/components/schemas/Token'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
 router.get('/:symbol', cache({ ttl: 30, prefix: 'token' }), async (req: AuthRequest, res: Response) => {
   try {
     const { symbol } = req.params;

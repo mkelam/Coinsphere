@@ -34,7 +34,60 @@ const loginSchema = z.object({
   twoFactorToken: z.string().optional(), // Optional 2FA token
 });
 
-// POST /api/v1/auth/register
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user account
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User email address
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 8
+ *                 description: Password (min 8 chars, must include uppercase, lowercase, number, special char)
+ *               firstName:
+ *                 type: string
+ *                 description: User first name
+ *               lastName:
+ *                 type: string
+ *                 description: User last name
+ *     responses:
+ *       201:
+ *         description: User successfully registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 accessToken:
+ *                   type: string
+ *                   description: JWT access token (expires in 1h)
+ *                 refreshToken:
+ *                   type: string
+ *                   description: JWT refresh token (expires in 7d)
+ *                 message:
+ *                   type: string
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       500:
+ *         description: Internal server error
+ */
 router.post('/register', async (req: Request, res: Response) => {
   try {
     const { email, password, firstName, lastName } = registerSchema.parse(req.body);
@@ -133,7 +186,52 @@ router.post('/register', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/v1/auth/login
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Authenticate user and receive tokens
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *               twoFactorToken:
+ *                 type: string
+ *                 description: 2FA/TOTP code (required if 2FA is enabled)
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       401:
+ *         description: Invalid credentials or 2FA code
+ *       403:
+ *         description: 2FA code required
+ *       429:
+ *         description: Account locked due to too many failed attempts
+ */
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password, twoFactorToken } = loginSchema.parse(req.body);
@@ -436,7 +534,34 @@ router.post('/logout-all', authenticate, async (req: AuthRequest, res: Response)
   }
 });
 
-// GET /api/v1/auth/me (requires authentication)
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get current authenticated user profile
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 tokenStats:
+ *                   type: object
+ *                   properties:
+ *                     activeFamilies:
+ *                       type: number
+ *                     totalTokens:
+ *                       type: number
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
 router.get('/me', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
