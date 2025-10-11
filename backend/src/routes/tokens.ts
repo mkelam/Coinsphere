@@ -32,7 +32,7 @@ const router = Router();
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.get('/', cache({ ttl: 30, prefix: 'tokens' }), async (req: AuthRequest, res: Response) => {
+router.get('/', authenticate, cache({ ttl: 30, prefix: 'tokens' }), async (req: AuthRequest, res: Response) => {
   try {
     const tokens = await prisma.token.findMany({
       select: {
@@ -116,7 +116,7 @@ router.get('/', cache({ ttl: 30, prefix: 'tokens' }), async (req: AuthRequest, r
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.get('/:symbol/history', cache({ ttl: 60, prefix: 'token-history', varyBy: ['timeframe'] }), async (req: AuthRequest, res: Response) => {
+router.get('/:symbol/history', authenticate, cache({ ttl: 60, prefix: 'token-history', varyBy: ['timeframe'] }), async (req: AuthRequest, res: Response) => {
   try {
     const { symbol } = req.params;
     const { timeframe = '7d' } = req.query;
@@ -219,7 +219,7 @@ router.get('/:symbol/history', cache({ ttl: 60, prefix: 'token-history', varyBy:
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.get('/:symbol', cache({ ttl: 30, prefix: 'token' }), async (req: AuthRequest, res: Response) => {
+router.get('/:symbol', authenticate, cache({ ttl: 30, prefix: 'token' }), async (req: AuthRequest, res: Response) => {
   try {
     const { symbol } = req.params;
 
