@@ -795,9 +795,8 @@ router.put('/profile', authenticate, async (req: AuthRequest, res: Response) => 
     auditLogService.logAuth({
       userId,
       action: 'profile_update',
-      ipAddress: req.ip || '',
-      userAgent: req.get('user-agent') || '',
       status: 'success',
+      req,
     }).catch((err) => logger.error('Failed to log profile update audit:', err));
 
     logger.info(`Profile updated for user ${userId}`);
@@ -813,9 +812,8 @@ router.put('/profile', authenticate, async (req: AuthRequest, res: Response) => 
     auditLogService.logAuth({
       userId: req.user?.id || '',
       action: 'profile_update',
-      ipAddress: req.ip || '',
-      userAgent: req.get('user-agent') || '',
       status: 'failure',
+      req,
     }).catch((err) => logger.error('Failed to log profile update failure audit:', err));
 
     res.status(500).json({ error: 'Internal server error' });
@@ -864,9 +862,8 @@ router.post('/change-password', authenticate, async (req: AuthRequest, res: Resp
       auditLogService.logAuth({
         userId,
         action: 'change_password',
-        ipAddress: req.ip || '',
-        userAgent: req.get('user-agent') || '',
         status: 'failure',
+        req,
       }).catch((err) => logger.error('Failed to log password change failure audit:', err));
 
       return res.status(401).json({ error: 'Current password is incorrect' });
@@ -890,9 +887,8 @@ router.post('/change-password', authenticate, async (req: AuthRequest, res: Resp
     auditLogService.logAuth({
       userId,
       action: 'change_password',
-      ipAddress: req.ip || '',
-      userAgent: req.get('user-agent') || '',
       status: 'success',
+      req,
     }).catch((err) => logger.error('Failed to log password change audit:', err));
 
     logger.info(`Password changed for user ${userId}`);
@@ -908,9 +904,8 @@ router.post('/change-password', authenticate, async (req: AuthRequest, res: Resp
     auditLogService.logAuth({
       userId: req.user?.id || '',
       action: 'change_password',
-      ipAddress: req.ip || '',
-      userAgent: req.get('user-agent') || '',
       status: 'failure',
+      req,
     }).catch((err) => logger.error('Failed to log password change failure audit:', err));
 
     res.status(500).json({ error: 'Internal server error' });
