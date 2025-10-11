@@ -75,7 +75,7 @@ router.post('/batch', async (req: Request, res: Response) => {
     });
 
     const predictions = tokens.map((token) => {
-      const currentPrice = token.currentPrice || 0;
+      const currentPrice = Number(token.currentPrice || 0);
       const mockPrediction = generateMockPrediction(currentPrice, timeframe);
 
       return {
