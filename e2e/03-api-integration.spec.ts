@@ -1,5 +1,17 @@
 import { test, expect } from '@playwright/test';
 
+// Helper function to get CSRF token
+async function getCsrfToken(request: any, token: string): Promise<string> {
+  const response = await request.get('http://localhost:3001/api/v1/csrf-token', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok()) {
+    throw new Error('Failed to fetch CSRF token');
+  }
+  const data = await response.json();
+  return data.csrfToken;
+}
+
 test.describe('API Integration Tests', () => {
   const apiBase = 'http://localhost:3001/api/v1';
   let authToken: string;
@@ -103,9 +115,15 @@ test.describe('API Integration Tests', () => {
     const authData = await registerResponse.json();
     const token = authData.accessToken;
 
+    // Get CSRF token
+    const csrfToken = await getCsrfToken(request, token);
+
     // Create portfolio
     const portfolioResponse = await request.post(`${apiBase}/portfolios`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-CSRF-Token': csrfToken,
+      },
       data: { name: 'E2E Test Portfolio' },
     });
 
@@ -150,9 +168,15 @@ test.describe('API Integration Tests', () => {
     const authData = await registerResponse.json();
     const token = authData.accessToken;
 
+    // Get CSRF token
+    const csrfToken = await getCsrfToken(request, token);
+
     // Create alert
     const alertResponse = await request.post(`${apiBase}/alerts`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-CSRF-Token': csrfToken,
+      },
       data: {
         alertType: 'price',
         tokenSymbol: 'BTC',

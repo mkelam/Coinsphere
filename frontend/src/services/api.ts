@@ -8,6 +8,7 @@ const api: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,  // Enable sending cookies with requests (for CORS)
   timeout: 10000,
 })
 
@@ -198,6 +199,83 @@ export const authApi = {
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     localStorage.removeItem('csrfToken')
+  },
+}
+
+// Exchange Connection Types
+export interface ExchangeConnection {
+  id: string
+  exchange: string
+  label: string
+  status: string
+  lastSyncAt: string | null
+  lastError: string | null
+  autoSync: boolean
+  createdAt: string
+}
+
+export interface SupportedExchange {
+  id: string
+  name: string
+  requiresPassphrase: boolean
+}
+
+export interface ConnectExchangeRequest {
+  exchange: string
+  apiKey: string
+  apiSecret: string
+  passphrase?: string
+  label?: string
+}
+
+export interface TestConnectionRequest {
+  exchange: string
+  apiKey: string
+  apiSecret: string
+  passphrase?: string
+}
+
+export interface ExchangeResponse {
+  success: boolean
+  message: string
+  connectionId?: string
+}
+
+// Exchange API
+export const exchangeApi = {
+  getSupportedExchanges: async (): Promise<{ exchanges: SupportedExchange[] }> => {
+    const { data } = await api.get('/exchanges/supported')
+    return data
+  },
+
+  testConnection: async (request: TestConnectionRequest): Promise<ExchangeResponse> => {
+    const { data } = await api.post('/exchanges/test', request)
+    return data
+  },
+
+  connectExchange: async (request: ConnectExchangeRequest): Promise<ExchangeResponse> => {
+    const { data } = await api.post('/exchanges/connect', request)
+    return data
+  },
+
+  getConnections: async (): Promise<{ connections: ExchangeConnection[] }> => {
+    const { data } = await api.get('/exchanges/connections')
+    return data
+  },
+
+  syncConnection: async (connectionId: string): Promise<ExchangeResponse> => {
+    const { data } = await api.post(`/exchanges/connections/${connectionId}/sync`)
+    return data
+  },
+
+  disconnectExchange: async (connectionId: string): Promise<ExchangeResponse> => {
+    const { data } = await api.delete(`/exchanges/connections/${connectionId}`)
+    return data
+  },
+
+  syncAll: async (): Promise<ExchangeResponse> => {
+    const { data } = await api.post('/exchanges/sync-all')
+    return data
   },
 }
 

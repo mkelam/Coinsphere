@@ -15,11 +15,15 @@ router.use(authenticate);
 const createPortfolioSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
+  icon: z.string().max(10).optional().default('💼'),
+  currency: z.string().min(3).max(3).optional().default('USD'),
 });
 
 const updatePortfolioSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
+  icon: z.string().max(10).optional(),
+  currency: z.string().min(3).max(3).optional(),
 });
 
 const performanceQuerySchema = z.object({
@@ -315,6 +319,66 @@ router.get('/:id/allocation', async (req: AuthRequest, res: Response) => {
     res.json(allocation);
   } catch (error) {
     logger.error('Error fetching portfolio allocation:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/v1/portfolios/:id/set-active - Set portfolio as active
+router.post('/:id/set-active', async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const portfolioId = req.params.id;
+
+    // Verify portfolio belongs to user
+    const portfolio = await prisma.portfolio.findFirst({
+      where: { id: portfolioId, userId },
+    });
+
+    if (!portfolio) {
+      return res.status(404).json({ error: 'Portfolio not found' });
+    }
+
+    // Set all user's portfolios to inactive, then set this one to active
+    await prisma.portfolio.updateMany({
+      where: { userId },
+      data: { isActive: false },
+    });
+
+    const updatedPortfolio = await prisma.portfolio.update({
+      where: { id: portfolioId },
+      data: { isActive: true },
+    });
+
+    // Audit log
+    await auditLogService.log({
+      userId,
+      action: 'portfolio_set_active',
+      resource: 'portfolio',
+      resourceId: portfolioId,
+      status: 'success',
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+      method: req.method,
+      path: req.path,
+    });
+
+    logger.info(`Portfolio ${portfolioId} set as active for user ${userId}`);
+    res.json({ portfolio: updatedPortfolio });
+  } catch (error) {
+    await auditLogService.log({
+      userId: req.user!.userId,
+      action: 'portfolio_set_active',
+      resource: 'portfolio',
+      resourceId: req.params.id,
+      status: 'error',
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+      method: req.method,
+      path: req.path,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+    });
+
+    logger.error('Error setting active portfolio:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

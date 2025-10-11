@@ -46,7 +46,14 @@
       "Bash(wmic:*)",
       "Bash(npm run test:e2e:*)",
       "Bash(npm ls:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(sed:*)",
+      "Bash(powershell:*)",
+      "Bash(openssl rand:*)",
+      "Bash(copy .env.example .env)",
+      "Bash(cp:*)",
+      "Bash(tasklist:*)",
+      "Bash(bash:*)"
     ],
     "deny": [],
     "ask": []

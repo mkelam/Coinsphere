@@ -1,16 +1,40 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard Features', () => {
-  const testEmail = 'e2e-dashboard@coinsphere.com';
+  const timestamp = Date.now();
+  const testEmail = `e2e-dashboard-${timestamp}@coinsphere.com`;
   const testPassword = 'TestPassword123!';
+  const testFirstName = 'Dashboard';
+  const testLastName = 'Test';
+
+  // Create user once before all tests
+  test.beforeAll(async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    await page.goto('/signup');
+    await page.getByTestId('firstname-input').fill(testFirstName);
+    await page.getByTestId('lastname-input').fill(testLastName);
+    await page.getByTestId('email-input').fill(testEmail);
+    await page.getByTestId('password-input').fill(testPassword);
+    await page.locator('#confirmPassword').fill(testPassword);
+    await page.locator('#terms').check();
+    await page.getByTestId('signup-submit-button').click();
+    await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
+
+    await context.close();
+  });
 
   test.beforeEach(async ({ page }) => {
     // Login before each test
     await page.goto('/login');
-    await page.getByPlaceholder(/email/i).fill(testEmail);
-    await page.getByPlaceholder(/password/i).fill(testPassword);
-    await page.getByRole('button', { name: /sign in|log in/i }).click();
-    await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
+    await page.getByTestId('email-input').fill(testEmail);
+    await page.getByTestId('password-input').fill(testPassword);
+
+    await Promise.all([
+      page.waitForURL(/.*dashboard/, { timeout: 10000 }),
+      page.getByTestId('login-submit-button').click()
+    ]);
   });
 
   test('should display portfolio hero section', async ({ page }) => {
@@ -18,10 +42,10 @@ test.describe('Dashboard Features', () => {
     await expect(page.getByText(/total.*value|portfolio.*value/i)).toBeVisible();
 
     // Check for percentage change
-    await expect(page.locator('text=/[+-]?\\d+\\.\\d+%/')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=/[+-]?\\d+\\.\\d+%/').first()).toBeVisible({ timeout: 5000 });
 
     // Check for quick stats (should have multiple stat cards)
-    const statCards = page.locator('[class*="stat"]').or(page.locator('[class*="card"]'));
+    const statCards = page.locator('.glass-card');
     await expect(statCards.first()).toBeVisible({ timeout: 5000 });
   });
 
@@ -60,6 +84,9 @@ test.describe('Dashboard Features', () => {
   });
 
   test('should display transaction history', async ({ page }) => {
+    // Wait for page to fully load
+    await page.waitForLoadState('networkidle');
+
     // Scroll to transaction history section
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
@@ -78,10 +105,14 @@ test.describe('Dashboard Features', () => {
   });
 
   test('should display glass card design system', async ({ page }) => {
-    // Check that cards have glass morphism effect
-    const glassCards = page.locator('[class*="glass"]');
-    const cardCount = await glassCards.count();
+    // Wait for page to fully load
+    await page.waitForLoadState('networkidle');
 
+    // Check that cards have glass morphism effect
+    const glassCards = page.locator('.glass-card');
+    await expect(glassCards.first()).toBeVisible({ timeout: 5000 });
+
+    const cardCount = await glassCards.count();
     expect(cardCount).toBeGreaterThan(0);
 
     // Check for black background

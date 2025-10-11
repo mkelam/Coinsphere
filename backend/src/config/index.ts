@@ -54,8 +54,14 @@ export const config = {
 
   api: {
     coingecko: process.env.COINGECKO_API_KEY || '',
-    stripe: process.env.STRIPE_SECRET_KEY || '',
     sendgrid: process.env.SENDGRID_API_KEY || '',
+  },
+
+  payfast: {
+    merchantId: process.env.PAYFAST_MERCHANT_ID || '25263515',
+    merchantKey: process.env.PAYFAST_MERCHANT_KEY || 'cyxcghcf5hsbl',
+    passphrase: process.env.PAYFAST_PASSPHRASE || '',
+    sandbox: process.env.PAYFAST_SANDBOX === 'true',
   },
 
   smtp: {

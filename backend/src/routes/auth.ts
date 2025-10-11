@@ -744,4 +744,177 @@ router.post('/resend-verification', authenticate, async (req: AuthRequest, res: 
   }
 });
 
+// PUT /api/v1/auth/profile - Update user profile
+const updateProfileSchema = z.object({
+  firstName: z.string().min(1).max(100).optional(),
+  lastName: z.string().min(1).max(100).optional(),
+  email: z.string().email().optional(),
+});
+
+router.put('/profile', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { firstName, lastName, email } = updateProfileSchema.parse(req.body);
+
+    // If email is being changed, check if it's already in use
+    if (email) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+    }
+
+    // Update user profile
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(firstName !== undefined && { firstName }),
+        ...(lastName !== undefined && { lastName }),
+        ...(email !== undefined && { email, emailVerified: false }), // Reset verification if email changed
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        emailVerified: true,
+        subscriptionTier: true,
+        createdAt: true,
+      },
+    });
+
+    // Audit log
+    auditLogService.logAuth({
+      userId,
+      action: 'profile_update',
+      ipAddress: req.ip || '',
+      userAgent: req.get('user-agent') || '',
+      status: 'success',
+    }).catch((err) => logger.error('Failed to log profile update audit:', err));
+
+    logger.info(`Profile updated for user ${userId}`);
+
+    res.json({ user: updatedUser });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+
+    logger.error('Profile update error:', error);
+
+    auditLogService.logAuth({
+      userId: req.user?.userId || '',
+      action: 'profile_update',
+      ipAddress: req.ip || '',
+      userAgent: req.get('user-agent') || '',
+      status: 'failure',
+    }).catch((err) => logger.error('Failed to log profile update failure audit:', err));
+
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/v1/auth/change-password - Change user password
+const changePasswordSchema = z.object({
+  currentPassword: z.string(),
+  newPassword: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+});
+
+router.post('/change-password', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+
+    // Get user with password hash
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        passwordHash: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+
+    if (!isValidPassword) {
+      auditLogService.logAuth({
+        userId,
+        action: 'change_password',
+        ipAddress: req.ip || '',
+        userAgent: req.get('user-agent') || '',
+        status: 'failure',
+      }).catch((err) => logger.error('Failed to log password change failure audit:', err));
+
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash: newPasswordHash,
+      },
+    });
+
+    // Revoke all existing tokens (force re-login on all devices for security)
+    await tokenRevocationService.revokeAllUserTokens(userId);
+
+    // Audit log
+    auditLogService.logAuth({
+      userId,
+      action: 'change_password',
+      ipAddress: req.ip || '',
+      userAgent: req.get('user-agent') || '',
+      status: 'success',
+    }).catch((err) => logger.error('Failed to log password change audit:', err));
+
+    logger.info(`Password changed for user ${userId}`);
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors[0].message });
+    }
+
+    logger.error('Password change error:', error);
+
+    auditLogService.logAuth({
+      userId: req.user?.userId || '',
+      action: 'change_password',
+      ipAddress: req.ip || '',
+      userAgent: req.get('user-agent') || '',
+      status: 'failure',
+    }).catch((err) => logger.error('Failed to log password change failure audit:', err));
+
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;

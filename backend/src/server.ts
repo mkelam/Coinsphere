@@ -14,6 +14,7 @@ import { sanitizeInput } from './middleware/sanitize.js';
 import { priceUpdaterService } from './services/priceUpdater.js';
 import { websocketService } from './services/websocket.js';
 import { checkRedisHealth, closeRedisConnection } from './lib/redis.js';
+import { initializeExchangeSyncJobs, stopExchangeSyncQueue } from './services/exchangeSyncQueue.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -25,6 +26,9 @@ import predictionsRoutes from './routes/predictions.js';
 import riskRoutes from './routes/risk.js';
 import alertsRoutes from './routes/alerts.js';
 import transactionsRoutes from './routes/transactions.js';
+import paymentsRoutes from './routes/payments.js';
+import exchangesRoutes from './routes/exchanges.js';
+import defiRoutes from './routes/defi.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -87,6 +91,12 @@ app.use(cors({
     const allowedOrigins = [
       config.appUrl,  // Production frontend URL
       'http://localhost:5173',  // Vite dev server
+      'http://localhost:5174',  // Vite dev server (port conflict)
+      'http://localhost:5175',  // Vite dev server (port conflict)
+      'http://localhost:5176',  // Vite dev server (port conflict)
+      'http://localhost:5177',  // Vite dev server (port conflict)
+      'http://localhost:5178',  // Vite dev server (port conflict)
+      'http://localhost:5179',  // Vite dev server (port conflict)
       'http://localhost:3000',  // Alternative dev server
     ];
 
@@ -132,13 +142,16 @@ app.get('/api/v1/csrf-token', authenticate, getCsrfToken);
 // API Routes with Rate Limiting and CSRF Protection
 app.use('/api/v1/auth', authLimiter, authRoutes); // Strict rate limit for auth (no CSRF on login/signup)
 app.use('/api/v1/2fa', authenticate, validateCsrfToken, authLimiter, twoFactorRoutes); // 2FA routes require authentication
-app.use('/api/v1/tokens', authenticate, validateCsrfToken, apiLimiter, tokensRoutes);
+app.use('/api/v1/tokens', apiLimiter, tokensRoutes); // Public read-only, auth required for mutations (handled in routes)
+app.use('/api/v1/predictions', apiLimiter, predictionsRoutes); // Public read-only ML predictions
+app.use('/api/v1/risk', apiLimiter, riskRoutes); // Public read-only risk scores
 app.use('/api/v1/portfolios', authenticate, validateCsrfToken, apiLimiter, portfoliosRoutes);
 app.use('/api/v1/holdings', authenticate, validateCsrfToken, apiLimiter, holdingsRoutes);
-app.use('/api/v1/predictions', authenticate, validateCsrfToken, apiLimiter, predictionsRoutes);
-app.use('/api/v1/risk', authenticate, validateCsrfToken, apiLimiter, riskRoutes);
 app.use('/api/v1/alerts', authenticate, validateCsrfToken, apiLimiter, alertsRoutes);
 app.use('/api/v1/transactions', authenticate, validateCsrfToken, apiLimiter, transactionsRoutes);
+app.use('/api/v1/payments', apiLimiter, paymentsRoutes); // PayFast webhook doesn't need CSRF
+app.use('/api/v1/exchanges', authenticate, validateCsrfToken, apiLimiter, exchangesRoutes);
+app.use('/api/v1/defi', apiLimiter, defiRoutes); // DeFi routes (auth required for user positions)
 
 // Sentry error handler must be before custom error handlers
 if (process.env.SENTRY_DSN && config.env === 'production') {
@@ -164,6 +177,10 @@ server.listen(PORT, () => {
   // Initialize WebSocket service
   websocketService.initialize(server);
   logger.info(`🔌 WebSocket service started`);
+
+  // Initialize exchange sync jobs
+  initializeExchangeSyncJobs();
+  logger.info(`🔄 Exchange sync jobs initialized`);
 });
 
 // Handle graceful shutdown
@@ -173,6 +190,7 @@ process.on('SIGTERM', async () => {
     logger.info('HTTP server closed');
     priceUpdaterService.stop();
     websocketService.stop();
+    await stopExchangeSyncQueue();
     await closeRedisConnection();
     process.exit(0);
   });
@@ -184,6 +202,7 @@ process.on('SIGINT', async () => {
     logger.info('HTTP server closed');
     priceUpdaterService.stop();
     websocketService.stop();
+    await stopExchangeSyncQueue();
     await closeRedisConnection();
     process.exit(0);
   });

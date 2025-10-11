@@ -30,8 +30,6 @@ model User {
   // Subscription
   subscriptionTier String @default("free") @map("subscription_tier") // free, plus, pro, power_trader
   subscriptionStatus String @default("active") @map("subscription_status") // active, cancelled, past_due
-  stripeCustomerId String? @unique @map("stripe_customer_id")
-  stripeSubscriptionId String? @unique @map("stripe_subscription_id")
 
   // Timestamps
   createdAt     DateTime @default(now()) @map("created_at")
@@ -45,6 +43,9 @@ model User {
   emailVerifications   EmailVerification[]
   passwordResets       PasswordReset[]
   auditLogs            AuditLog[]
+  paymentIntents       PaymentIntent[]
+  exchangeConnections  ExchangeConnection[]
+  walletConnections    WalletConnection[]
 
   @@map("users")
 }
@@ -87,6 +88,9 @@ model Portfolio {
   userId        String   @map("user_id")
   name          String   @default("Main Portfolio")
   description   String?
+  icon          String   @default("💼") // Emoji icon for portfolio
+  currency      String   @default("USD") // Base currency (USD, EUR, BTC, etc)
+  isActive      Boolean  @default(false) @map("is_active") // Is this the active portfolio
 
   // Timestamps
   createdAt     DateTime @default(now()) @map("created_at")
@@ -99,6 +103,7 @@ model Portfolio {
 
   @@map("portfolios")
   @@index([userId])
+  @@index([userId, isActive]) // Index for finding active portfolio
 }
 
 // Individual Holdings
@@ -122,6 +127,7 @@ model Holding {
   token         Token     @relation(fields: [tokenId], references: [id])
 
   @@map("holdings")
+  @@unique([portfolioId, tokenId])
   @@index([portfolioId])
   @@index([tokenId])
 }
@@ -365,4 +371,255 @@ model AuditLog {
   @@index([createdAt])
   @@index([status])
   @@index([ipAddress])
+}
+
+// Payment Intents for PayFast and other payment gateways
+model PaymentIntent {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+
+  // Payment Gateway Details
+  provider      String   // payfast, stripe, etc.
+  referenceId   String   @unique @map("reference_id") // External payment reference
+  amount        Decimal  @db.Decimal(18, 2)
+  currency      String   @default("ZAR")
+
+  // Subscription Details
+  plan          String   // plus, pro, power-trader
+  status        String   // pending, completed, cancelled, failed
+
+  // Additional Data
+  metadata      Json?    // Store additional payment context
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  completedAt   DateTime? @map("completed_at")
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payment_intents")
+  @@index([userId])
+  @@index([status])
+  @@index([referenceId])
+}
+
+// Exchange Connections for API Integration
+model ExchangeConnection {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+
+  // Exchange Details
+  exchange      String   // binance, coinbase, kraken, etc.
+  label         String?  // User-friendly name for the connection
+
+  // Encrypted API Credentials (AES-256-GCM)
+  apiKeyEncrypted    String   @map("api_key_encrypted")
+  apiSecretEncrypted String   @map("api_secret_encrypted")
+  passphraseEncrypted String? @map("passphrase_encrypted") // For Coinbase Pro
+
+  // Connection Status
+  status        String   @default("active") // active, disabled, error
+  lastSyncAt    DateTime? @map("last_sync_at")
+  lastError     String?   @map("last_error")
+
+  // Sync Configuration
+  autoSync      Boolean  @default(true) @map("auto_sync")
+  syncInterval  Int      @default(300) @map("sync_interval") // Seconds between syncs
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("exchange_connections")
+  @@index([userId])
+  @@index([status])
+  @@index([lastSyncAt])
+}
+
+// Wallet Connections for DeFi Tracking
+model WalletConnection {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+
+  // Wallet Details
+  address       String   // Wallet address (e.g., 0x123...)
+  label         String?  // User-friendly name
+  blockchain    String   // ethereum, bsc, polygon, etc.
+  walletType    String   @map("wallet_type") // metamask, walletconnect, manual
+
+  // Connection Status
+  status        String   @default("active") // active, disabled
+  lastSyncAt    DateTime? @map("last_sync_at")
+  lastError     String?   @map("last_error")
+
+  // Sync Configuration
+  autoSync      Boolean  @default(true) @map("auto_sync")
+  syncInterval  Int      @default(600) @map("sync_interval") // Seconds (10 min default)
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wallet_connections")
+  @@unique([userId, address, blockchain])
+  @@index([userId])
+  @@index([address])
+  @@index([blockchain])
+  @@index([lastSyncAt])
+}
+
+// DeFi Protocol Tracking
+model DefiProtocol {
+  id            String   @id @default(uuid())
+
+  // Protocol Details
+  name          String   // Uniswap, Aave, Compound, Curve, etc.
+  slug          String   @unique // uniswap-v3, aave-v2, etc.
+  category      String   // dex, lending, staking, yield, derivatives
+  blockchain    String   // ethereum, bsc, polygon, arbitrum, etc.
+
+  // Protocol Metadata
+  logoUrl       String?  @map("logo_url")
+  website       String?
+  tvl           Decimal? @db.Decimal(24, 2) // Total Value Locked
+
+  // The Graph Integration
+  subgraphUrl   String?  @map("subgraph_url") // The Graph subgraph endpoint
+  isActive      Boolean  @default(true) @map("is_active")
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  positions     DefiPosition[]
+
+  @@map("defi_protocols")
+  @@index([blockchain])
+  @@index([category])
+  @@index([isActive])
+}
+
+// User's DeFi Positions
+model DefiPosition {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  protocolId    String   @map("protocol_id")
+  walletAddress String   @map("wallet_address")
+  blockchain    String   @default("ethereum") // ethereum, polygon, optimism, arbitrum, base, bsc
+
+  // Position Details
+  positionType  String   @map("position_type") // liquidity, lending, borrowing, staking, farming
+  tokenSymbol   String   @map("token_symbol") // Primary token (ETH, USDC, etc.)
+  amount        Decimal  @db.Decimal(24, 8) // Amount deposited/staked
+  valueUsd      Decimal  @db.Decimal(18, 2) @map("value_usd") // USD value
+
+  // Yield/Rewards
+  apy           Decimal? @db.Decimal(8, 4) // Annual Percentage Yield
+  rewardsEarned Decimal? @db.Decimal(24, 8) @map("rewards_earned")
+  rewardsToken  String?  @map("rewards_token") // Token rewards are paid in
+
+  // Additional Data
+  metadata      Json?    // Store protocol-specific data (pool info, etc.)
+
+  // Status
+  status        String   @default("active") // active, closed, liquidated
+  lastSyncAt    DateTime @default(now()) @map("last_sync_at")
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  protocol      DefiProtocol @relation(fields: [protocolId], references: [id])
+
+  @@map("defi_positions")
+  @@unique([userId, protocolId, walletAddress, blockchain, tokenSymbol])
+  @@index([userId])
+  @@index([protocolId])
+  @@index([walletAddress])
+  @@index([blockchain])
+  @@index([status])
+  @@index([lastSyncAt])
+}
+
+// NFT Collections
+model NftCollection {
+  id            String   @id @default(uuid())
+
+  // Collection Details
+  contractAddress String @unique @map("contract_address")
+  blockchain    String   // ethereum, polygon, solana, etc.
+  name          String
+  slug          String   @unique
+  symbol        String?
+
+  // Collection Metadata
+  imageUrl      String?  @map("image_url")
+  description   String?  @db.Text
+  externalUrl   String?  @map("external_url")
+
+  // Market Data
+  floorPrice    Decimal? @db.Decimal(18, 8) @map("floor_price")
+  totalSupply   Int?     @map("total_supply")
+  numOwners     Int?     @map("num_owners")
+  volumeTotal   Decimal? @db.Decimal(24, 2) @map("volume_total")
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  nfts          Nft[]
+
+  @@map("nft_collections")
+  @@index([blockchain])
+  @@index([slug])
+}
+
+// Individual NFTs
+model Nft {
+  id            String   @id @default(uuid())
+  collectionId  String   @map("collection_id")
+  userId        String   @map("user_id")
+
+  // NFT Details
+  tokenId       String   @map("token_id")
+  name          String?
+  description   String?  @db.Text
+  imageUrl      String?  @map("image_url")
+
+  // Ownership
+  walletAddress String   @map("wallet_address")
+
+  // Purchase Info
+  purchasePrice Decimal? @db.Decimal(18, 8) @map("purchase_price")
+  purchaseDate  DateTime? @map("purchase_date")
+
+  // Current Value
+  lastValuation Decimal? @db.Decimal(18, 8) @map("last_valuation")
+  valuationDate DateTime? @map("valuation_date")
+
+  // Metadata
+  attributes    Json?    // NFT traits/attributes
+
+  // Timestamps
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  collection    NftCollection @relation(fields: [collectionId], references: [id])
+
+  @@map("nfts")
+  @@unique([collectionId, tokenId, walletAddress])
+  @@index([userId])
+  @@index([collectionId])
+  @@index([walletAddress])
 }

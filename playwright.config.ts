@@ -12,7 +12,7 @@ export default defineConfig({
     ['list'],
   ],
   use: {
-    baseURL: 'http://localhost:5176',
+    baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -32,7 +32,7 @@ export default defineConfig({
     },
     {
       command: 'cd frontend && npm run dev',
-      port: 5176,
+      port: 5173,
       timeout: 120000,
       reuseExistingServer: true,
     },

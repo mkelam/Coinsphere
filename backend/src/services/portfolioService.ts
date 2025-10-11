@@ -14,11 +14,15 @@ export interface CreatePortfolioData {
   userId: string;
   name: string;
   description?: string;
+  icon?: string;
+  currency?: string;
 }
 
 export interface UpdatePortfolioData {
   name?: string;
   description?: string;
+  icon?: string;
+  currency?: string;
 }
 
 export interface PortfolioWithStats {
@@ -26,6 +30,9 @@ export interface PortfolioWithStats {
   userId: string;
   name: string;
   description: string | null;
+  icon: string;
+  currency: string;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
   holdings: {
@@ -58,6 +65,8 @@ class PortfolioService {
           userId: data.userId,
           name: data.name,
           description: data.description || null,
+          icon: data.icon || '💼',
+          currency: data.currency || 'USD',
         },
         include: {
           holdings: {
@@ -192,6 +201,8 @@ class PortfolioService {
         data: {
           name: data.name,
           description: data.description,
+          icon: data.icon,
+          currency: data.currency,
         },
         include: {
           holdings: {

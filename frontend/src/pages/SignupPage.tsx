@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
@@ -17,7 +17,14 @@ export function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   const navigate = useNavigate()
-  const { signup } = useAuth()
+  const { signup, isAuthenticated } = useAuth()
+
+  // Navigate to dashboard when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard", { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -46,7 +53,7 @@ export function SignupPage() {
 
     try {
       await signup(formData.email, formData.password, formData.firstName, formData.lastName)
-      navigate("/dashboard")
+      // Navigation handled by useEffect when isAuthenticated becomes true
     } catch (err: any) {
       setError(err.message || "Failed to create account")
     } finally {
@@ -58,10 +65,10 @@ export function SignupPage() {
     <div className="min-h-screen bg-transparent flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8" data-testid="signup-header">
           <div className="text-6xl mb-4">🔮</div>
-          <h1 className="text-3xl font-bold text-white mb-2">CoinSphere</h1>
-          <p className="text-white/50">Create your account</p>
+          <h1 className="text-3xl font-bold text-white mb-2" data-testid="page-title">CoinSphere</h1>
+          <p className="text-white/50" data-testid="page-subtitle">Create your account</p>
         </div>
 
         {/* Signup Form */}
@@ -86,6 +93,7 @@ export function SignupPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
                   placeholder="John"
+                  data-testid="firstname-input"
                   required
                 />
               </div>
@@ -101,6 +109,7 @@ export function SignupPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
                   placeholder="Doe"
+                  data-testid="lastname-input"
                   required
                 />
               </div>
@@ -119,6 +128,7 @@ export function SignupPage() {
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
                 placeholder="you@example.com"
+                data-testid="email-input"
                 required
               />
             </div>
@@ -137,6 +147,7 @@ export function SignupPage() {
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all pr-12"
                   placeholder="••••••••"
+                  data-testid="password-input"
                   required
                 />
                 <button
@@ -209,6 +220,7 @@ export function SignupPage() {
               type="submit"
               disabled={isLoading}
               className="w-full px-4 py-3 rounded-lg bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              data-testid="signup-submit-button"
             >
               {isLoading ? "Creating account..." : "Create Account"}
             </button>
@@ -217,7 +229,7 @@ export function SignupPage() {
           {/* Login Link */}
           <div className="mt-6 text-center text-sm text-white/50">
             Already have an account?{" "}
-            <a href="/login" className="text-[#3B82F6] hover:text-[#3B82F6]/80 transition-colors font-medium">
+            <a href="/login" className="text-[#3B82F6] hover:text-[#3B82F6]/80 transition-colors font-medium" data-testid="signin-link">
               Sign in
             </a>
           </div>

@@ -87,7 +87,7 @@ export function rateLimit(options: RateLimitOptions) {
 // Predefined rate limit configurations
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
+  max: process.env.NODE_ENV === 'production' ? 5 : 100, // 5 in prod, 100 in dev/test
   message: 'Too many authentication attempts, please try again later',
   skipSuccessfulRequests: true, // Don't count successful logins
 });

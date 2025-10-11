@@ -140,6 +140,99 @@ async function main() {
     console.log(`✓ Created/Updated token: ${token.symbol} - ${token.name}`);
   }
 
+  // Seed DeFi protocols
+  const defiProtocols = [
+    {
+      slug: 'uniswap-v3',
+      name: 'Uniswap V3',
+      category: 'DEX',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/uniswap-uni-logo.png',
+      isActive: true,
+    },
+    {
+      slug: 'aave-v3',
+      name: 'Aave V3',
+      category: 'Lending',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/aave-aave-logo.png',
+      isActive: true,
+    },
+    {
+      slug: 'compound-v2',
+      name: 'Compound V2',
+      category: 'Lending',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/compound-comp-logo.png',
+      isActive: true,
+    },
+    {
+      slug: 'curve',
+      name: 'Curve Finance',
+      category: 'DEX',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/curve-dao-token-crv-logo.png',
+      isActive: true,
+    },
+    {
+      slug: 'lido',
+      name: 'Lido',
+      category: 'Staking',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/lido-dao-ldo-logo.png',
+      isActive: true,
+    },
+    {
+      slug: 'rocket-pool',
+      name: 'Rocket Pool',
+      category: 'Staking',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/rocket-pool-rpl-logo.png',
+      isActive: true,
+    },
+    {
+      slug: 'yearn-v2',
+      name: 'Yearn Finance V2',
+      category: 'Yield',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/yearn-finance-yfi-logo.png',
+      isActive: true,
+    },
+    {
+      slug: 'convex',
+      name: 'Convex Finance',
+      category: 'Yield',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/convex-finance-cvx-logo.png',
+      isActive: true,
+    },
+    {
+      slug: 'balancer-v2',
+      name: 'Balancer V2',
+      category: 'DEX',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/balancer-bal-logo.png',
+      isActive: true,
+    },
+    {
+      slug: 'sushiswap',
+      name: 'SushiSwap',
+      category: 'DEX',
+      blockchain: 'Ethereum',
+      logoUrl: 'https://cryptologos.cc/logos/sushiswap-sushi-logo.png',
+      isActive: true,
+    },
+  ];
+
+  for (const protocolData of defiProtocols) {
+    const protocol = await prisma.defiProtocol.upsert({
+      where: { slug: protocolData.slug },
+      update: protocolData,
+      create: protocolData,
+    });
+    console.log(`✓ Created/Updated DeFi protocol: ${protocol.name} (${protocol.category})`);
+  }
+
   console.log('✅ Seeding complete!');
 }
 

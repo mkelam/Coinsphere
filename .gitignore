@@ -83,6 +83,10 @@ deployment/ssl/*.key
 # Secrets
 secrets/
 .secrets/
+payfast.txt
+backend/Payfast.txt
+**/payfast*.txt
+**/Payfast*.txt
 
 # Cache
 .cache/

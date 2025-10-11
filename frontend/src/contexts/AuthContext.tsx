@@ -39,7 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true)
     try {
       const response = await authApi.login({ email, password })
 
@@ -51,13 +50,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user)
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Login failed')
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const signup = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    setIsLoading(true)
     try {
       const response = await authApi.signup({ email, password, firstName, lastName })
 
@@ -69,14 +65,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user)
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Signup failed')
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const logout = async () => {
     await authApi.logout()
     setUser(null)
+    // Clear localStorage tokens
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('user')
+    localStorage.removeItem('csrfToken')
   }
 
   const value: AuthContextType = {

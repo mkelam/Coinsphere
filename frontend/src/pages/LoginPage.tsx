@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
@@ -11,7 +11,14 @@ export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
+
+  // Navigate to dashboard when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard", { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,7 +27,7 @@ export function LoginPage() {
 
     try {
       await login(email, password)
-      navigate("/dashboard")
+      // Navigation handled by useEffect when isAuthenticated becomes true
     } catch (err: any) {
       setError(err.message || "Invalid email or password")
     } finally {
@@ -32,10 +39,10 @@ export function LoginPage() {
     <div className="min-h-screen bg-transparent flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8" data-testid="login-header">
           <div className="text-6xl mb-4">🔮</div>
-          <h1 className="text-3xl font-bold text-white mb-2">CoinSphere</h1>
-          <p className="text-white/50">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-white mb-2" data-testid="page-title">CoinSphere</h1>
+          <p className="text-white/50" data-testid="page-subtitle">Sign in to your account</p>
         </div>
 
         {/* Login Form */}
@@ -58,6 +65,7 @@ export function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
                 placeholder="you@example.com"
+                data-testid="email-input"
                 required
               />
             </div>
@@ -75,6 +83,7 @@ export function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all pr-12"
                   placeholder="••••••••"
+                  data-testid="password-input"
                   required
                 />
                 <button
@@ -110,6 +119,7 @@ export function LoginPage() {
               type="submit"
               disabled={isLoading}
               className="w-full px-4 py-3 rounded-lg bg-[#3B82F6] hover:bg-[#3B82F6]/90 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              data-testid="login-submit-button"
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </button>
@@ -118,7 +128,7 @@ export function LoginPage() {
           {/* Sign Up Link */}
           <div className="mt-6 text-center text-sm text-white/50">
             Don't have an account?{" "}
-            <a href="/signup" className="text-[#3B82F6] hover:text-[#3B82F6]/80 transition-colors font-medium">
+            <a href="/signup" className="text-[#3B82F6] hover:text-[#3B82F6]/80 transition-colors font-medium" data-testid="signup-link">
               Sign up
             </a>
           </div>

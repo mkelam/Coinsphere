@@ -1,12 +1,11 @@
 import { useState } from "react"
 import { Header } from "@/components/header"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { GlassCard } from "@/components/glass-card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/contexts/AuthContext"
-import { Separator } from "@/components/ui/separator"
 
 export function SettingsPage() {
   const { user } = useAuth()
@@ -34,12 +33,30 @@ export function SettingsPage() {
     setMessage(null)
 
     try {
-      // API call to update profile
-      // await api.put('/auth/profile', { firstName, lastName, email })
+      const response = await fetch('http://localhost:3001/api/v1/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'X-CSRF-Token': localStorage.getItem('csrfToken') || '',
+        },
+        body: JSON.stringify({ firstName, lastName, email }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to update profile')
+      }
+
+      const data = await response.json()
+
+      // Update local storage
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+      localStorage.setItem('user', JSON.stringify({ ...currentUser, ...data.user }))
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update profile' })
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || 'Failed to update profile' })
     } finally {
       setLoading(false)
     }
@@ -62,15 +79,33 @@ export function SettingsPage() {
     setMessage(null)
 
     try {
-      // API call to change password
-      // await api.post('/auth/change-password', { currentPassword, newPassword })
+      const response = await fetch('http://localhost:3001/api/v1/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'X-CSRF-Token': localStorage.getItem('csrfToken') || '',
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
 
-      setMessage({ type: 'success', text: 'Password changed successfully!' })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to change password')
+      }
+
+      setMessage({ type: 'success', text: 'Password changed successfully! You will be logged out.' })
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to change password' })
+
+      // User will be logged out due to token revocation, redirect after 2 seconds
+      setTimeout(() => {
+        localStorage.clear()
+        window.location.href = '/login'
+      }, 2000)
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || 'Failed to change password' })
     } finally {
       setLoading(false)
     }
@@ -80,117 +115,124 @@ export function SettingsPage() {
     <div className="min-h-screen bg-transparent">
       <Header />
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-6">Settings</h1>
+        <h1 className="text-3xl font-bold mb-6 text-white">Settings</h1>
 
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
+          <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981]' : 'bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444]'}`}>
             {message.text}
           </div>
         )}
 
         {/* Profile Settings */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Profile Settings</CardTitle>
-            <CardDescription>Update your personal information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleUpdateProfile} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="John"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Doe"
-                  />
-                </div>
-              </div>
+        <GlassCard hover={false} className="mb-6">
+          <h2 className="text-xl font-semibold text-white mb-2">Profile Settings</h2>
+          <p className="text-sm text-white/50 mb-6">Update your personal information</p>
+
+          <form onSubmit={handleUpdateProfile} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="firstName" className="text-white/70">First Name</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="john@example.com"
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="John"
+                  className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
                 />
               </div>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-white/70">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Doe"
+                  className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-white/70">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@example.com"
+                className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-3 rounded-lg bg-[#3b82f6] hover:bg-[#3b82f6]/90 text-white font-medium transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </form>
+        </GlassCard>
 
         {/* Password Change */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Change Password</CardTitle>
-            <CardDescription>Update your account password</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password (min 8 characters)"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
-                />
-              </div>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Changing...' : 'Change Password'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <GlassCard hover={false} className="mb-6">
+          <h2 className="text-xl font-semibold text-white mb-2">Change Password</h2>
+          <p className="text-sm text-white/50 mb-6">Update your account password</p>
+
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword" className="text-white/70">Current Password</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword" className="text-white/70">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password (min 8 characters)"
+                className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-white/70">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="w-full px-4 py-3 rounded-lg bg-white/[0.05] border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-3 rounded-lg bg-[#3b82f6] hover:bg-[#3b82f6]/90 text-white font-medium transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Changing...' : 'Change Password'}
+            </Button>
+          </form>
+        </GlassCard>
 
         {/* Notification Settings */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Notification Settings</CardTitle>
-            <CardDescription>Manage your notification preferences</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+        <GlassCard hover={false} className="mb-6">
+          <h2 className="text-xl font-semibold text-white mb-2">Notification Settings</h2>
+          <p className="text-sm text-white/50 mb-6">Manage your notification preferences</p>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="space-y-0.5">
-                <Label htmlFor="email-notifications">Email Notifications</Label>
-                <p className="text-sm text-muted-foreground">Receive email notifications</p>
+                <Label htmlFor="email-notifications" className="text-white font-medium">Email Notifications</Label>
+                <p className="text-sm text-white/50">Receive email notifications</p>
               </div>
               <Switch
                 id="email-notifications"
@@ -198,11 +240,10 @@ export function SettingsPage() {
                 onCheckedChange={setEmailNotifications}
               />
             </div>
-            <Separator />
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="space-y-0.5">
-                <Label htmlFor="price-alerts">Price Alerts</Label>
-                <p className="text-sm text-muted-foreground">Get notified when price targets are hit</p>
+                <Label htmlFor="price-alerts" className="text-white font-medium">Price Alerts</Label>
+                <p className="text-sm text-white/50">Get notified when price targets are hit</p>
               </div>
               <Switch
                 id="price-alerts"
@@ -210,11 +251,10 @@ export function SettingsPage() {
                 onCheckedChange={setPriceAlerts}
               />
             </div>
-            <Separator />
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="portfolio-updates">Portfolio Updates</Label>
-                <p className="text-sm text-muted-foreground">Daily portfolio performance summaries</p>
+                <Label htmlFor="portfolio-updates" className="text-white font-medium">Portfolio Updates</Label>
+                <p className="text-sm text-white/50">Daily portfolio performance summaries</p>
               </div>
               <Switch
                 id="portfolio-updates"
@@ -222,54 +262,54 @@ export function SettingsPage() {
                 onCheckedChange={setPortfolioUpdates}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GlassCard>
 
         {/* Account Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-            <CardDescription>Your subscription and account details</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Account Created</span>
-              <span className="text-sm font-medium">
+        <GlassCard hover={false} className="mb-6">
+          <h2 className="text-xl font-semibold text-white mb-2">Account Information</h2>
+          <p className="text-sm text-white/50 mb-6">Your subscription and account details</p>
+
+          <div className="space-y-4">
+            <div className="flex justify-between pb-4 border-b border-white/10">
+              <span className="text-sm text-white/50">Account Created</span>
+              <span className="text-sm font-medium text-white">
                 {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
               </span>
             </div>
-            <Separator />
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Subscription Tier</span>
-              <span className="text-sm font-medium capitalize">
+            <div className="flex justify-between pb-4 border-b border-white/10">
+              <span className="text-sm text-white/50">Subscription Tier</span>
+              <span className="text-sm font-medium text-white capitalize">
                 {user?.subscriptionTier || 'free'}
               </span>
             </div>
-            <Separator />
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Account ID</span>
-              <span className="text-sm font-mono">
+              <span className="text-sm text-white/50">Account ID</span>
+              <span className="text-sm font-mono text-white">
                 {user?.id?.slice(0, 8) || 'N/A'}...
               </span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GlassCard>
 
         {/* Danger Zone */}
-        <Card className="mt-6 border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            <CardDescription>Irreversible actions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="destructive" disabled>
+        <GlassCard hover={false} className="border-[#EF4444]/20">
+          <h2 className="text-xl font-semibold text-[#EF4444] mb-2">Danger Zone</h2>
+          <p className="text-sm text-white/50 mb-6">Irreversible actions</p>
+
+          <div>
+            <Button
+              variant="destructive"
+              disabled
+              className="px-4 py-3 rounded-lg bg-[#EF4444] hover:bg-[#EF4444]/90 text-white font-medium transition-colors disabled:opacity-50"
+            >
               Delete Account
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-white/50 mt-2">
               This action is permanently disabled for safety. Contact support to delete your account.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </GlassCard>
       </main>
     </div>
   )
