@@ -1,20 +1,279 @@
 # Development Roadmap & Sprint Plan
 ## Coinsphere
 
-**Version:** 1.0 MVP  
-**Last Updated:** October 2025  
-**Timeline:** 8 weeks to MVP launch
+**Version:** 1.0 MVP
+**Last Updated:** October 11, 2025 (Post-E2E Test Update)
+**Original Timeline:** 8 weeks to MVP launch
+**Revised Timeline:** 9 weeks (accounting for discovered blockers)
+
+---
+
+## 🚨 CRITICAL UPDATE - POST-IMPLEMENTATION STATUS
+
+**Date:** October 11, 2025
+**Status:** 🟡 AMBER - Code Complete, Runtime Blocked
+
+### What Changed
+After completing all 7 original critical blockers (CB-01 through CB-07), comprehensive E2E testing revealed **7 new critical blockers (NCB-01 through NCB-07)** that must be addressed before any deployment.
+
+### Current State
+- ✅ **Code Quality:** 80% - All features implemented, excellent architecture
+- 🔴 **Runtime Status:** Services won't start, backend won't compile
+- 🔴 **Test Coverage:** 15% - 10 unit tests failing, 0 E2E tests
+- 🟡 **Production Ready:** 34% overall
+
+### Immediate Actions Required
+**Week 0 (Next 1 Week):** Fix new critical blockers before resuming original plan
+- See [Sprint 0: Emergency Bug Fix](#sprint-0-emergency-bug-fix) below
 
 ---
 
 ## Table of Contents
-1. [Project Phases](#project-phases)
-2. [Sprint Breakdown](#sprint-breakdown)
-3. [Week-by-Week Tasks](#week-by-week-tasks)
-4. [Testing Strategy](#testing-strategy)
-5. [Launch Checklist](#launch-checklist)
-6. [Post-Launch Roadmap](#post-launch-roadmap)
-7. [Risk Management](#risk-management)
+1. [Sprint 0: Emergency Bug Fix (NEW)](#sprint-0-emergency-bug-fix)
+2. [Project Phases](#project-phases)
+3. [Sprint Breakdown](#sprint-breakdown)
+4. [Week-by-Week Tasks](#week-by-week-tasks)
+5. [Testing Strategy](#testing-strategy)
+6. [Launch Checklist](#launch-checklist)
+7. [Post-Launch Roadmap](#post-launch-roadmap)
+8. [Risk Management](#risk-management)
+9. [Lessons Learned](#lessons-learned)
+
+---
+
+## Sprint 0: Emergency Bug Fix (NEW)
+
+**Duration:** 1 week (12-16 hours focused work)
+**Priority:** P0 - BLOCKING ALL PROGRESS
+**Status:** 🔴 CRITICAL
+
+### Goal
+Fix newly discovered critical blockers (NCB-01 through NCB-07) that prevent any functional testing or deployment.
+
+### New Critical Blockers Discovered
+
+#### NCB-01: Backend/Frontend Services Not Starting 🔴
+```
+Severity: P0 - CRITICAL
+Impact: Complete application failure, zero functionality
+Current: Backend (port 3001) and Frontend (port 5173) not running
+Root Cause: Docker config issue? Environment variables? Port conflicts?
+```
+
+**Tasks:**
+- [ ] Debug why Docker Compose services fail to start
+- [ ] Check for port conflicts (netstat)
+- [ ] Verify .env files exist with correct values
+- [ ] Test docker-compose up -d backend frontend
+- [ ] Verify services respond to health checks
+- [ ] Document startup procedure
+
+**Assigned:** DevOps + Backend Lead
+**ETA:** 2-3 hours
+**Blockers:** None
+
+---
+
+#### NCB-02: Decimal Utility Financial Calculation Bugs 🔴
+```
+Severity: P0 - CRITICAL (FINANCIAL ACCURACY)
+Impact: Portfolio values will be WRONG
+Issues:
+  - multiply() error of $760 million on large numbers
+  - roundTo() doesn't round (1.5 stays 1.5 instead of 2)
+  - isNegative() function not exported
+  - Portfolio calculations off by $100
+```
+
+**Tasks:**
+- [ ] Fix multiply() in backend/src/utils/decimal.ts to use Decimal.js properly
+- [ ] Fix roundTo() to actually round with ROUND_HALF_UP mode
+- [ ] Export isNegative() function from decimal.ts
+- [ ] Verify all 6 failing decimal tests pass
+- [ ] Run portfolio calculation accuracy test
+- [ ] Add additional edge case tests (very large numbers, precision)
+
+**Assigned:** Backend Developer
+**ETA:** 2-3 hours
+**Blockers:** None
+**Critical:** Financial accuracy is non-negotiable for crypto app
+
+---
+
+#### NCB-03: Backend TypeScript Compilation Errors 🔴
+```
+Severity: P0 - CRITICAL BLOCKER
+Impact: Cannot build production artifacts, deployment blocked
+Errors: 44 TypeScript errors (pre-existing, not from CB fixes)
+```
+
+**Tasks:**
+- [ ] Install @types/validator: `npm install --save-dev @types/validator`
+- [ ] Fix 12 Prisma Decimal type mismatches
+  - Convert Decimal to number where needed: `decimal.toNumber()`
+  - Use proper Decimal operations instead of number arithmetic
+- [ ] Fix JWT signature type conflicts (2 errors)
+  - Update jwt.sign() calls with proper types
+- [ ] Fix Express Request.user property (augment Request type)
+  - Create types/express.d.ts with custom Request interface
+- [ ] Fix CCXT namespace errors
+- [ ] Verify npm run build succeeds with 0 errors
+
+**Assigned:** Backend Lead
+**ETA:** 4-6 hours
+**Blockers:** None
+
+---
+
+#### NCB-04: Email Service Typo 🟡
+```
+Severity: P1 - HIGH
+Impact: User signup/verification emails will fail
+Issue: Line 64 in emailService.ts
+```
+
+**Tasks:**
+- [ ] Fix typo in backend/src/services/emailService.ts:64
+  - Change: `nodemailer.createTransporter(config)`
+  - To: `nodemailer.createTransport(config)`
+- [ ] Verify auth tests pass (4 failing tests should pass)
+- [ ] Test email sending in dev environment
+
+**Assigned:** Backend Developer
+**ETA:** 5 minutes
+**Blockers:** None
+**Quick Win:** Easy fix, immediate impact
+
+---
+
+#### NCB-05: ML Models Not Loaded 🟡
+```
+Severity: P1 - HIGH
+Impact: Predictions/risk scoring will return errors
+Status: Container running, PyTorch unavailable, 0 models loaded
+```
+
+**Tasks:**
+- [ ] Verify PyTorch installation in ml-service container
+  - Check requirements.txt includes torch
+  - Test: `docker exec coinsphere-ml python -c "import torch; print(torch.__version__)"`
+- [ ] Train LSTM models for BTC, ETH, SOL (minimum viable)
+  - Run training scripts in ml-service/app/training/
+  - Save models to /app/models/ directory
+- [ ] Verify models load on container startup
+  - Check ml-service logs for model loading
+  - Test GET /health returns models_loaded > 0
+- [ ] Test prediction endpoints return real data
+  - POST /predict with BTC data
+  - POST /risk-score with BTC data
+
+**Assigned:** Data Scientist + Backend
+**ETA:** 2-4 hours (mostly training time)
+**Blockers:** NCB-01 (need backend running to test integration)
+
+---
+
+#### NCB-06: Zero E2E Test Coverage 🟡
+```
+Severity: P1 - HIGH
+Impact: No safety net, bugs will reach production
+Status: Playwright configured but no test files exist
+```
+
+**Tasks:**
+- [ ] Create tests/ directory structure
+  - tests/e2e/
+  - tests/e2e/auth.spec.ts
+  - tests/e2e/portfolio.spec.ts
+  - tests/e2e/predictions.spec.ts
+- [ ] Write 5 critical user flow tests:
+  1. Signup → Email Verify → Login
+  2. Connect Exchange → Sync Portfolio → View Dashboard
+  3. View Asset → Check Predictions (Pro user)
+  4. View Asset → See Risk Score (Pro user)
+  5. Create Alert → Verify Saved
+- [ ] Create playwright.config.ts
+- [ ] Setup test database seeding
+- [ ] Mock external APIs (CoinGecko, Stripe)
+- [ ] Verify all 5 tests pass
+
+**Assigned:** QA + Full Team
+**ETA:** 8-12 hours
+**Blockers:** NCB-01 (need services running)
+
+---
+
+#### NCB-07: Unit Test Failures 🟡
+```
+Severity: P1 - MEDIUM
+Impact: Existing functionality may be broken
+Failures: 10 tests failing (6 decimal, 4 auth)
+```
+
+**Tasks:**
+- [ ] Fix header component test (frontend/src/components/header.test.tsx)
+  - Change: `import Header from '@/components/header'`
+  - To: `import { Header } from '@/components/header'`
+- [ ] Verify decimal tests pass after NCB-02 fixes (6 tests)
+- [ ] Verify auth tests pass after NCB-04 fix (4 tests)
+- [ ] Add tests for new components:
+  - DashboardPage.test.tsx
+  - ConnectWallet.test.tsx
+  - WalletContext.test.tsx
+- [ ] Achieve 70% unit test coverage target
+
+**Assigned:** Frontend + Backend Developers
+**ETA:** 3-4 hours
+**Blockers:** NCB-02, NCB-04 (need those fixes first)
+
+---
+
+### Sprint 0 Success Criteria
+
+**Must Complete Before Resuming Original Plan:**
+- [ ] ✅ Backend API running and responding (port 3001)
+- [ ] ✅ Frontend dev server running (port 5173)
+- [ ] ✅ Backend compiles with 0 TypeScript errors
+- [ ] ✅ All decimal utility tests passing (financial accuracy verified)
+- [ ] ✅ Email service working (signup flow functional)
+- [ ] ✅ ML models trained and loaded (at least BTC, ETH, SOL)
+- [ ] ✅ Zero unit test failures (10 currently failing → 0)
+- [ ] ✅ At least 5 E2E tests passing
+
+**Verification:**
+```bash
+# All must pass:
+npm run build                    # Backend compiles
+cd frontend && npm run build     # Frontend compiles
+npm test                         # 0 test failures
+docker-compose ps                # All 6 services "Up (healthy)"
+curl http://localhost:3001/health # 200 OK
+curl http://localhost:5173        # HTML response
+curl http://localhost:8000/health # models_loaded > 0
+npm run test:e2e                 # 5/5 tests pass
+```
+
+### Sprint 0 Schedule
+
+**Monday (Day 1):**
+- Morning: NCB-04 (email typo - 5min), NCB-02 (decimal bugs - 3hrs)
+- Afternoon: NCB-01 (debug Docker - 2hrs)
+- **Deliverable:** Backend running, financial bugs fixed
+
+**Tuesday (Day 2):**
+- Morning: NCB-03 (TypeScript errors - 4hrs)
+- Afternoon: NCB-03 continued + verification
+- **Deliverable:** Backend compiles, frontend runs
+
+**Wednesday (Day 3):**
+- Morning: NCB-05 (train ML models - 3hrs)
+- Afternoon: NCB-07 (fix unit tests - 3hrs)
+- **Deliverable:** Models loaded, tests passing
+
+**Thursday-Friday (Day 4-5):**
+- NCB-06 (E2E tests - 8hrs)
+- End-to-end verification
+- **Deliverable:** 5 E2E tests passing, all services healthy
 
 ---
 
@@ -907,4 +1166,201 @@ class CoinsphereUser(HttpUser):
 
 ---
 
+## Lessons Learned (October 11, 2025 Update)
+
+### What We Discovered from E2E Testing
+
+After completing all 7 original critical blockers (CB-01 through CB-07), comprehensive end-to-end testing revealed important lessons:
+
+**Key Insights:**
+
+1. **Code ≠ Working Product**
+   - All features were implemented at code level with excellent architecture
+   - But services wouldn't start and runtime issues blocked all testing
+   - **Lesson:** Run integration tests continuously during development, not just at the end
+
+2. **Financial Accuracy Is Non-Negotiable**
+   - Decimal utility bugs would have caused $760M errors on large numbers
+   - Portfolio calculations were off by $100
+   - **Lesson:** Financial applications require extra scrutiny on math operations
+
+3. **Pre-existing Technical Debt**
+   - 44 TypeScript compilation errors existed before our changes
+   - These were ignored until they blocked deployment
+   - **Lesson:** Address technical debt incrementally, don't let it accumulate
+
+4. **Test Coverage Gaps**
+   - Zero E2E tests despite Playwright being configured
+   - Only 25% unit test coverage
+   - 10 unit tests failing
+   - **Lesson:** Testing should be part of feature development, not a separate phase
+
+5. **Dependencies Matter**
+   - PyTorch reported as unavailable despite being in requirements.txt
+   - ML models not trained despite having training scripts
+   - **Lesson:** Verify dependencies actually work in the target environment
+
+### What Went Well
+
+1. ✅ **Excellent Code Architecture**
+   - All three expert reviewers praised the component structure
+   - Clean separation of concerns
+   - Proper TypeScript usage
+
+2. ✅ **Infrastructure Foundation**
+   - PostgreSQL, Redis, ML service all running and healthy
+   - Docker Compose configuration mostly correct
+   - Security fundamentals (encryption, rate limiting) in place
+
+3. ✅ **Frontend Build Success**
+   - Vite production build works perfectly
+   - wagmi v2 integration implemented correctly
+   - Bundle size acceptable for crypto/Web3 app
+
+4. ✅ **Documentation Quality**
+   - 11 comprehensive markdown files created
+   - Clear API specifications
+   - Well-documented code
+
+### What Needs Improvement
+
+1. 🔴 **Runtime Testing**
+   - Should have tested services starting earlier
+   - Docker Compose issues should have been caught in Week 1
+   - **Action:** Add "services running" as Day 1 success criteria
+
+2. 🔴 **Continuous Integration**
+   - No CI/CD pipeline running tests automatically
+   - No automated build verification
+   - **Action:** Set up GitHub Actions immediately after Sprint 0
+
+3. 🔴 **Test-Driven Development**
+   - Tests written after features (if at all)
+   - No E2E tests until post-implementation
+   - **Action:** Write tests BEFORE or DURING feature development
+
+4. 🔴 **Financial Accuracy Validation**
+   - Decimal utility not tested with large numbers
+   - No edge case testing for financial calculations
+   - **Action:** Add property-based testing for financial code
+
+### Revised Best Practices
+
+**Development Workflow:**
+```
+1. Write failing test
+2. Implement feature
+3. Verify test passes
+4. Verify service runs locally
+5. Commit code
+6. CI runs all tests
+7. Deploy to staging
+```
+
+**Daily Health Checks:**
+```bash
+# Run these every morning:
+docker-compose ps              # All services up?
+npm run build                  # Compiles?
+npm test                       # Tests pass?
+curl http://localhost:3001/health  # Backend responding?
+```
+
+**Code Review Checklist:**
+- [ ] Unit tests included?
+- [ ] Integration test added?
+- [ ] Tested locally (service runs)?
+- [ ] Financial calculations verified?
+- [ ] TypeScript compiles?
+- [ ] No new test failures?
+
+### Updated Risk Management
+
+**New Risks Identified:**
+
+| Risk | Probability | Impact | Mitigation |
+|------|------------|--------|------------|
+| Services fail to start | **High** | **Critical** | Daily smoke tests, document setup |
+| Financial calculation bugs | **Medium** | **Critical** | Extensive testing, peer review |
+| Accumulated tech debt | **High** | **High** | Weekly debt sprints, strict code review |
+| Test coverage inadequate | **High** | **High** | 70% coverage target, CI enforcement |
+| Docker environment drift | **Medium** | **Medium** | Lock dependency versions, test containers |
+
+### Timeline Impact
+
+**Original Plan:** 8 weeks to MVP launch
+**Actual Progress:** ~Week 5 equivalent (integration incomplete)
+**Schedule Variance:** 6-8 weeks behind
+
+**Revised Timeline:**
+- Week 0 (NEW): Fix critical blockers (1 week)
+- Week 1-2: Complete original Sprint 1-2 work
+- Week 3-4: Complete original Sprint 3-4 work
+- Week 5-6: Complete original Sprint 5-6 work
+- Week 7: Integration & polish (extended)
+- Week 8-9: Testing & launch (extended)
+
+**New Launch Date:** Mid-December 2025 (9 weeks from now)
+
+### Recommendations for Future Sprints
+
+1. **Sprint 0 Must Complete Successfully**
+   - All services running and healthy
+   - All tests passing (0 failures)
+   - Backend compiles without errors
+   - Financial accuracy verified
+
+2. **Add CI/CD Immediately After Sprint 0**
+   - GitHub Actions workflow
+   - Automated test runs on every PR
+   - Automatic deployment to staging on merge
+
+3. **Increase Test Coverage Gradually**
+   - Every new feature must include tests
+   - Target 70% coverage by Sprint 2
+   - Add E2E tests for each user flow
+
+4. **Weekly Technical Debt Sprints**
+   - Friday afternoons: Fix one tech debt item
+   - Don't accumulate more than 10 TypeScript errors
+   - Keep test suite under 2 minutes runtime
+
+5. **Daily Standups Must Include Health Checks**
+   - "Are all services running?"
+   - "Do all tests pass?"
+   - "Any new blockers discovered?"
+
+### Success Metrics (Updated)
+
+**Sprint 0 Completion (Next Week):**
+- [ ] All 7 new critical blockers (NCB-01 to NCB-07) resolved
+- [ ] 100% services running (6/6 containers healthy)
+- [ ] 0 TypeScript compilation errors (down from 44)
+- [ ] 0 unit test failures (down from 10)
+- [ ] 5+ E2E tests passing
+- [ ] ML models loaded and functioning
+
+**Sprint 1 Completion (Week 2):**
+- [ ] CI/CD pipeline operational
+- [ ] Test coverage >50%
+- [ ] All original Week 1-2 tasks complete
+- [ ] Zero critical bugs
+
+**MVP Launch (Week 9):**
+- [ ] Test coverage >70%
+- [ ] Load testing passed (1000 concurrent users)
+- [ ] Zero critical or high severity bugs
+- [ ] Beta user feedback incorporated
+- [ ] Production monitoring configured
+
+---
+
 **Let's build something amazing! 🚀**
+
+**Next Steps:**
+1. Review Sprint 0 tasks with team
+2. Assign NCB-01 through NCB-07 to developers
+3. Start Monday morning with NCB-04 (quick win)
+4. Daily standups to track blocker resolution
+5. Sprint 0 review Friday afternoon
+6. Resume original plan Week 1 on following Monday
