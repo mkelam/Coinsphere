@@ -307,8 +307,8 @@ export class ExchangeService {
   private static createExchangeInstance(
     exchange: SupportedExchange,
     credentials: ExchangeCredentials
-  ): ccxt.Exchange {
-    const ExchangeClass = ccxt[exchange];
+  ): any {
+    const ExchangeClass = (ccxt as any)[exchange];
 
     if (!ExchangeClass) {
       throw new Error(`Exchange ${exchange} not supported`);

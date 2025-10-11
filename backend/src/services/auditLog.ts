@@ -35,7 +35,7 @@ class AuditLogService {
           userAgent: data.userAgent || null,
           method: data.method || null,
           path: data.path || null,
-          metadata: data.metadata || null,
+          metadata: data.metadata || undefined,
           errorMessage: data.errorMessage || null,
         },
       });

@@ -220,7 +220,7 @@ router.post('/payfast/notify', async (req: Request, res: Response) => {
           status: 'completed',
           completedAt: new Date(),
           metadata: {
-            ...paymentIntent.metadata,
+            ...(paymentIntent.metadata as Record<string, any> || {}),
             pfPaymentId: pfData.pf_payment_id,
             paymentStatus: pfData.payment_status,
           },

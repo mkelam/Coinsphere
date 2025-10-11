@@ -2,7 +2,6 @@ import Bull from 'bull';
 import { PrismaClient } from '@prisma/client';
 import { ExchangeService } from './exchangeService';
 import { logger } from '../utils/logger';
-import { redis } from '../lib/redis';
 
 const prisma = new PrismaClient();
 

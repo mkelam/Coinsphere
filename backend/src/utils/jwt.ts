@@ -15,7 +15,7 @@ export interface RefreshTokenPayload extends JwtPayload {
 export const generateAccessToken = (payload: JwtPayload): string => {
   return jwt.sign(payload, config.jwt.secret, {
     expiresIn: config.jwt.expiresIn,
-  });
+  } as any);
 };
 
 export const generateRefreshToken = (payload: JwtPayload, familyId?: string): string => {
@@ -29,7 +29,7 @@ export const generateRefreshToken = (payload: JwtPayload, familyId?: string): st
 
   return jwt.sign(refreshPayload, config.jwt.refreshSecret, {
     expiresIn: config.jwt.refreshExpiresIn,
-  });
+  } as any);
 };
 
 export const verifyAccessToken = (token: string): JwtPayload => {
