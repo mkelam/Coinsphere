@@ -3,13 +3,15 @@
  * Real-time SSE (Server-Sent Events) streaming from LunarCrush
  */
 
-import * as EventSourceModule from 'eventsource';
+import { createRequire } from 'module';
 import axios from 'axios';
 import { logger } from '../utils/logger.js';
 import { getRedisClient } from '../lib/redis.js';
 
-// Handle EventSource import for ESM
-const EventSource = (EventSourceModule as any).default || EventSourceModule;
+// Use CommonJS require for EventSource (ESM not supported)
+const require = createRequire(import.meta.url);
+const EventSourceModule = require('eventsource');
+const EventSource = EventSourceModule.EventSource;
 
 const LUNARCRUSH_SSE_URL = 'https://lunarcrush.ai/sse';
 const LUNARCRUSH_API_KEY = process.env.LUNARCRUSH_API_KEY || '';
@@ -60,39 +62,118 @@ class LunarCrushMcpService {
 
     try {
       const url = `${LUNARCRUSH_SSE_URL}?key=${LUNARCRUSH_API_KEY}`;
-      logger.info('Connecting to LunarCrush MCP via SSE', { url: LUNARCRUSH_SSE_URL });
+      logger.info('Connecting to LunarCrush MCP via SSE', {
+        url: LUNARCRUSH_SSE_URL,
+        hasApiKey: !!LUNARCRUSH_API_KEY,
+        apiKeyLength: LUNARCRUSH_API_KEY?.length
+      });
+
+      // Create EventSource instance
+      logger.debug('Creating EventSource instance', {
+        EventSourceType: typeof EventSource,
+        EventSourceConstructor: EventSource?.name || 'unknown'
+      });
 
       this.eventSource = new EventSource(url);
 
+      logger.debug('EventSource instance created', {
+        readyState: this.eventSource.readyState,
+        url: LUNARCRUSH_SSE_URL,
+        readyStateConst: {
+          CONNECTING: 0,
+          OPEN: 1,
+          CLOSED: 2
+        }
+      });
+
+      // Handle open event
+      this.eventSource.onopen = (event: any) => {
+        logger.info('SSE connection opened', {
+          readyState: this.eventSource?.readyState,
+          type: event?.type,
+          timestamp: new Date().toISOString()
+        });
+      };
+
       // Handle session endpoint event
       this.eventSource.addEventListener('endpoint', (event: any) => {
+        logger.info('Received endpoint event from LunarCrush', {
+          data: event.data,
+          type: event.type,
+          lastEventId: event.lastEventId,
+          origin: event.origin
+        });
+
         this.sessionEndpoint = event.data;
         logger.info('LunarCrush MCP session established', {
-          endpoint: this.sessionEndpoint
+          endpoint: this.sessionEndpoint,
+          readyState: this.eventSource?.readyState
         });
+
         this.isConnected = true;
         this.reconnectAttempts = 0;
       });
 
-      // Handle message events
-      this.eventSource.addEventListener('message', (event: any) => {
+      // Handle message events (generic)
+      this.eventSource.onmessage = (event: any) => {
+        logger.debug('Received generic SSE message', {
+          data: event.data,
+          type: event.type,
+          lastEventId: event.lastEventId
+        });
         this.handleMessage(event.data);
-      });
-
-      // Handle open event
-      this.eventSource.onopen = () => {
-        logger.info('LunarCrush MCP connection opened');
       };
 
       // Handle error event
       this.eventSource.onerror = (error: any) => {
-        logger.error('LunarCrush MCP connection error', { error });
+        logger.error('LunarCrush MCP connection error', {
+          error,
+          errorType: typeof error,
+          errorConstructor: error?.constructor?.name,
+          errorKeys: error ? Object.keys(error) : [],
+          errorString: error ? String(error) : 'null',
+          errorJSON: error ? JSON.stringify(error) : 'null',
+          readyState: this.eventSource?.readyState,
+          connected: this.isConnected,
+          message: error?.message,
+          type: error?.type,
+          target: error?.target?.url
+        });
+
         this.isConnected = false;
+
+        // Close the connection
+        if (this.eventSource) {
+          this.eventSource.close();
+          this.eventSource = null;
+        }
+
         this.handleReconnect();
       };
 
+      // Add timeout to detect if 'endpoint' event never arrives
+      setTimeout(() => {
+        if (!this.isConnected && this.eventSource) {
+          logger.warn('SSE connection timeout - no endpoint event received within 15s', {
+            readyState: this.eventSource?.readyState,
+            url: LUNARCRUSH_SSE_URL
+          });
+
+          // Close and retry
+          this.eventSource.close();
+          this.eventSource = null;
+          this.handleReconnect();
+        }
+      }, 15000);
+
     } catch (error) {
-      logger.error('Failed to connect to LunarCrush MCP', { error });
+      logger.error('Failed to connect to LunarCrush MCP', {
+        error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name
+      });
       this.handleReconnect();
     }
   }
