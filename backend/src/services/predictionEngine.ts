@@ -8,7 +8,12 @@ import { prisma } from '../lib/prisma.js';
 import { logger } from '../utils/logger.js';
 import { toDecimal, divide, subtract, multiply, add, toNumber } from '../utils/decimal.js';
 import Decimal from 'decimal.js';
+import { lunarcrushMcpService } from './lunarcrushMcpService.js';
 import { lunarcrushService } from './lunarcrushService.js';
+
+// Use MCP if enabled, otherwise fall back to REST
+const USE_MCP = process.env.LUNARCRUSH_USE_MCP === 'true';
+const sentimentService = USE_MCP ? lunarcrushMcpService : lunarcrushService;
 
 interface PredictionResult {
   predictedPrice: number;
@@ -63,10 +68,11 @@ export class PredictionEngine {
       const volatility = this.calculateVolatility(historicalData);
 
       // Get social sentiment (0-100) - optional, non-blocking
+      // Uses MCP (SSE streaming) if enabled, otherwise REST API
       let sentimentScore = 50; // Default neutral
       try {
-        sentimentScore = await lunarcrushService.getSentimentScore(token.symbol);
-        logger.debug(`Social sentiment for ${token.symbol}: ${sentimentScore}`);
+        sentimentScore = await sentimentService.getSentimentScore(token.symbol);
+        logger.debug(`Social sentiment for ${token.symbol}: ${sentimentScore} (via ${USE_MCP ? 'MCP' : 'REST'})`);
       } catch (error) {
         logger.warn(`Social sentiment unavailable for ${token.symbol}, using neutral`);
       }
