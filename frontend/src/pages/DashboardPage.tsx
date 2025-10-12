@@ -9,6 +9,7 @@ import { HoldingsTable } from "@/components/holdings-table"
 import { MarketInsights } from "@/components/market-insights"
 import { TransactionHistory } from "@/components/transaction-history"
 import { PriceHistoryChart } from "@/components/price-history-chart"
+import { McpStatusWidget } from "@/components/mcp-status-widget"
 import { usePortfolio } from "@/contexts/PortfolioContext"
 import { LoadingSpinner } from "@/components/LoadingScreen"
 import { GlassCard } from "@/components/glass-card"
@@ -136,6 +137,9 @@ export function DashboardPage() {
 
           {/* Quick Actions */}
           <QuickActions />
+
+          {/* MCP Status Widget - Real-time social sentiment streaming status */}
+          <McpStatusWidget />
 
           {/* Market Insights - Shows predictions for top holding or BTC */}
           {currentPortfolio.holdings && currentPortfolio.holdings.length > 0 && (
