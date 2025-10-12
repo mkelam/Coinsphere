@@ -36,29 +36,35 @@ vi.mock('@/contexts/ToastContext', () => ({
 // Mock alerts API
 vi.mock('@/services/alerts', () => ({
   alertsApi: {
-    getAll: vi.fn().mockResolvedValue([
-      {
-        id: 'alert-1',
-        alertType: 'price',
-        tokenSymbol: 'BTC',
-        condition: 'above',
-        threshold: 51000,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 'alert-2',
-        alertType: 'risk',
-        tokenSymbol: 'ETH',
-        condition: 'above',
-        threshold: 80,
-        isActive: false,
-        createdAt: new Date().toISOString(),
-      },
-    ]),
-    create: vi.fn().mockResolvedValue({ id: 'new-alert' }),
-    update: vi.fn().mockResolvedValue({}),
-    delete: vi.fn().mockResolvedValue({}),
+    getAlerts: vi.fn().mockResolvedValue({
+      alerts: [
+        {
+          id: 'alert-1',
+          alertType: 'price',
+          tokenSymbol: 'BTC',
+          condition: 'above',
+          threshold: 51000,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: 'alert-2',
+          alertType: 'risk',
+          tokenSymbol: 'ETH',
+          condition: 'above',
+          threshold: 80,
+          isActive: false,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    }),
+    createAlert: vi.fn().mockResolvedValue({
+      alert: { id: 'new-alert', alertType: 'price', tokenSymbol: 'BTC', condition: 'above', threshold: 50000, isActive: true }
+    }),
+    toggleAlert: vi.fn().mockResolvedValue({
+      alert: { id: 'alert-1', isActive: false }
+    }),
+    deleteAlert: vi.fn().mockResolvedValue({}),
   },
   Alert: {},
 }));
