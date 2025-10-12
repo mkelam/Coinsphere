@@ -8,6 +8,7 @@ import { prisma } from '../lib/prisma.js';
 import { logger } from '../utils/logger.js';
 import { toDecimal, divide, subtract, multiply, add, toNumber } from '../utils/decimal.js';
 import Decimal from 'decimal.js';
+import { lunarcrushService } from './lunarcrushService.js';
 
 interface PredictionResult {
   predictedPrice: number;
@@ -31,7 +32,7 @@ export class PredictionEngine {
 
   /**
    * Generate price prediction for a token
-   * Uses historical data, technical indicators, and trend analysis
+   * Uses historical data, technical indicators, trend analysis, and social sentiment
    */
   async generatePrediction(
     tokenId: string,
@@ -61,13 +62,23 @@ export class PredictionEngine {
       // Calculate volatility
       const volatility = this.calculateVolatility(historicalData);
 
-      // Generate prediction based on trend and indicators
+      // Get social sentiment (0-100) - optional, non-blocking
+      let sentimentScore = 50; // Default neutral
+      try {
+        sentimentScore = await lunarcrushService.getSentimentScore(token.symbol);
+        logger.debug(`Social sentiment for ${token.symbol}: ${sentimentScore}`);
+      } catch (error) {
+        logger.warn(`Social sentiment unavailable for ${token.symbol}, using neutral`);
+      }
+
+      // Generate prediction based on trend, indicators, and sentiment
       const prediction = this.calculatePrediction(
         currentPrice,
         trendScore,
         volatility,
         timeframe,
-        indicators
+        indicators,
+        sentimentScore
       );
 
       // Store prediction in database for accuracy tracking
@@ -306,28 +317,37 @@ export class PredictionEngine {
 
   /**
    * Calculate final prediction
+   * Includes social sentiment factor
    */
   private calculatePrediction(
     currentPrice: number,
     trendScore: number,
     volatility: number,
     timeframe: string,
-    indicators: any
+    indicators: any,
+    sentimentScore: number = 50
   ): PredictionResult {
     // Convert trend score to price change percentage
     const timeMultiplier = this.getTimeMultiplier(timeframe);
     const baseChange = (trendScore / 100) * 10 * timeMultiplier;
 
+    // Add sentiment factor (10% weight on final prediction)
+    // Sentiment range: 0-100, convert to -5 to +5 influence
+    const sentimentFactor = ((sentimentScore - 50) / 50) * 5 * timeMultiplier;
+
     // Add some randomness based on volatility
     const randomFactor = (Math.random() - 0.5) * volatility * 0.5;
-    const changePercent = baseChange + randomFactor;
+
+    // Combine: 80% technical, 10% sentiment, 10% random
+    const changePercent = (baseChange * 0.8) + (sentimentFactor * 0.1) + (randomFactor * 0.1);
 
     const predictedPrice = currentPrice * (1 + changePercent / 100);
 
-    // Calculate confidence (higher for lower volatility and more data)
+    // Calculate confidence (higher for lower volatility and strong sentiment alignment)
+    const sentimentConfidenceBoost = Math.abs(sentimentScore - 50) / 50 * 5; // 0-5 boost
     const confidence = Math.max(
       60,
-      Math.min(95, 90 - volatility * 5)
+      Math.min(95, 90 - volatility * 5 + sentimentConfidenceBoost)
     );
 
     // Determine direction
@@ -335,8 +355,8 @@ export class PredictionEngine {
     if (changePercent > 2) direction = 'bullish';
     else if (changePercent < -2) direction = 'bearish';
 
-    // Generate factors based on indicators
-    const factors = this.generateFactors(direction, indicators, trendScore);
+    // Generate factors based on indicators and sentiment
+    const factors = this.generateFactors(direction, indicators, trendScore, sentimentScore);
 
     return {
       predictedPrice: Number(predictedPrice.toFixed(2)),
@@ -352,13 +372,26 @@ export class PredictionEngine {
 
   /**
    * Generate explanation factors
+   * Includes social sentiment when available
    */
   private generateFactors(
     direction: string,
     indicators: any,
-    trendScore: number
+    trendScore: number,
+    sentimentScore: number = 50
   ): string[] {
     const factors: string[] = [];
+
+    // Social sentiment (if significantly positive or negative)
+    if (sentimentScore >= 75) {
+      factors.push('Very positive social sentiment and community engagement');
+    } else if (sentimentScore >= 60) {
+      factors.push('Positive social sentiment trending');
+    } else if (sentimentScore <= 25) {
+      factors.push('Negative social sentiment detected');
+    } else if (sentimentScore <= 40) {
+      factors.push('Bearish social sentiment trending');
+    }
 
     if (indicators.rsi) {
       if (indicators.rsi > 70) {
@@ -396,7 +429,7 @@ export class PredictionEngine {
       factors.push('Market showing mixed signals, neutral outlook');
     }
 
-    return factors.slice(0, 4); // Return top 4 factors
+    return factors.slice(0, 5); // Return top 5 factors
   }
 
   /**
