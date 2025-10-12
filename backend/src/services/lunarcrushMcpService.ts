@@ -113,6 +113,9 @@ class LunarCrushMcpService {
 
         this.isConnected = true;
         this.reconnectAttempts = 0;
+
+        // Record successful connection in metrics
+        mcpMetricsService.recordConnection();
       });
 
       // Handle message events (generic)
@@ -142,6 +145,9 @@ class LunarCrushMcpService {
         });
 
         this.isConnected = false;
+
+        // Record disconnection in metrics
+        mcpMetricsService.recordDisconnection();
 
         // Close the connection
         if (this.eventSource) {
@@ -185,16 +191,27 @@ class LunarCrushMcpService {
   private handleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       logger.error('Max reconnection attempts reached for LunarCrush MCP');
+      mcpMetricsService.recordReconnectionFailure();
       return;
     }
 
     this.reconnectAttempts++;
+
+    // Record reconnection attempt in metrics
+    mcpMetricsService.recordReconnectionAttempt(this.reconnectAttempts, this.maxReconnectAttempts);
+
     logger.info(`Reconnecting to LunarCrush MCP (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`, {
       delay: this.reconnectDelay
     });
 
     setTimeout(() => {
-      this.connect();
+      const wasConnected = this.isConnected;
+      this.connect().then(() => {
+        // If connection succeeded after reconnect attempt, record success
+        if (!wasConnected && this.isConnected) {
+          mcpMetricsService.recordReconnectionSuccess();
+        }
+      });
     }, this.reconnectDelay);
   }
 
@@ -353,16 +370,35 @@ class LunarCrushMcpService {
    * Get coin data (MCP or fallback)
    */
   async getCoinData(symbol: string): Promise<SocialMetrics | null> {
+    const startTime = Date.now();
+
     // If MCP connected, use it
     if (this.isConnected && this.sessionEndpoint) {
-      const result = await this.query(`Get social metrics for ${symbol}`);
-      if (result && !result.error) {
-        return result as SocialMetrics;
+      try {
+        const result = await this.query(`Get social metrics for ${symbol}`);
+        if (result && !result.error) {
+          // Record successful MCP request with latency
+          const latency = Date.now() - startTime;
+          mcpMetricsService.recordLatency(latency);
+          mcpMetricsService.recordRequest('mcp', true);
+          return result as SocialMetrics;
+        }
+      } catch (error) {
+        // Record failed MCP request
+        mcpMetricsService.recordRequest('mcp', false);
       }
     }
 
     // Fallback to REST API
-    return this.getCoinDataREST(symbol);
+    const restStartTime = Date.now();
+    const result = await this.getCoinDataREST(symbol);
+    const restLatency = Date.now() - restStartTime;
+
+    // Record REST request with latency
+    mcpMetricsService.recordLatency(restLatency);
+    mcpMetricsService.recordRequest('rest', result !== null);
+
+    return result;
   }
 
   /**
