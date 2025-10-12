@@ -1,8 +1,22 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Header } from './header';
+
+// Mock the AuthContext
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: {
+      id: 'test-user',
+      email: 'test@test.com',
+      firstName: 'Test',
+      lastName: 'User',
+    },
+    isAuthenticated: true,
+    logout: vi.fn(),
+  }),
+}));
 
 const queryClient = new QueryClient({
   defaultOptions: {
