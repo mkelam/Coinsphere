@@ -111,11 +111,15 @@ class LunarCrushService {
     try {
       const cacheKey = `lunarcrush:coin:${symbol.toLowerCase()}`;
 
-      // Check cache first
-      const cached = await redisClient.get(cacheKey);
-      if (cached) {
-        logger.debug(`LunarCrush cache hit for ${symbol}`);
-        return JSON.parse(cached);
+      // Try to check cache first (graceful degradation if Redis unavailable)
+      try {
+        const cached = await redisClient.get(cacheKey);
+        if (cached) {
+          logger.debug(`LunarCrush cache hit for ${symbol}`);
+          return JSON.parse(cached);
+        }
+      } catch (cacheError) {
+        logger.debug('Redis cache unavailable, fetching directly from API');
       }
 
       // Fetch from API
@@ -147,8 +151,12 @@ class LunarCrushService {
         categories: coin.categories || [],
       };
 
-      // Cache for 15 minutes
-      await redisClient.setex(cacheKey, CACHE_TTL, JSON.stringify(metrics));
+      // Try to cache for 15 minutes (graceful degradation if Redis unavailable)
+      try {
+        await redisClient.setex(cacheKey, CACHE_TTL, JSON.stringify(metrics));
+      } catch (cacheError) {
+        logger.debug('Redis cache unavailable, skipping cache write');
+      }
 
       logger.info(`Fetched LunarCrush data for ${symbol}`, {
         galaxyScore: metrics.galaxyScore,
@@ -169,11 +177,15 @@ class LunarCrushService {
     try {
       const cacheKey = `lunarcrush:trending:${limit}`;
 
-      // Check cache first
-      const cached = await redisClient.get(cacheKey);
-      if (cached) {
-        logger.debug('LunarCrush trending cache hit');
-        return JSON.parse(cached);
+      // Try to check cache first (graceful degradation if Redis unavailable)
+      try {
+        const cached = await redisClient.get(cacheKey);
+        if (cached) {
+          logger.debug('LunarCrush trending cache hit');
+          return JSON.parse(cached);
+        }
+      } catch (cacheError) {
+        logger.debug('Redis cache unavailable, fetching directly from API');
       }
 
       // Fetch from API (using coins list sorted by galaxy score)
@@ -200,8 +212,12 @@ class LunarCrushService {
         trending_rank: index + 1,
       }));
 
-      // Cache for 15 minutes
-      await redisClient.setex(cacheKey, CACHE_TTL, JSON.stringify(insights));
+      // Try to cache for 15 minutes (graceful degradation if Redis unavailable)
+      try {
+        await redisClient.setex(cacheKey, CACHE_TTL, JSON.stringify(insights));
+      } catch (cacheError) {
+        logger.debug('Redis cache unavailable, skipping cache write');
+      }
 
       logger.info(`Fetched ${insights.length} trending coins from LunarCrush`);
 
