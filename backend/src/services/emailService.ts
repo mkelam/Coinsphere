@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import { logger } from '../utils/logger.js';
 import { config } from '../config/index.js';
 
@@ -33,14 +34,22 @@ interface RiskAlertData {
 
 class EmailService {
   private transporter: nodemailer.Transporter | null = null;
+  private useSendGrid: boolean = false;
+  private fromEmail: string = 'alerts@coinsphere.app';
 
   constructor() {
-    this.initializeTransporter();
+    this.initializeEmailService();
   }
 
-  private initializeTransporter() {
-    if (process.env.NODE_ENV === 'production') {
-      // Production: Use SMTP service (e.g., SendGrid, AWS SES, Gmail)
+  private initializeEmailService() {
+    // Check if SendGrid API key is available (production)
+    if (process.env.SENDGRID_API_KEY) {
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+      this.useSendGrid = true;
+      this.fromEmail = process.env.SMTP_FROM || 'alerts@coinsphere.app';
+      logger.info('Email service initialized with SendGrid API v8.x');
+    } else if (process.env.NODE_ENV === 'production') {
+      // Production fallback: Use SMTP service (e.g., AWS SES, Gmail)
       this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587'),
@@ -50,10 +59,11 @@ class EmailService {
           pass: process.env.SMTP_PASS,
         },
       });
-
+      this.fromEmail = process.env.SMTP_FROM || '"Coinsphere" <noreply@coinsphere.app>';
       logger.info('Email service initialized with SMTP transporter');
     } else {
       // Development: Use Ethereal email (fake SMTP service for testing)
+      this.fromEmail = '"Coinsphere Dev" <dev@coinsphere.app>';
       this.createTestAccount();
     }
   }
@@ -81,33 +91,54 @@ class EmailService {
   }
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
-    if (!this.transporter) {
-      logger.warn('Email transporter not initialized, skipping email');
-      return false;
-    }
-
     try {
-      const info = await this.transporter.sendMail({
-        from: process.env.SMTP_FROM || '"CryptoSense" <noreply@cryptosense.io>',
-        to: options.to,
-        subject: options.subject,
-        text: options.text || options.html.replace(/<[^>]*>/g, ''), // Strip HTML for text version
-        html: options.html,
-      });
-
-      if (process.env.NODE_ENV !== 'production') {
-        logger.info('Email sent (preview):', {
-          messageId: info.messageId,
-          previewUrl: nodemailer.getTestMessageUrl(info),
-        });
-      } else {
-        logger.info('Email sent successfully', {
-          messageId: info.messageId,
+      if (this.useSendGrid) {
+        // Use SendGrid native API (v8.x)
+        const msg = {
           to: options.to,
-        });
-      }
+          from: this.fromEmail,
+          subject: options.subject,
+          html: options.html,
+          text: options.text || options.html.replace(/<[^>]*>/g, ''), // Strip HTML for text version
+        };
 
-      return true;
+        await sgMail.send(msg);
+
+        logger.info('Email sent successfully via SendGrid', {
+          to: options.to,
+          subject: options.subject,
+        });
+
+        return true;
+      } else {
+        // Use nodemailer (SMTP or Ethereal)
+        if (!this.transporter) {
+          logger.warn('Email transporter not initialized, skipping email');
+          return false;
+        }
+
+        const info = await this.transporter.sendMail({
+          from: this.fromEmail,
+          to: options.to,
+          subject: options.subject,
+          text: options.text || options.html.replace(/<[^>]*>/g, ''),
+          html: options.html,
+        });
+
+        if (process.env.NODE_ENV !== 'production') {
+          logger.info('Email sent (preview):', {
+            messageId: info.messageId,
+            previewUrl: nodemailer.getTestMessageUrl(info),
+          });
+        } else {
+          logger.info('Email sent successfully via SMTP', {
+            messageId: info.messageId,
+            to: options.to,
+          });
+        }
+
+        return true;
+      }
     } catch (error) {
       logger.error('Failed to send email:', error);
       return false;
