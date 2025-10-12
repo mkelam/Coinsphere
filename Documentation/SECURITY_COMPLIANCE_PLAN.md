@@ -400,24 +400,57 @@ app.use((req, res, next) => {
 
 **Strategy:**
 - Use **SameSite cookies** for refresh tokens
-- Include **CSRF tokens** in state-changing requests
+- Include **CSRF tokens** in state-changing requests via custom Redis-backed service
 - Verify **Origin** and **Referer** headers
+- **Constant-time comparison** to prevent timing attacks
 
 **Implementation:**
 
 ```typescript
-import csrf from 'csurf';
+// Modern CSRF service (Redis-backed) - src/services/csrfService.ts
+import crypto from 'crypto';
+import { getRedisClient } from '../lib/redis.js';
 
-const csrfProtection = csrf({
-  cookie: {
-    httpOnly: true,
-    secure: true, // HTTPS only
-    sameSite: 'strict',
+export class CsrfService {
+  async generateToken(userId: string): Promise<string> {
+    const token = crypto.randomBytes(32).toString('hex'); // 64-character token
+    const key = `csrf:${userId}`;
+
+    const redis = getRedisClient();
+    await redis.setex(key, 24 * 60 * 60, token); // 24-hour TTL
+
+    return token;
   }
-});
 
-app.post('/api/portfolio', csrfProtection, createPortfolio);
+  async validateToken(userId: string, token: string): Promise<boolean> {
+    const key = `csrf:${userId}`;
+    const redis = getRedisClient();
+    const storedToken = await redis.get(key);
+
+    if (!storedToken || storedToken.length !== token.length) {
+      return false;
+    }
+
+    // Use constant-time comparison to prevent timing attacks
+    const storedBuffer = Buffer.from(storedToken, 'utf8');
+    const tokenBuffer = Buffer.from(token, 'utf8');
+
+    return crypto.timingSafeEqual(storedBuffer, tokenBuffer);
+  }
+}
+
+// Usage in routes - src/server.ts
+app.get('/api/v1/csrf-token', authenticate, getCsrfToken);
+app.use('/api/v1/portfolios', authenticate, validateCsrfToken, portfoliosRoutes);
+app.use('/api/v1/alerts', authenticate, validateCsrfToken, alertsRoutes);
 ```
+
+**Benefits over deprecated csurf package:**
+- Redis-backed for horizontal scaling
+- Constant-time comparison prevents timing attacks
+- Token rotation support for enhanced security
+- User-specific tokens (not session-based)
+- 24-hour token expiration with automatic cleanup
 
 ---
 

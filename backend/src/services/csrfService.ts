@@ -30,6 +30,7 @@ export class CsrfService {
 
   /**
    * Validate a CSRF token for a user
+   * Uses constant-time comparison to prevent timing attacks
    */
   async validateToken(userId: string, token: string): Promise<boolean> {
     try {
@@ -43,7 +44,16 @@ export class CsrfService {
         return false;
       }
 
-      if (storedToken !== token) {
+      // Use constant-time comparison to prevent timing attacks
+      if (storedToken.length !== token.length) {
+        logger.warn(`CSRF token length mismatch for user ${userId}`);
+        return false;
+      }
+
+      const storedBuffer = Buffer.from(storedToken, 'utf8');
+      const tokenBuffer = Buffer.from(token, 'utf8');
+
+      if (!crypto.timingSafeEqual(storedBuffer, tokenBuffer)) {
         logger.warn(`CSRF token mismatch for user ${userId}`);
         return false;
       }
