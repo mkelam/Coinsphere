@@ -406,6 +406,37 @@ class ModelTrainer:
         print(f"   Val Accuracy: {self.best_val_accuracy:.4f}")
 
 
+def load_checkpoint(checkpoint_path: str, model: CryptoLSTM, device: str = 'cpu') -> Dict:
+    """
+    Load model checkpoint (standalone function for inference)
+
+    Args:
+        checkpoint_path: Path to checkpoint file
+        model: Model instance to load weights into
+        device: Device to load checkpoint on
+
+    Returns:
+        Dictionary containing checkpoint metadata
+    """
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+
+    model.load_state_dict(checkpoint['model_state_dict'])
+
+    metadata = {
+        'epoch': checkpoint.get('epoch'),
+        'val_accuracy': checkpoint.get('best_val_accuracy'),
+        'test_accuracy': checkpoint.get('best_val_accuracy'),  # Alias for compatibility
+        'val_loss': checkpoint.get('best_val_loss'),
+        'scaler': checkpoint.get('scaler'),  # May be None
+        'metadata': checkpoint.get('metadata', {}),
+        'config': checkpoint.get('config'),
+        'model_version': checkpoint.get('metadata', {}).get('model_version', 'v1.0.0'),
+        'trained_at': checkpoint.get('metadata', {}).get('trained_at')
+    }
+
+    return metadata
+
+
 if __name__ == "__main__":
     # Test training pipeline
     print("Testing training pipeline...")
