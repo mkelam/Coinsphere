@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { Bell, User, LogOut, Settings, CreditCard, HelpCircle, LayoutDashboard, Wallet, Link2, Menu, X, ChevronDown, Layers } from "lucide-react"
+import { Bell, LogOut, Settings, CreditCard, HelpCircle, LayoutDashboard, Wallet, Link2, Menu, X, ChevronDown, Layers } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 

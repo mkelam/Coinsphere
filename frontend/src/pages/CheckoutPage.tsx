@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import { Header } from "@/components/header"
 import { GlassCard } from "@/components/glass-card"
 import { Button } from "@/components/ui/button"
@@ -59,7 +59,6 @@ const plans: Record<string, PlanDetails> = {
 }
 
 export function CheckoutPage() {
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
 

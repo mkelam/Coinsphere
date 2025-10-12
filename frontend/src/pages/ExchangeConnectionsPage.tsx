@@ -26,7 +26,7 @@ export default function ExchangeConnectionsPage() {
       const { connections: data } = await exchangeApi.getConnections();
       setConnections(data);
     } catch (error) {
-      showToast('Failed to load exchange connections', 'error');
+      showToast('error', 'Failed to load exchange connections');
       console.error('Failed to load connections:', error);
     } finally {
       setLoading(false);
@@ -37,10 +37,10 @@ export default function ExchangeConnectionsPage() {
     setSyncingAll(true);
     try {
       await exchangeApi.syncAll();
-      showToast('All exchanges synced successfully', 'success');
+      showToast('success', 'All exchanges synced successfully');
       await loadConnections();
     } catch (error) {
-      showToast('Failed to sync exchanges', 'error');
+      showToast('error', 'Failed to sync exchanges');
       console.error('Failed to sync all:', error);
     } finally {
       setSyncingAll(false);
@@ -50,10 +50,10 @@ export default function ExchangeConnectionsPage() {
   const handleSync = async (connectionId: string) => {
     try {
       await exchangeApi.syncConnection(connectionId);
-      showToast('Exchange synced successfully', 'success');
+      showToast('success', 'Exchange synced successfully');
       await loadConnections();
     } catch (error) {
-      showToast('Failed to sync exchange', 'error');
+      showToast('error', 'Failed to sync exchange');
       console.error('Failed to sync connection:', error);
     }
   };
@@ -61,16 +61,16 @@ export default function ExchangeConnectionsPage() {
   const handleDisconnect = async (connectionId: string) => {
     try {
       await exchangeApi.disconnectExchange(connectionId);
-      showToast('Exchange disconnected successfully', 'success');
+      showToast('success', 'Exchange disconnected successfully');
       await loadConnections();
     } catch (error) {
-      showToast('Failed to disconnect exchange', 'error');
+      showToast('error', 'Failed to disconnect exchange');
       console.error('Failed to disconnect:', error);
     }
   };
 
   const handleConnectSuccess = () => {
-    showToast('Exchange connected successfully!', 'success');
+    showToast('success', 'Exchange connected successfully!');
     loadConnections();
   };
 

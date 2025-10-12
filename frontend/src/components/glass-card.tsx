@@ -5,8 +5,10 @@ interface GlassCardProps {
   children: ReactNode
   className?: string
   hover?: boolean
+  onClick?: () => void
+  "data-testid"?: string
 }
 
-export function GlassCard({ children, className, hover = true }: GlassCardProps) {
-  return <div className={cn("glass-card p-6", hover && "cursor-pointer", className)}>{children}</div>
+export function GlassCard({ children, className, hover = true, onClick, "data-testid": dataTestId }: GlassCardProps) {
+  return <div onClick={onClick} data-testid={dataTestId} className={cn("glass-card p-6", hover && "cursor-pointer", className)}>{children}</div>
 }

@@ -8,7 +8,7 @@ import { PriceHistoryChart } from "@/components/price-history-chart"
 import { Breadcrumb } from "@/components/Breadcrumb"
 import { useAuth } from "@/contexts/AuthContext"
 import { LoadingSpinner } from "@/components/LoadingScreen"
-import { tokenApi, predictionApi, type Token, type Prediction, type RiskScore } from "@/services/api"
+import { tokenApi, predictionApi, type Prediction, type RiskScore } from "@/services/api"
 
 type Tab = 'overview' | 'predictions' | 'risk' | 'holdings' | 'news'
 
@@ -120,10 +120,6 @@ export function AssetDetailPage() {
       currency: 'USD',
       minimumFractionDigits: 2
     }).format(value)
-  }
-
-  const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('en-US').format(value)
   }
 
   if (loading || !asset) {

@@ -24,7 +24,7 @@ export function TransactionsPage() {
   const toast = useToast()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [portfolios, setPortfolios] = useState<Array<{ id: string; name: string }>>([])
-  const [loading, setLoading] = useState(true)
+  const [, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [filterType, setFilterType] = useState<TransactionType | "all">("all")
