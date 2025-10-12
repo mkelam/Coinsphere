@@ -7,6 +7,7 @@ import { createRequire } from 'module';
 import axios from 'axios';
 import { logger } from '../utils/logger.js';
 import { getRedisClient } from '../lib/redis.js';
+import { mcpMetricsService } from './mcpMetricsService.js';
 
 // Use CommonJS require for EventSource (ESM not supported)
 const require = createRequire(import.meta.url);

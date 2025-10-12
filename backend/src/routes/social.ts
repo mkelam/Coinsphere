@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { lunarcrushService } from '../services/lunarcrushService.js';
 import { lunarcrushMcpService } from '../services/lunarcrushMcpService.js';
+import { mcpMetricsService } from '../services/mcpMetricsService.js';
 import { logger } from '../utils/logger.js';
 import { cache } from '../middleware/cache.js';
 
@@ -306,6 +307,58 @@ router.get('/mcp/status', async (req: Request, res: Response) => {
     logger.error('Error checking MCP status:', error);
     res.status(500).json({
       error: 'Failed to check MCP status',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /social/mcp/metrics:
+ *   get:
+ *     summary: Get MCP performance metrics (uptime, latency, reconnections)
+ *     tags: [Social]
+ *     responses:
+ *       200:
+ *         description: Performance metrics retrieved successfully
+ */
+router.get('/mcp/metrics', async (req: Request, res: Response) => {
+  try {
+    const metrics = mcpMetricsService.getMetrics();
+
+    res.json({
+      metrics,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error('Error retrieving MCP metrics:', error);
+    res.status(500).json({
+      error: 'Failed to retrieve metrics',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /social/mcp/metrics/reset:
+ *   post:
+ *     summary: Reset MCP performance metrics
+ *     tags: [Social]
+ *     responses:
+ *       200:
+ *         description: Metrics reset successfully
+ */
+router.post('/mcp/metrics/reset', async (req: Request, res: Response) => {
+  try {
+    await mcpMetricsService.resetMetrics();
+
+    res.json({
+      message: 'Metrics reset successfully',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error('Error resetting MCP metrics:', error);
+    res.status(500).json({
+      error: 'Failed to reset metrics',
     });
   }
 });
