@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ExchangeConnectionsPage } from './ExchangeConnectionsPage';
+import ExchangeConnectionsPage from './ExchangeConnectionsPage';
 
 // Mock the AuthContext
 vi.mock('@/contexts/AuthContext', () => ({

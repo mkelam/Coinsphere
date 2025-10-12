@@ -31,7 +31,7 @@ const TransactionsPage = lazy(() => import("@/pages/TransactionsPage").then(m =>
 const BillingPage = lazy(() => import("@/pages/BillingPage").then(m => ({ default: m.BillingPage })))
 const CheckoutPage = lazy(() => import("@/pages/CheckoutPage").then(m => ({ default: m.CheckoutPage })))
 const HelpPage = lazy(() => import("@/pages/HelpPage").then(m => ({ default: m.HelpPage })))
-const ExchangeConnectionsPage = lazy(() => import("@/pages/ExchangeConnectionsPage").then(m => ({ default: m.ExchangeConnectionsPage })))
+const ExchangeConnectionsPage = lazy(() => import("@/pages/ExchangeConnectionsPage"))
 const DefiPage = lazy(() => import("@/pages/DefiPage").then(m => ({ default: m.DefiPage })))
 
 export default function App() {
