@@ -333,35 +333,35 @@ const response = await fetch(
 
 ## 5. Payment Processing
 
-### 5.1 Stripe
+### 5.1 PayFast
 
 **Purpose:** Subscription billing (Plus/Pro/Power Trader tiers)
 
 **Tier:** Pay-per-transaction (2.9% + $0.30 per charge)
 
 **Products:**
-- **Stripe Checkout:** Pre-built payment page
-- **Stripe Billing:** Recurring subscriptions
-- **Stripe Customer Portal:** Users manage their subscriptions
+- **PayFast Checkout:** Pre-built payment page
+- **PayFast Billing:** Recurring subscriptions
+- **PayFast Customer Portal:** Users manage their subscriptions
 
 **Integration:**
 ```typescript
-import Stripe from 'stripe';
+import PayFast from 'payfast';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const payfast = new PayFast(process.env.STRIPE_SECRET_KEY);
 
 // Create subscription
-const subscription = await stripe.subscriptions.create({
-  customer: stripeCustomerId,
+const subscription = await payfast.subscriptions.create({
+  customer: payfastCustomerId,
   items: [{ price: 'price_1NXYz...' }],  // Plus plan price ID
   payment_behavior: 'default_incomplete',
   expand: ['latest_invoice.payment_intent'],
 });
 
 // Webhook handling (important!)
-app.post('/webhooks/stripe', async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+app.post('/webhooks/payfast', async (req, res) => {
+  const sig = req.headers['payfast-signature'];
+  const event = payfast.webhooks.constructEvent(req.body, sig, webhookSecret);
 
   if (event.type === 'customer.subscription.updated') {
     // Update user's tier in database
@@ -374,18 +374,18 @@ app.post('/webhooks/stripe', async (req, res) => {
 
 **Pricing:**
 - **Transaction fee:** 2.9% + $0.30 (US cards)
-- **Stripe Billing:** Free (included)
+- **PayFast Billing:** Free (included)
 - **Tax calculation:** $0.50 per transaction (optional, recommended)
 
 **Example Cost:**
-- $9 Plus subscription → $0.56 Stripe fee (6.2%)
+- $9 Plus subscription → $0.56 PayFast fee (6.2%)
 - $99 Power Trader → $3.17 fee (3.2%)
 
 **Alternatives:**
 - **Paddle:** Handles EU VAT/taxes automatically (3.5% + $0.50)
 - **LemonSqueezy:** Merchant of record (handles all taxes, 5% + $0.50)
 
-**Recommendation:** Start with Stripe (lowest fees, most flexible).
+**Recommendation:** Start with PayFast (lowest fees, most flexible).
 
 ---
 
@@ -636,7 +636,7 @@ Sentry.captureException(error, {
 1. Database URL (PostgreSQL connection string)
 2. Redis URL
 3. CoinGecko API key
-4. Stripe API keys (test + live)
+4. PayFast API keys (test + live)
 5. SendGrid API key
 6. Firebase service account JSON
 7. JWT signing key
@@ -730,7 +730,7 @@ async function decryptApiKey(ciphertext: string): Promise<string> {
 |---------|-------------------|------------|
 | Database password | 90 days | Yes (AWS Secrets Manager) |
 | CoinGecko API key | Yearly | Manual |
-| Stripe API keys | Never (unless compromised) | N/A |
+| PayFast API keys | Never (unless compromised) | N/A |
 | JWT signing key | 180 days | Manual |
 | User exchange keys | User-initiated | N/A |
 
@@ -754,7 +754,7 @@ async function decryptApiKey(ciphertext: string): Promise<string> {
 | CoinGecko | Free tier | $0 |
 | LunarCrush | Free tier | $0 |
 | CCXT | Open-source | $0 |
-| Stripe | Sandbox mode | $0 |
+| PayFast | Sandbox mode | $0 |
 | SendGrid | Free (100/day) | $0 |
 | Firebase | Free tier | $0 |
 | AWS | Free tier (first year) | $0 |
@@ -777,7 +777,7 @@ async function decryptApiKey(ciphertext: string): Promise<string> {
 | AWS (ECS, RDS, Redis) | Production tier | $150 |
 | Vercel | Hobby (free) | $0 |
 | **Payments & Comms** | | |
-| Stripe | 2.9% + $0.30 | ~$50 (on $2K revenue) |
+| PayFast | 2.9% + $0.30 | ~$50 (on $2K revenue) |
 | SendGrid | Pro (40K emails) | $15 |
 | Firebase FCM | Free | $0 |
 | Twilio SMS | Skip in MVP | $0 |
@@ -801,7 +801,7 @@ async function decryptApiKey(ciphertext: string): Promise<string> {
 | Whale Alert | Whale tracking | $50 |
 | AWS (scaled) | 6 ECS tasks, larger RDS | $300 |
 | Vercel Pro | 1TB bandwidth | $20 |
-| Stripe fees | On $50K revenue | ~$1,500 |
+| PayFast fees | On $50K revenue | ~$1,500 |
 | SendGrid | 100K emails | $30 |
 | Twilio SMS | 5K messages | $40 |
 | GitHub Actions | Same | $20 |
@@ -854,9 +854,9 @@ if (dailyCost > DAILY_BUDGET * 1.2) {
 | 1 | CoinGecko | API Key | Secrets Manager | Yearly |
 | 2 | LunarCrush | Bearer Token | Secrets Manager | Yearly |
 | 3 | CryptoCompare | API Key | Secrets Manager | Yearly |
-| 4 | Stripe (Live) | Secret Key | Secrets Manager | Never |
-| 5 | Stripe (Live) | Publishable Key | Frontend env | Never |
-| 6 | Stripe Webhook | Secret | Secrets Manager | Manual |
+| 4 | PayFast (Live) | Secret Key | Secrets Manager | Never |
+| 5 | PayFast (Live) | Publishable Key | Frontend env | Never |
+| 6 | PayFast Webhook | Secret | Secrets Manager | Manual |
 | 7 | SendGrid | API Key | Secrets Manager | Yearly |
 | 8 | Firebase | Service Account JSON | Secrets Manager | Never |
 | 9 | Twilio | Account SID + Auth Token | Secrets Manager | Yearly |
@@ -873,7 +873,7 @@ if (dailyCost > DAILY_BUDGET * 1.2) {
 // Ping third-party APIs every 5 minutes
 const healthChecks = [
   { name: 'CoinGecko', url: 'https://api.coingecko.com/api/v3/ping' },
-  { name: 'Stripe', url: 'https://api.stripe.com/healthcheck' },
+  { name: 'PayFast', url: 'https://api.payfast.com/healthcheck' },
   { name: 'SendGrid', url: 'https://status.sendgrid.com/api/v2/status.json' },
 ];
 
@@ -888,7 +888,7 @@ for (const check of healthChecks) {
 
 **Fallback Strategy:**
 - CoinGecko down → use CoinMarketCap
-- Stripe down → show maintenance message ("Payments temporarily unavailable")
+- PayFast down → show maintenance message ("Payments temporarily unavailable")
 - SendGrid down → queue emails in database, retry later
 
 ---

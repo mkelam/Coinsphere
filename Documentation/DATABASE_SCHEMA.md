@@ -239,9 +239,9 @@ CREATE TABLE subscriptions (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     tier VARCHAR(20) NOT NULL CHECK (tier IN ('free', 'plus', 'pro', 'power-trader')),
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'canceled', 'past_due', 'trialing')),
-    stripe_customer_id VARCHAR(100) UNIQUE,
-    stripe_subscription_id VARCHAR(100) UNIQUE,
-    stripe_price_id VARCHAR(100),
+    payfast_customer_id VARCHAR(100) UNIQUE,
+    payfast_subscription_id VARCHAR(100) UNIQUE,
+    payfast_price_id VARCHAR(100),
     billing_interval VARCHAR(20) CHECK (billing_interval IN ('monthly', 'yearly')),
     current_period_start TIMESTAMPTZ,
     current_period_end TIMESTAMPTZ,
@@ -258,7 +258,7 @@ CREATE TABLE subscriptions (
 -- Indexes
 CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
-CREATE INDEX idx_subscriptions_stripe_customer_id ON subscriptions(stripe_customer_id);
+CREATE INDEX idx_subscriptions_payfast_customer_id ON subscriptions(payfast_customer_id);
 CREATE INDEX idx_subscriptions_current_period_end ON subscriptions(current_period_end);
 
 CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions

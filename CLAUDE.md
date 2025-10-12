@@ -444,7 +444,7 @@ MLFLOW_TRACKING_URI=http://localhost:5000
 
 ### Required for MVP
 - **CoinGecko Pro** - $129/month (500 calls/min) - Price data
-- **Stripe** - 2.9% + $0.30/transaction - Payments
+- **PayFast** - Payment gateway (International) - Payments
 - **SendGrid** - $15/month - Transactional emails
 
 ### Optional for MVP

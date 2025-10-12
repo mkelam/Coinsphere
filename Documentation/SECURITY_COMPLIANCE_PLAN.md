@@ -233,7 +233,7 @@ app.get('/api/predictions/all', requirePlan('pro'), getPredictions);
 
 **Examples:**
 - ❌ **Don't Store:** Full exchange API secrets (only encrypted keys)
-- ❌ **Don't Store:** Credit card numbers (use Stripe tokens)
+- ❌ **Don't Store:** Credit card numbers (use PayFast tokens)
 - ✅ **Do Store:** User email, portfolio balances, predictions
 - ✅ **Do Anonymize:** Usage analytics (strip PII)
 
@@ -622,7 +622,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 | **CoinGecko** | Price data | Low | Read-only access, rate limiting |
 | **The Graph** | On-chain data | Low | Public data only |
 | **LunarCrush** | Sentiment data | Low | Public data only |
-| **Stripe** | Payments | Medium | PCI compliant, tokens only |
+| **PayFast** | Payments | Medium | PCI compliant, tokens only |
 | **AWS** | Infrastructure | Medium | Encryption, IAM, security groups |
 | **Vercel** | Frontend hosting | Low | Static files, no sensitive data |
 

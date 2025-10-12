@@ -167,7 +167,7 @@ heroku config:set DATABASE_URL="postgresql://..."
 ### ✅ Optional Secrets (feature-dependent)
 
 - [ ] `COINGECKO_API_KEY` (CoinGecko API key)
-- [ ] `STRIPE_SECRET_KEY` (Stripe payments)
+- [ ] `STRIPE_SECRET_KEY` (PayFast payments)
 - [ ] `SENTRY_DSN` (Error monitoring)
 - [ ] `SMTP_USER` / `SMTP_PASS` (Email sending)
 - [ ] `SENDGRID_API_KEY` (Alternative to SMTP)

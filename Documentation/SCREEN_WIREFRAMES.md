@@ -294,17 +294,17 @@ FREE                 PLUS                PRO                 POWER TRADER
 
 - **Current tier highlighted** with "Current Plan" badge
 - **Upgrade CTAs** only show for higher tiers
-- **Loading state** during Stripe session creation
+- **Loading state** during PayFast session creation
 
 ---
 
-#### Screen: `/checkout` - Stripe Checkout
+#### Screen: `/checkout` - PayFast Checkout
 
-**Purpose:** Handle payment via Stripe
+**Purpose:** Handle payment via PayFast
 
 **Implementation:**
-- Use Stripe Checkout (hosted page)
-- Or embed Stripe Elements for custom UI
+- Use PayFast Checkout (hosted page)
+- Or embed PayFast Elements for custom UI
 - Redirect to `/billing/success` after payment
 
 ---
@@ -368,7 +368,7 @@ FREE                 PLUS                PRO                 POWER TRADER
 **Actions:**
 
 - **[Change Plan]** → Navigate to `/pricing`
-- **[Update Payment Method]** → Stripe payment method update
+- **[Update Payment Method]** → PayFast payment method update
 - **[Cancel Subscription]** → Confirmation modal
 - **[Download PDF]** → Generate invoice PDF
 
@@ -1020,7 +1020,7 @@ Each screen requires backend API endpoints:
 - `/assets/:symbol` → `GET /api/v1/tokens/:symbol`
 - `/transactions` → `GET /api/v1/transactions`, `POST /api/v1/transactions`
 - `/pricing` → Static data (no API needed)
-- `/billing` → Stripe integration
+- `/billing` → PayFast integration
 
 ### Mobile Responsiveness
 

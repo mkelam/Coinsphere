@@ -153,6 +153,10 @@ export const cacheService = new CacheService();
 export const CACHE_KEYS = {
   COINGECKO_PRICES: (coinIds: string) => `cache:coingecko:prices:${coinIds}`,
   COINGECKO_MARKET_DATA: (coinId: string) => `cache:coingecko:market:${coinId}`,
+  CRYPTOCOMPARE_PRICES: (symbols: string, currencies: string) => `cache:cryptocompare:prices:${symbols}:${currencies}`,
+  CRYPTOCOMPARE_MARKET_DATA: (symbols: string, currencies: string) => `cache:cryptocompare:market:${symbols}:${currencies}`,
+  CRYPTOCOMPARE_OHLCV: (symbol: string, currency: string, interval: string, limit: number) =>
+    `cache:cryptocompare:ohlcv:${symbol}:${currency}:${interval}:${limit}`,
   PORTFOLIO: (userId: string, portfolioId: string) =>
     `cache:portfolio:${userId}:${portfolioId}`,
   PORTFOLIO_LIST: (userId: string) => `cache:portfolios:${userId}`,
@@ -166,6 +170,9 @@ export const CACHE_KEYS = {
 export const CACHE_TTL = {
   COINGECKO_PRICES: 60, // 1 minute
   COINGECKO_MARKET_DATA: 300, // 5 minutes
+  CRYPTOCOMPARE_PRICES: 30, // 30 seconds (faster updates)
+  CRYPTOCOMPARE_MARKET_DATA: 60, // 1 minute
+  CRYPTOCOMPARE_OHLCV: 300, // 5 minutes
   PORTFOLIO: 60, // 1 minute
   PORTFOLIO_LIST: 30, // 30 seconds
   PREDICTIONS: 3600, // 1 hour

@@ -1169,7 +1169,7 @@ CREATE TABLE users (
   email_verified BOOLEAN DEFAULT FALSE,
   
   -- Billing
-  stripe_customer_id VARCHAR(255),
+  payfast_customer_id VARCHAR(255),
   subscription_id VARCHAR(255),
   subscription_status VARCHAR(50),
   subscription_expires_at TIMESTAMPTZ,
@@ -1511,8 +1511,8 @@ export const cache = new CacheService();
 ```sql
 -- Users table: Email lookups are critical path
 CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
-CREATE INDEX CONCURRENTLY idx_users_stripe ON users(stripe_customer_id) 
-  WHERE stripe_customer_id IS NOT NULL;
+CREATE INDEX CONCURRENTLY idx_users_payfast ON users(payfast_customer_id) 
+  WHERE payfast_customer_id IS NOT NULL;
 
 -- Portfolios: User's portfolios query
 CREATE INDEX CONCURRENTLY idx_portfolios_user_updated 

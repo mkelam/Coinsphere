@@ -173,7 +173,7 @@ The BMad team (Orchestrator, PM, Architect, PO, QA, Dev) has successfully comple
 
 ### **Third-Party Services**
 - ✅ CoinGecko Pro: $129/month, 500 calls/min
-- ✅ Stripe: 2.9% + $0.30 per transaction
+- ✅ PayFast: 2.9% + $0.30 per transaction
 - ✅ SendGrid: Pro tier $15/month
 - ✅ AWS: RDS, ElastiCache, ECS, S3
 

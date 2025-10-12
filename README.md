@@ -294,7 +294,7 @@ See [ENVIRONMENT_CONFIGURATION.md](./Documentation/ENVIRONMENT_CONFIGURATION.md)
 - `REDIS_URL` - Redis connection string
 - `JWT_SECRET` - JWT signing key (min 32 chars)
 - `COINGECKO_API_KEY` - CoinGecko Pro API key
-- `STRIPE_SECRET_KEY` - Stripe payment processing
+- `STRIPE_SECRET_KEY` - PayFast payment processing
 
 ---
 

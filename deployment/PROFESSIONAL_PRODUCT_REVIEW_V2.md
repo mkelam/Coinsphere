@@ -283,7 +283,7 @@ frontend/src/
 
 **2.9 Subscription & Payments ✅**
 - [x] Tiered pricing (Free/$0, Plus/$9.99, Pro/$19.99, Power/$49.99)
-- [x] PayFast integration (South African payment gateway)
+- [x] PayFast integration (Internationaln payment gateway)
 - [x] Pricing page with feature comparison
 - [x] Checkout page
 - [x] Billing page
@@ -579,7 +579,7 @@ Text:           White with opacity variants (100%, 70%, 50%, 30%)
 - Retail investors (not institutions)
 - DeFi participants with exchange + wallet holdings
 - Data-driven traders who value predictions and risk scores
-- Users in South Africa (PayFast payment gateway)
+- Users in International (PayFast payment gateway)
 
 **Market Size:**
 - Global crypto users: 420M+ (2024)
@@ -948,7 +948,7 @@ The attention to detail, engineering quality, and product vision are exceptional
 
 **Regulatory Risk:**
 - Crypto regulations vary by country
-- **Mitigation:** Start with crypto-friendly jurisdictions (South Africa, Singapore)
+- **Mitigation:** Start with crypto-friendly jurisdictions (International, Singapore)
 
 ---
 

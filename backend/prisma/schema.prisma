@@ -379,10 +379,10 @@ model PaymentIntent {
   userId        String   @map("user_id")
 
   // Payment Gateway Details
-  provider      String   // payfast, stripe, etc.
+  provider      String   // payfast
   referenceId   String   @unique @map("reference_id") // External payment reference
   amount        Decimal  @db.Decimal(18, 2)
-  currency      String   @default("ZAR")
+  currency      String   @default("USD")
 
   // Subscription Details
   plan          String   // plus, pro, power-trader

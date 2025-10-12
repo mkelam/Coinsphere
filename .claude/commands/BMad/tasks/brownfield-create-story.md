@@ -1,7 +1,3 @@
-# /brownfield-create-story Task
-
-When this command is used, execute the following task:
-
 <!-- Powered by BMAD™ Core -->
 
 # Create Brownfield Story Task

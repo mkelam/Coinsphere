@@ -1,32 +1,48 @@
+import { lazy, Suspense } from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import { DashboardPage } from "@/pages/DashboardPage"
-import { LoginPage } from "@/pages/LoginPage"
-import { SignupPage } from "@/pages/SignupPage"
-import { SettingsPage } from "@/pages/SettingsPage"
-import { NotFoundPage } from "@/pages/NotFoundPage"
-import { AlertsPage } from "@/pages/AlertsPage"
-import { ComponentShowcase } from "@/pages/ComponentShowcase"
-import { PortfoliosPage } from "@/pages/PortfoliosPage"
-import { PricingPage } from "@/pages/PricingPage"
-import { AssetDetailPage } from "@/pages/AssetDetailPage"
-import { OnboardingPage } from "@/pages/OnboardingPage"
-import { TransactionsPage } from "@/pages/TransactionsPage"
-import { BillingPage } from "@/pages/BillingPage"
-import { CheckoutPage } from "@/pages/CheckoutPage"
-import { HelpPage } from "@/pages/HelpPage"
-import ExchangeConnectionsPage from "@/pages/ExchangeConnectionsPage"
-import { DefiPage } from "@/pages/DefiPage"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-[#0A0E27]">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+      <p className="text-white/60 text-sm">Loading...</p>
+    </div>
+  </div>
+)
+
+// Critical routes - loaded immediately (login/signup for first-time users)
+import { LoginPage } from "@/pages/LoginPage"
+import { SignupPage } from "@/pages/SignupPage"
+
+// Lazy-loaded routes - split into separate chunks
+const DashboardPage = lazy(() => import("@/pages/DashboardPage").then(m => ({ default: m.DashboardPage })))
+const SettingsPage = lazy(() => import("@/pages/SettingsPage").then(m => ({ default: m.SettingsPage })))
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage").then(m => ({ default: m.NotFoundPage })))
+const AlertsPage = lazy(() => import("@/pages/AlertsPage").then(m => ({ default: m.AlertsPage })))
+const ComponentShowcase = lazy(() => import("@/pages/ComponentShowcase").then(m => ({ default: m.ComponentShowcase })))
+const PortfoliosPage = lazy(() => import("@/pages/PortfoliosPage").then(m => ({ default: m.PortfoliosPage })))
+const PricingPage = lazy(() => import("@/pages/PricingPage").then(m => ({ default: m.PricingPage })))
+const AssetDetailPage = lazy(() => import("@/pages/AssetDetailPage").then(m => ({ default: m.AssetDetailPage })))
+const OnboardingPage = lazy(() => import("@/pages/OnboardingPage").then(m => ({ default: m.OnboardingPage })))
+const TransactionsPage = lazy(() => import("@/pages/TransactionsPage").then(m => ({ default: m.TransactionsPage })))
+const BillingPage = lazy(() => import("@/pages/BillingPage").then(m => ({ default: m.BillingPage })))
+const CheckoutPage = lazy(() => import("@/pages/CheckoutPage").then(m => ({ default: m.CheckoutPage })))
+const HelpPage = lazy(() => import("@/pages/HelpPage").then(m => ({ default: m.HelpPage })))
+const ExchangeConnectionsPage = lazy(() => import("@/pages/ExchangeConnectionsPage"))
+const DefiPage = lazy(() => import("@/pages/DefiPage").then(m => ({ default: m.DefiPage })))
 
 export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
           <Route
             path="/dashboard"
             element={
@@ -126,7 +142,8 @@ export default function App() {
           />
           <Route path="/showcase" element={<ComponentShowcase />} />
           <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </ErrorBoundary>
   )

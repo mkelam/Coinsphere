@@ -1,0 +1,314 @@
+# Debug Report Template
+
+metadata:
+  report_id: "[AUTO-GENERATED or ISSUE-XXX]"
+  date_created: "[YYYY-MM-DD]"
+  date_resolved: "[YYYY-MM-DD]"
+  debugger: "[Name]"
+  severity: "[Critical/High/Medium/Low]"
+  tags: ["typescript", "nextjs", "performance", "etc"]
+
+## Issue Summary
+
+brief_description: "[One-sentence description of the issue]"
+
+issue_type:
+  - typescript_compilation_error
+  - runtime_error
+  - build_failure
+  - hydration_mismatch
+  - performance_issue
+  - api_route_error
+  - type_safety_issue
+  - other
+
+impact:
+  affected_users: "[Number or 'All']"
+  affected_features: "[List features]"
+  business_impact: "[Revenue/UX/Security/etc]"
+
+## Environment Details
+
+occurrence:
+  - development
+  - build_process
+  - staging
+  - production
+  - all_environments
+
+technical_stack:
+  typescript_version: "5.x.x"
+  nextjs_version: "14.x.x"
+  nodejs_version: "20.x.x"
+  react_version: "18.x.x"
+  package_manager: "npm/yarn/pnpm"
+  operating_system: "Windows/macOS/Linux"
+
+router_type:
+  - pages_router
+  - app_router
+  - mixed
+
+## Error Details
+
+error_message: |
+  [Full error message with stack trace]
+
+error_location:
+  file: "path/to/file.ts"
+  line: 42
+  column: 15
+  function: "functionName"
+  component: "ComponentName"
+
+error_codes:
+  typescript: "TS####"
+  http_status: "###"
+  nextjs: "[Error code]"
+
+## Reproduction
+
+prerequisites:
+  - "[Any setup required]"
+  - "[Dependencies needed]"
+  - "[Configuration state]"
+
+steps_to_reproduce:
+  1: "[First action]"
+  2: "[Second action]"
+  3: "[Third action]"
+  4: "[Observe error]"
+
+expected_behavior: "[What should happen]"
+actual_behavior: "[What actually happens]"
+
+reproduction_rate:
+  - always_100_percent
+  - frequent_50_99_percent
+  - occasional_10_49_percent
+  - rare_under_10_percent
+
+## Root Cause Analysis
+
+error_classification:
+  primary_category: "[Category]"
+  secondary_categories: []
+
+type_flow_analysis: |
+  Source Type: [Type at origin]
+    ↓
+  Transformation 1: [How type changed]
+    ↓
+  Expected Type: [Type at destination]
+    ↓
+  ERROR: [Why types don't match]
+
+five_whys:
+  why_1: "[Surface symptom]"
+  why_2: "[Intermediate cause]"
+  why_3: "[Deeper cause]"
+  why_4: "[Root architectural issue]"
+  why_5: "[Process/pattern gap]"
+
+root_cause_summary:
+  symptom: "[What was reported]"
+  immediate_cause: "[What code triggered it]"
+  underlying_cause: "[Why that code exists]"
+  root_cause: "[Architectural/pattern issue]"
+  contributing_factors:
+    - "[Factor 1]"
+    - "[Factor 2]"
+
+## Solution
+
+solution_approach:
+  selected: "quick_fix/proper_fix/architectural_fix"
+  rationale: "[Why this approach was chosen]"
+
+implementation:
+  files_modified:
+    - file: "path/to/file1.ts"
+      before: |
+        [Old code]
+      after: |
+        [New code]
+      explanation: "[Why this fixes the issue]"
+
+  configuration_changes:
+    tsconfig: "[Changes made]"
+    nextconfig: "[Changes made]"
+    eslint: "[Changes made]"
+
+  type_safety_improvements:
+    - "[Improvement 1]"
+    - "[Improvement 2]"
+
+## Testing
+
+type_checking:
+  commands_run: "npx tsc --noEmit"
+  typescript_errors: 0
+  warnings: 0
+  type_coverage: "98%"
+
+tests_created:
+  test_file: "path/to/test.test.ts"
+  test_cases:
+    - "[Test case 1]"
+    - "[Test case 2]"
+  all_tests_pass: true
+  code_coverage: "85%"
+
+build_verification:
+  build_succeeded: true
+  build_time: "[X seconds]"
+  bundle_size: "[Size]"
+  bundle_size_change: "+/- X%"
+
+runtime_verification:
+  development_mode: "pass"
+  production_build: "pass"
+  no_console_errors: true
+  no_console_warnings: true
+
+cross_browser_testing:
+  chrome: "pass"
+  firefox: "pass"
+  safari: "pass"
+  edge: "pass"
+
+## Performance Impact
+
+metrics:
+  - metric: "Bundle Size"
+    before: "X KB"
+    after: "Y KB"
+    change: "+/- Z KB"
+  - metric: "Build Time"
+    before: "X sec"
+    after: "Y sec"
+    change: "+/- Z sec"
+  - metric: "Page Load"
+    before: "X ms"
+    after: "Y ms"
+    change: "+/- Z ms"
+
+performance_notes: "[Any observations]"
+
+## Prevention Strategy
+
+code_level_prevention:
+  utility_types: |
+    [Code for utility types]
+  validation_helpers: |
+    [Code for validation helpers]
+
+configuration_prevention:
+  tsconfig_updates: |
+    [New config options]
+  eslint_rules: |
+    [New rules]
+
+documentation:
+  - pattern_documentation
+  - anti_pattern_guide
+  - team_coding_guidelines
+  - example_code_snippets
+
+team_guidelines:
+  anti_pattern: |
+    [What not to do]
+  recommended_pattern: |
+    [What to do instead]
+  when_to_use: "[Explanation]"
+
+## Knowledge Sharing
+
+documentation_links:
+  internal_wiki: "[URL]"
+  team_guidelines: "[URL]"
+  api_documentation: "[URL]"
+  related_issues: ["Issue #XXX"]
+
+team_communication:
+  shared_in_chat: true
+  presented_in_standup: true
+  added_to_knowledge_base: true
+  demo_scheduled: false
+  training_materials_created: false
+
+## Deployment
+
+pull_request:
+  number: "[PR #]"
+  url: "[Link]"
+  reviewers: ["[Name1]", "[Name2]"]
+  status: "merged"
+
+deployment:
+  deployed_to: "production"
+  deployment_date: "[YYYY-MM-DD]"
+  deployment_notes: "[Special considerations]"
+
+## Monitoring
+
+monitoring_setup:
+  error_tracking: true
+  performance_monitoring: true
+  alerts_configured: true
+  metrics_dashboard: true
+
+post_deployment:
+  monitoring_period: "[X days]"
+  issues_detected: "none"
+  user_feedback: "[Summary]"
+
+follow_up_actions:
+  - "[Action 1]"
+  - "[Action 2]"
+
+## Lessons Learned
+
+key_takeaways:
+  - "[Learning 1]"
+  - "[Learning 2]"
+  - "[Learning 3]"
+
+what_went_well:
+  - "[Success 1]"
+  - "[Success 2]"
+
+what_could_improve:
+  - "[Improvement 1]"
+  - "[Improvement 2]"
+
+recommended_practices:
+  - "[Practice 1]"
+  - "[Practice 2]"
+
+## References
+
+documentation:
+  - typescript_docs: "[URL]"
+  - nextjs_docs: "[URL]"
+  - react_docs: "[URL]"
+
+related_resources:
+  - stackoverflow: "[URL]"
+  - github_issues: "[URL]"
+  - blog_posts: "[URL]"
+
+## Sign-off
+
+debugger: "_______________"
+date_completed: "[YYYY-MM-DD]"
+verified_by: "_______________"
+date_verified: "[YYYY-MM-DD]"
+
+approvals:
+  technical_lead: false
+  qa_signoff: false
+  product_owner: false
+
+additional_notes: |
+  [Any additional context]

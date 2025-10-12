@@ -725,7 +725,7 @@ Coinsphere Design System/
 - **Simple:** Basic rows with columns
 - **Expandable:** Row expands to show details
 - **Selectable:** Checkboxes for bulk actions
-- **Striped:** Alternating row backgrounds
+- **PayFastd:** Alternating row backgrounds
 
 **States:**
 - Default

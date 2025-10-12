@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { Header } from "@/components/header"
+import { Layout } from "@/components/Layout"
 import { PortfolioHero } from "@/components/portfolio-hero"
 import { QuickActions } from "@/components/quick-actions"
 import { AssetAllocation } from "@/components/asset-allocation"
@@ -125,40 +126,42 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent">
-      <Header />
+    <Layout>
+      <div className="min-h-screen bg-transparent">
+        <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Portfolio Hero - Shows total value and 24h change */}
-        <PortfolioHero />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Portfolio Hero - Shows total value and 24h change */}
+          <PortfolioHero />
 
-        {/* Quick Actions */}
-        <QuickActions />
+          {/* Quick Actions */}
+          <QuickActions />
 
-        {/* Market Insights - Shows predictions for top holding or BTC */}
-        {currentPortfolio.holdings && currentPortfolio.holdings.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">Market Insights</h2>
-            <MarketInsights symbol={topAsset} />
+          {/* Market Insights - Shows predictions for top holding or BTC */}
+          {currentPortfolio.holdings && currentPortfolio.holdings.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">Market Insights</h2>
+              <MarketInsights symbol={topAsset} />
+            </div>
+          )}
+
+          {/* Price History Chart for top asset */}
+          {currentPortfolio.holdings && currentPortfolio.holdings.length > 0 && (
+            <div className="mb-6">
+              <PriceHistoryChart symbol={topAsset} timeframe="7d" />
+            </div>
+          )}
+
+          {/* Asset Allocation and Holdings */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <AssetAllocation />
+            <HoldingsTable />
           </div>
-        )}
 
-        {/* Price History Chart for top asset */}
-        {currentPortfolio.holdings && currentPortfolio.holdings.length > 0 && (
-          <div className="mb-6">
-            <PriceHistoryChart symbol={topAsset} timeframe="7d" />
-          </div>
-        )}
-
-        {/* Asset Allocation and Holdings */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <AssetAllocation />
-          <HoldingsTable />
-        </div>
-
-        {/* Transaction History */}
-        <TransactionHistory />
-      </main>
-    </div>
+          {/* Transaction History */}
+          <TransactionHistory />
+        </main>
+      </div>
+    </Layout>
   )
 }

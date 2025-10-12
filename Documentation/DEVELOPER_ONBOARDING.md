@@ -225,7 +225,7 @@ JWT_EXPIRES_IN=3600
 COINGECKO_API_KEY=your-coingecko-key
 LUNARCRUSH_API_KEY=your-lunarcrush-key
 
-# Stripe (for payments)
+# PayFast (for payments)
 STRIPE_SECRET_KEY=sk_test_...
 
 # Environment

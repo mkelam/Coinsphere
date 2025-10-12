@@ -55,7 +55,7 @@ This document provides comprehensive configuration for all environments (local, 
 - Hot reload enabled
 - Debug logging (verbose)
 - Relaxed rate limits
-- Test payment keys (Stripe)
+- Test payment keys (PayFast)
 - Mock external APIs (optional)
 
 ### 2.2 Staging
@@ -155,7 +155,7 @@ BINANCE_API_KEY=                        # Leave empty (users provide their own)
 COINBASE_API_KEY=
 
 # ==================================
-# PAYMENTS (Stripe)
+# PAYMENTS (PayFast)
 # ==================================
 STRIPE_SECRET_KEY=sk_test_51XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 STRIPE_PUBLISHABLE_KEY=pk_test_51XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -491,8 +491,8 @@ jobs:
 3. Generate API key
 4. Add to `.env`: `LUNARCRUSH_API_KEY=XXXXXXXXXXXXXXXXXXXXXXXX`
 
-**Stripe**:
-1. Visit https://stripe.com
+**PayFast**:
+1. Visit https://payfast.com
 2. Create account
 3. Get test keys from dashboard
 4. Add to `.env`:
@@ -523,7 +523,7 @@ jobs:
 |---------|-------------------|-------|---------------|
 | JWT Secret | Every 90 days | Backend Lead | Jan 15, 2026 |
 | Database Password | Every 90 days | DevOps | Jan 20, 2026 |
-| Stripe API Keys | Never (unless compromised) | Finance | N/A |
+| PayFast API Keys | Never (unless compromised) | Finance | N/A |
 | CoinGecko | Every 180 days | Backend Lead | Apr 15, 2026 |
 | AWS Keys | Every 90 days | DevOps | Jan 10, 2026 |
 | SendGrid | Every 180 days | Backend Lead | Apr 10, 2026 |

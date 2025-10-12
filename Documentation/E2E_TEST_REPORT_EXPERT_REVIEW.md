@@ -276,7 +276,7 @@ The application is not in a deployable state. While the code changes are well-im
 
 8. **External Services**
    - 🟡 CoinGecko API key not configured (using free tier?)
-   - 🟡 Stripe API key not configured
+   - 🟡 PayFast API key not configured
    - 🟡 SendGrid API key not configured
    - 🟡 WalletConnect Project ID not registered
 
@@ -419,7 +419,7 @@ Coverage: 0%
 **Backend ↔ External APIs:**
 - ❌ No CoinGecko API integration tests
 - ❌ No CCXT exchange integration tests
-- ❌ No Stripe payment integration tests
+- ❌ No PayFast payment integration tests
 
 **Frontend ↔ Backend:**
 - ❌ No API client integration tests
@@ -639,7 +639,7 @@ The application has severe test coverage gaps that make it impossible to guarant
 
 1. **Create Playwright E2E Test Suite**
    - Write 5 critical user flow tests
-   - Mock external API calls (CoinGecko, Stripe)
+   - Mock external API calls (CoinGecko, PayFast)
    - Set up test database seeding
    - **ETA:** 8-12 hours
 

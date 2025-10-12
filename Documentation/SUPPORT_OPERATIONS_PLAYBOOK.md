@@ -288,7 +288,7 @@ Provide exceptional, community-driven support that educates users, resolves issu
   - App is down (500 errors, can't login)
   - Data loss or corruption (portfolio balances missing)
   - Security incident (unauthorized access, leaked API keys)
-  - Payment processing failure (Stripe down)
+  - Payment processing failure (PayFast down)
 
 - ⚠️ **Same-Day Escalation (to Tier 3):**
   - Power Trader user issue
@@ -447,10 +447,10 @@ Coinsphere Support
 1. **Check Payment Status:**
    - Settings → Billing → Subscription Status
    - If "Active" → Refresh page, clear cache
-2. **Check Stripe Dashboard:**
+2. **Check PayFast Dashboard:**
    - Verify payment succeeded (not failed or refunded)
 3. **Sync Issue (Rare):**
-   - Webhook delay (Stripe → Coinsphere)
+   - Webhook delay (PayFast → Coinsphere)
    - Manually activate subscription (admin panel)
 
 **If Overcharged:**

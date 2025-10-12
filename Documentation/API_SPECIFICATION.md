@@ -1232,7 +1232,7 @@ Upgrade subscription tier.
 **Response (200 OK):**
 ```json
 {
-  "checkoutUrl": "https://checkout.stripe.com/pay/cs_test_..."
+  "checkoutUrl": "https://checkout.payfast.com/pay/cs_test_..."
 }
 ```
 

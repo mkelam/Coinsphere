@@ -296,7 +296,7 @@ ml-service:
 - AlertsPage: Mock alert creation/management
 - PortfoliosPage: Mock portfolio stats
 - DefiPage: Unknown if real or mock
-- PricingPage: Hardcoded ZAR prices
+- PricingPage: Hardcoded USD prices
 
 **Files Affected:**
 - [AssetDetailPage.tsx:52-68](frontend/src/pages/AssetDetailPage.tsx) - All mock data
@@ -378,14 +378,14 @@ ml-service:
 #### HP-03: Missing Multi-Currency Support
 
 **Severity:** MEDIUM-HIGH
-**Impact:** South African users confused by USD-only pricing
+**Impact:** Internationaln users confused by USD-only pricing
 **Affects:** Target market (ZAR users)
 
 **Current State:**
 - PortfoliosPage allows EUR/BTC/USD currency selection
 - All displays hardcoded to USD
 - No forex rate API integration
-- Pricing page shows ZAR but calculations use USD
+- Pricing page shows USD but calculations use USD
 
 **Required Fix:**
 - [ ] Integrate forex API (fixer.io or exchangerate-api)
@@ -433,15 +433,15 @@ ml-service:
 **Current State:**
 - PricingPage displays tiers beautifully
 - CheckoutPage exists but not connected
-- No Stripe/PayFast integration
+- No PayFast/PayFast integration
 - No subscription management
 - No webhook handling for payment events
 
 **Required Fix:**
-- [ ] Integrate Stripe SDK
-- [ ] Create Stripe customer on signup
+- [ ] Integrate PayFast SDK
+- [ ] Create PayFast customer on signup
 - [ ] Implement checkout flow
-- [ ] Add PayFast for South Africa
+- [ ] Add PayFast for International
 - [ ] Handle subscription webhooks
 - [ ] Update user.subscriptionTier on payment
 - [ ] Implement subscription cancellation
@@ -664,7 +664,7 @@ Comparing implementation to [PRODUCT_STRATEGY.md](Documentation/PRODUCT_STRATEGY
 1. ✅ Integrate Binance API (one exchange) (4 days)
 2. ✅ Connect predictions to ML service (2 days)
 3. ✅ Connect risk scoring API (2 days)
-4. ✅ Implement Stripe payment flow (3 days)
+4. ✅ Implement PayFast payment flow (3 days)
 5. ✅ Add alert triggering system (3 days)
 6. ✅ Implement WebSocket foundation (3 days)
 
@@ -722,7 +722,7 @@ Comparing implementation to [PRODUCT_STRATEGY.md](Documentation/PRODUCT_STRATEGY
 - [ ] Wallet connection working for DeFi
 - [ ] Exchange API integration (minimum 1 exchange)
 - [ ] ML predictions returning real data
-- [ ] Payment flow functional (Stripe)
+- [ ] Payment flow functional (PayFast)
 
 **Security Blockers:**
 - [ ] Exchange API keys encrypted
@@ -857,7 +857,7 @@ SO THAT I can make informed trading decisions
 ### **Week 3 - SECURITY & PAYMENTS**
 
 7. [ ] Implement rate limiting (1 day)
-8. [ ] Stripe payment integration (3 days)
+8. [ ] PayFast payment integration (3 days)
 9. [ ] WebSocket foundation (2 days)
 10. [ ] Alert triggering system (2 days)
 

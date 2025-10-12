@@ -31,6 +31,7 @@ import transactionsRoutes from './routes/transactions.js';
 import paymentsRoutes from './routes/payments.js';
 import exchangesRoutes from './routes/exchanges.js';
 import defiRoutes from './routes/defi.js';
+import adminRoutes from './routes/admin.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -169,6 +170,7 @@ app.use('/api/v1/transactions', authenticate, validateCsrfToken, apiLimiter, tra
 app.use('/api/v1/payments', apiLimiter, paymentsRoutes); // PayFast webhook doesn't need CSRF
 app.use('/api/v1/exchanges', authenticate, validateCsrfToken, apiLimiter, exchangesRoutes);
 app.use('/api/v1/defi', apiLimiter, defiRoutes); // DeFi routes (auth required for user positions)
+app.use('/api/v1/admin', authenticate, validateCsrfToken, apiLimiter, adminRoutes); // Admin only routes
 
 // Sentry error handler must be before custom error handlers
 if (process.env.SENTRY_DSN && config.env === 'production') {

@@ -62,8 +62,10 @@ describe('Decimal Utility Functions', () => {
     });
 
     it('should handle large numbers', () => {
-      const result = multiply(123456789.12345678, 987654321.87654321);
-      expect(result.toString()).toBe('121932632103337090.6816367594445938');
+      // Use strings to avoid JavaScript number precision loss
+      // Note: Decimal.js limits to 28 significant digits (configured in decimal.ts)
+      const result = multiply('123456789.12345678', '987654321.87654321');
+      expect(result.toString()).toBe('121932631342783101.4583142722');
     });
 
     it('should handle very small numbers', () => {
@@ -165,8 +167,9 @@ describe('Decimal Utility Functions', () => {
     });
 
     it('should use ROUND_HALF_UP', () => {
-      expect(roundTo(1.5).toString()).toBe('2');
-      expect(roundTo(2.5).toString()).toBe('3');
+      // Round to 0 decimal places to test rounding behavior
+      expect(roundTo(1.5, 0).toString()).toBe('2');
+      expect(roundTo(2.5, 0).toString()).toBe('3');
     });
   });
 
@@ -257,9 +260,9 @@ describe('Decimal Utility Functions', () => {
     it('should prevent floating-point errors in portfolio calculations', () => {
       // Simulate portfolio calculation
       const holdings = [
-        { price: 123.45, amount: 10.5 },
-        { price: 0.000123, amount: 1000000 },
-        { price: 99999.99, amount: 0.001 },
+        { price: 123.45, amount: 10.5 },      // = 1296.225
+        { price: 0.000123, amount: 1000000 }, // = 123
+        { price: 99999.99, amount: 0.001 },   // = 99.99999
       ];
 
       let totalValue = new Decimal(0);
@@ -268,8 +271,8 @@ describe('Decimal Utility Functions', () => {
         totalValue = add(totalValue, value);
       }
 
-      // Verify precision
-      expect(totalValue.toString()).toBe('1419.22225');
+      // Verify precision: 1296.225 + 123 + 99.99999 = 1519.22499
+      expect(totalValue.toString()).toBe('1519.22499');
     });
 
     it('should handle tax calculation precision', () => {

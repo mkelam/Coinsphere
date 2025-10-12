@@ -439,7 +439,7 @@ d00162a Sprint 0 complete
 
 ### External Services
 - **CoinGecko Pro:** $129/month (required)
-- **Stripe:** 2.9% + $0.30/tx (required)
+- **PayFast:** 2.9% + $0.30/tx (required)
 - **SendGrid:** $15/month (required)
 - **LunarCrush:** $199/month (optional)
 

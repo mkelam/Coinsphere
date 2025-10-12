@@ -35,7 +35,7 @@ class CoinGeckoService {
       headers: {
         'Accept': 'application/json',
         ...(config.api.coingecko && {
-          'x-cg-pro-api-key': config.api.coingecko,
+          'x-cg-demo-api-key': config.api.coingecko,
         }),
       },
     });

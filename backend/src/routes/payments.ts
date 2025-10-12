@@ -16,24 +16,20 @@ const PAYFAST_URL = PAYFAST_SANDBOX
   ? 'https://sandbox.payfast.co.za/eng/process'
   : 'https://www.payfast.co.za/eng/process';
 
-// Plan pricing mapping (ZAR - South African Rand)
-// Exchange rate: 1 USD ≈ 18 ZAR (as of 2025)
-const PLAN_PRICING: Record<string, { amount: number; usdAmount: number; name: string; description: string }> = {
+// Plan pricing mapping (USD - US Dollars)
+const PLAN_PRICING: Record<string, { amount: number; name: string; description: string }> = {
   'plus': {
-    amount: 179.99, // ZAR (≈ $10 USD)
-    usdAmount: 9.99,
+    amount: 9.99, // USD
     name: 'Plus Plan',
     description: 'Unlimited portfolios, real-time alerts, AI predictions',
   },
   'pro': {
-    amount: 359.99, // ZAR (≈ $20 USD)
-    usdAmount: 19.99,
+    amount: 19.99, // USD
     name: 'Pro Plan',
     description: 'Advanced AI, Degen Risk Scores, 1-year history, API access',
   },
   'power-trader': {
-    amount: 899.99, // ZAR (≈ $50 USD)
-    usdAmount: 49.99,
+    amount: 49.99, // USD
     name: 'Power Trader Plan',
     description: 'Real-time WebSocket, advanced analytics, unlimited API',
   },
@@ -101,10 +97,6 @@ router.post('/payfast/checkout', authenticate, async (req: Request, res: Respons
     // Generate unique payment reference
     const paymentRef = `SUB-${userId.slice(0, 8)}-${Date.now()}`;
 
-    // Calculate amount with VAT (15% in South Africa)
-    const VAT_RATE = 0.15;
-    const amountWithVAT = planDetails.amount * (1 + VAT_RATE);
-
     // Create payment data for PayFast
     const paymentData = {
       // Merchant details
@@ -121,14 +113,14 @@ router.post('/payfast/checkout', authenticate, async (req: Request, res: Respons
 
       // Transaction details
       m_payment_id: paymentRef,
-      amount: amountWithVAT.toFixed(2), // Amount including VAT
+      amount: planDetails.amount.toFixed(2), // Amount in USD
       item_name: planDetails.name,
       item_description: planDetails.description,
 
       // Subscription details
       subscription_type: '1', // 1 = Subscription
       billing_date: new Date().toISOString().split('T')[0],
-      recurring_amount: amountWithVAT.toFixed(2), // Recurring amount with VAT
+      recurring_amount: planDetails.amount.toFixed(2), // Recurring amount in USD
       frequency: '3', // 3 = Monthly
       cycles: '0', // 0 = Until cancelled
     };
@@ -142,16 +134,13 @@ router.post('/payfast/checkout', authenticate, async (req: Request, res: Respons
         userId,
         provider: 'payfast',
         referenceId: paymentRef,
-        amount: amountWithVAT, // Store amount with VAT
-        currency: 'ZAR',
+        amount: planDetails.amount, // Store amount in USD
+        currency: 'USD',
         plan,
         status: 'pending',
         metadata: {
           planName: planDetails.name,
           email: user.email,
-          baseAmount: planDetails.amount,
-          vatRate: VAT_RATE,
-          vatAmount: (planDetails.amount * VAT_RATE),
         },
       },
     });

@@ -207,15 +207,15 @@ Layer 6: Helmet.js Security Headers (14 headers configured)
 - **Fix**: Train models with 1 year of historical data (Week 1 post-launch)
 
 **3.4 Payment Integration** ✅
-- [x] PayFast integration (South African market)
+- [x] PayFast integration (Internationaln market)
 - [x] 4 subscription tiers (Free, Plus, Pro, Power Trader)
 - [x] ITN webhook handling
 - [x] Payment history
 - [x] Subscription management
 
-**Question**: Why PayFast instead of Stripe?
-- **Answer**: Targeting South African market first (smart localization)
-- **Recommendation**: Add Stripe for US/EU in Month 2
+**Question**: Why PayFast instead of PayFast?
+- **Answer**: Targeting Internationaln market first (smart localization)
+- **Recommendation**: Add PayFast for US/EU in Month 2
 
 **3.5 Real-time Features** ✅
 - [x] WebSocket service (Socket.io)
@@ -619,16 +619,16 @@ Marketing Channels:
 
 **6.4 PayFast Geographic Limitation** (Strategic Question)
 ```
-Current: PayFast (South Africa focus)
-Global: Need Stripe (US/EU) or PayPal
+Current: PayFast (International focus)
+Global: Need PayFast (US/EU) or PayPal
 
-Question: Why South Africa first?
+Question: Why International first?
 - Lower competition?
 - Personal connections?
 - Currency arbitrage (ZAR)?
 ```
 
-**Recommendation**: Clarify South Africa strategy OR add Stripe in Month 2
+**Recommendation**: Clarify International strategy OR add PayFast in Month 2
 
 ### 🎯 Product Strategy Score
 
@@ -816,7 +816,7 @@ Profit: $363K (86% margin)
 
 1. **Add Unit Tests** (80% coverage minimum) - 2-3 weeks
 2. **Complete DeFi Integration** (MetaMask + WalletConnect) - 1 week
-3. **Add Stripe** (US/EU market) - 2-3 days
+3. **Add PayFast** (US/EU market) - 2-3 days
 4. **Mobile QA** (Test on real devices) - 1 week
 5. **Add 4 More Exchanges** (Bybit, OKX, Bitget, Gate.io) - 1-2 weeks
 
@@ -886,10 +886,10 @@ Profit: $363K (86% margin)
 - They **cannot** copy 2 years of ML model training in 2 months
 - **Action**: Double down on AI quality, track accuracy publicly
 
-### 2. South Africa First Is Risky
-- PayFast limits you to South African market (~5M crypto users)
+### 2. International First Is Risky
+- PayFast limits you to Internationaln market (~5M crypto users)
 - US market is 40% of global (~50M users)
-- **Action**: Add Stripe by Month 2, even if dual-payment complexity
+- **Action**: Add PayFast by Month 2, even if dual-payment complexity
 
 ### 3. Mobile-First Would Be Better
 - 60% of crypto users trade on mobile
@@ -935,7 +935,7 @@ Profit: $363K (86% margin)
 
 ## 📞 QUESTIONS FOR YOU
 
-1. **Why South Africa first?** (PayFast vs Stripe decision)
+1. **Why International first?** (PayFast vs PayFast decision)
 2. **Mobile app timeline?** (60% of users need mobile)
 3. **ML model training plan?** (who trains, when, with what data?)
 4. **Beta user acquisition?** (how to get first 100 users?)

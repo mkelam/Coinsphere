@@ -6,6 +6,7 @@ import { requireAdmin } from '../middleware/requireAdmin.js';
 import { logger } from '../utils/logger.js';
 import { cache, invalidateCache } from '../middleware/cache.js';
 import { auditLogService } from '../services/auditLog.js';
+import { priceHistoryService } from '../services/priceHistoryService.js';
 
 const router = Router();
 
@@ -121,6 +122,12 @@ router.get('/:symbol/history', authenticate, cache({ ttl: 60, prefix: 'token-his
     const { symbol } = req.params;
     const { timeframe = '7d' } = req.query;
 
+    // Validate timeframe
+    const validTimeframes = ['24h', '7d', '30d', '1y'];
+    if (typeof timeframe !== 'string' || !validTimeframes.includes(timeframe)) {
+      return res.status(400).json({ error: 'Invalid timeframe. Must be one of: 24h, 7d, 30d, 1y' });
+    }
+
     const token = await prisma.token.findUnique({
       where: { symbol: symbol.toUpperCase() },
     });
@@ -129,61 +136,18 @@ router.get('/:symbol/history', authenticate, cache({ ttl: 60, prefix: 'token-his
       return res.status(404).json({ error: 'Token not found' });
     }
 
-    // Calculate time range based on timeframe
-    const now = new Date();
-    let startTime: Date;
-    let interval: number; // in minutes
-
-    switch (timeframe) {
-      case '24h':
-        startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        interval = 60; // 1 hour intervals
-        break;
-      case '7d':
-        startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        interval = 4 * 60; // 4 hour intervals
-        break;
-      case '30d':
-        startTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        interval = 24 * 60; // 1 day intervals
-        break;
-      case '1y':
-        startTime = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        interval = 7 * 24 * 60; // 1 week intervals
-        break;
-      default:
-        startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        interval = 4 * 60;
-    }
-
-    // Fetch price data from TimescaleDB
-    const priceData = await prisma.priceData.findMany({
-      where: {
-        tokenId: token.id,
-        time: {
-          gte: startTime,
-        },
-      },
-      orderBy: {
-        time: 'asc',
-      },
-    });
-
-    // Format data for frontend
-    const priceHistory = priceData.map((data) => ({
-      time: data.time.getTime(),
-      price: data.close,
-      open: data.open,
-      high: data.high,
-      low: data.low,
-      volume: data.volume,
-    }));
+    // Use price history service to get aggregated data
+    const priceHistory = await priceHistoryService.getAggregatedHistory(
+      token.id,
+      timeframe as '24h' | '7d' | '30d' | '1y'
+    );
 
     res.json({
       symbol: token.symbol,
       timeframe,
       priceHistory,
       currentPrice: token.currentPrice,
+      dataPoints: priceHistory.length,
     });
   } catch (error) {
     logger.error('Error fetching price history:', error);

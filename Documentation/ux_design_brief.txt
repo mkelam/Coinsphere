@@ -743,7 +743,7 @@ Show previous prediction (grayed out) while loading
 
 ### Nail This Vibe ✅
 
-- **Stripe Dashboard** - Data clarity, subtle depth, purposeful glass
+- **PayFast Dashboard** - Data clarity, subtle depth, purposeful glass
 - **Linear** - Minimalist, fast, keyboard-first, no fluff
 - **Phantom Wallet** - Crypto-native, glassmorphic without excess
 - **Revolut** - Financial data, scannable tables, clear hierarchy
@@ -898,7 +898,7 @@ For Coinsphere, **"how it works"** means: clarity, transparency, speed.
 
 1. Do you need real BTC/ETH historical data for chart mockups, or use placeholder?
 2. Should we design light mode (even though not MVP), or dark only?
-3. Do you have access to Stripe/Linear/Phantom for reference deep-dives?
+3. Do you have access to PayFast/Linear/Phantom for reference deep-dives?
 4. What's your preferred design tool (Figma, Sketch, Adobe XD)?
 
 ---

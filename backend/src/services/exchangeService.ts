@@ -5,9 +5,31 @@ import { encrypt, decrypt } from '../utils/encryption';
 const prisma = new PrismaClient();
 
 /**
- * Supported exchanges for MVP
+ * Supported exchanges for MVP - Sprint 3: Expanded to 20+ exchanges
  */
-export const SUPPORTED_EXCHANGES = ['binance', 'coinbase', 'kraken', 'kucoin'] as const;
+export const SUPPORTED_EXCHANGES = [
+  'binance',
+  'binanceus',
+  'coinbase',
+  'coinbasepro',
+  'kraken',
+  'kucoin',
+  'huobi',
+  'okx',
+  'bybit',
+  'bitfinex',
+  'bitstamp',
+  'gemini',
+  'gateio',
+  'bitget',
+  'mexc',
+  'bitmart',
+  'lbank',
+  'phemex',
+  'poloniex',
+  'htx',
+  'crypto.com',
+] as const;
 export type SupportedExchange = typeof SUPPORTED_EXCHANGES[number];
 
 /**

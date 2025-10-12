@@ -431,6 +431,102 @@ class EmailService {
       html,
     });
   }
+
+  async sendAlertEmail(data: {
+    to: string;
+    name: string;
+    alertType: string;
+    tokenSymbol: string;
+    condition: string;
+    threshold: number;
+    currentValue: number;
+  }): Promise<boolean> {
+    const conditionText =
+      data.condition === 'above' ? 'risen above' : data.condition === 'below' ? 'fallen below' : 'reached';
+
+    let typeIcon = '🔔';
+    let typeColor = '#3B82F6';
+    let typeText = 'Alert';
+
+    if (data.alertType === 'price') {
+      typeIcon = '💰';
+      typeColor = '#10B981';
+      typeText = 'Price Alert';
+    } else if (data.alertType === 'risk') {
+      typeIcon = '⚠️';
+      typeColor = '#EF4444';
+      typeText = 'Risk Alert';
+    } else if (data.alertType === 'prediction') {
+      typeIcon = '🤖';
+      typeColor = '#8B5CF6';
+      typeText = 'Prediction Alert';
+    }
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; background-color: #000; color: #fff; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 30px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .logo { font-size: 48px; margin-bottom: 10px; }
+            .title { font-size: 24px; font-weight: bold; color: ${typeColor}; margin-bottom: 20px; }
+            .alert-box { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 20px; margin: 20px 0; }
+            .value { font-size: 32px; font-weight: bold; color: ${typeColor}; text-align: center; margin: 15px 0; }
+            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.5); font-size: 14px; }
+            .btn { display: inline-block; background: ${typeColor}; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">${typeIcon}</div>
+              <div class="title">${typeText} Triggered</div>
+            </div>
+            <div class="content">
+              <p>Hi ${data.name},</p>
+              <p>Your ${data.alertType} alert for <strong>${data.tokenSymbol}</strong> has been triggered!</p>
+              <div class="alert-box">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 10px;">Threshold</div>
+                <div>${data.threshold.toLocaleString()}</div>
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin: 20px 0 10px;">Current Value</div>
+                <div class="value">${data.currentValue.toLocaleString()}</div>
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-top: 15px;">
+                  ${data.tokenSymbol} has ${conditionText} ${data.threshold.toLocaleString()}
+                </div>
+              </div>
+              <p>View your portfolio and manage your alerts in the Coinsphere dashboard.</p>
+              <center>
+                <a href="${config.appUrl}/alerts" class="btn">Manage Alerts</a>
+              </center>
+            </div>
+            <div class="footer">
+              <p>You can disable this alert in your <a href="${config.appUrl}/alerts" style="color: ${typeColor};">alert settings</a>.</p>
+              <p>© 2025 Coinsphere. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return this.sendEmail({
+      to: data.to,
+      subject: `${typeIcon} ${data.tokenSymbol} ${typeText}: ${data.currentValue.toLocaleString()}`,
+      html,
+    });
+  }
 }
 
 export const emailService = new EmailService();
+
+// Export named function for alert evaluation service
+export const sendAlertEmail = (data: {
+  to: string;
+  name: string;
+  alertType: string;
+  tokenSymbol: string;
+  condition: string;
+  threshold: number;
+  currentValue: number;
+}) => emailService.sendAlertEmail(data);

@@ -553,7 +553,7 @@ test('should persist active portfolio after logout', async ({ page, context }) =
 - **Given** I am on the Free plan
 - **When** I click "Upgrade" on the Pro tier
 - **Then** I am redirected to `/checkout?tier=pro&billing=monthly`
-- **And** a Stripe checkout session is created
+- **And** a PayFast checkout session is created
 
 **AC6: Anonymous user experience**
 - **Given** I am NOT logged in
@@ -566,12 +566,12 @@ test('should persist active portfolio after logout', async ({ page, context }) =
 - Page is **public** (no authentication required)
 - Static content (no API call needed for pricing data)
 - Billing toggle: Client-side state only
-- Checkout integration: Use Stripe Checkout (hosted page) or Stripe Elements
+- Checkout integration: Use PayFast Checkout (hosted page) or PayFast Elements
 - Feature comparison: Store in static JSON or constants file
 
 **Dependencies:**
-- Stripe account setup
-- Backend API: `POST /api/v1/checkout/session` to create Stripe session
+- PayFast account setup
+- Backend API: `POST /api/v1/checkout/session` to create PayFast session
 
 **E2E Test Cases:**
 ```typescript
@@ -637,7 +637,7 @@ test('should navigate to checkout on upgrade click', async ({ page }) => {
   // Click Upgrade on Pro tier
   await page.click('[data-testid="tier-pro"] [data-testid="cta-button"]');
 
-  // Should redirect to checkout (or Stripe)
+  // Should redirect to checkout (or PayFast)
   await expect(page).toHaveURL(/\/checkout\?tier=pro/);
 });
 
@@ -654,7 +654,7 @@ test('should redirect anonymous users to signup', async ({ page }) => {
 
 ---
 
-#### Story 2.2: Checkout Flow (Stripe Integration)
+#### Story 2.2: Checkout Flow (PayFast Integration)
 
 **User Story:**
 > As a free user who decided to upgrade to Pro,
@@ -668,39 +668,39 @@ test('should redirect anonymous users to signup', async ({ page }) => {
 
 **Acceptance Criteria:**
 
-**AC1: Create Stripe checkout session**
+**AC1: Create PayFast checkout session**
 - **Given** I am logged in as a Free user
 - **When** I click "Upgrade" on the Pro tier ($19.99/month)
-- **Then** the backend creates a Stripe Checkout session via API
-- **And** I am redirected to Stripe's hosted checkout page
+- **Then** the backend creates a PayFast Checkout session via API
+- **And** I am redirected to PayFast's hosted checkout page
 - **And** the checkout page shows:
   - Plan: Coinsphere Pro
   - Price: $19.99/month (or $15.99/month if annual selected)
   - Payment fields (card number, expiry, CVC, billing address)
 
 **AC2: Successful payment**
-- **Given** I am on the Stripe checkout page
+- **Given** I am on the PayFast checkout page
 - **When** I enter valid card details:
-  - Card: 4242 4242 4242 4242 (Stripe test card)
+  - Card: 4242 4242 4242 4242 (PayFast test card)
   - Expiry: 12/28
   - CVC: 123
 - **And** I click "Subscribe"
-- **Then** Stripe processes the payment
+- **Then** PayFast processes the payment
 - **And** I am redirected to `/billing/success?session_id=xyz`
 - **And** I see a success message: "🎉 Welcome to Coinsphere Pro!"
 - **And** my user account is upgraded to "Pro" tier
 - **And** I can now access AI predictions and risk scores
 
 **AC3: Failed payment**
-- **Given** I am on the Stripe checkout page
+- **Given** I am on the PayFast checkout page
 - **When** I enter an invalid/declined card (e.g., 4000 0000 0000 0002)
 - **And** I click "Subscribe"
-- **Then** Stripe shows an error: "Your card was declined"
+- **Then** PayFast shows an error: "Your card was declined"
 - **And** I remain on the checkout page
 - **And** I can retry with a different card
 
 **AC4: Cancel checkout**
-- **Given** I am on the Stripe checkout page
+- **Given** I am on the PayFast checkout page
 - **When** I click "← Back" or close the browser tab
 - **Then** no payment is processed
 - **And** I remain on the Free plan
@@ -709,11 +709,11 @@ test('should redirect anonymous users to signup', async ({ page }) => {
 
 **AC5: Webhook handles subscription created**
 - **Given** a user completes payment successfully
-- **When** Stripe sends a `checkout.session.completed` webhook
+- **When** PayFast sends a `checkout.session.completed` webhook
 - **Then** the backend:
   - Verifies the webhook signature
   - Updates the user's `subscriptionTier` to "pro"
-  - Stores the Stripe `customerId` and `subscriptionId`
+  - Stores the PayFast `customerId` and `subscriptionId`
   - Grants access to Pro features immediately
 
 **AC6: Idempotency - Prevent duplicate subscriptions**
@@ -723,34 +723,34 @@ test('should redirect anonymous users to signup', async ({ page }) => {
 - **Or** the backend redirects them to `/billing` to manage their existing subscription
 
 **Technical Notes:**
-- **Stripe Integration:**
-  - Use Stripe Checkout (recommended for MVP)
-  - Backend: `stripe.checkout.sessions.create()`
-  - Webhook endpoint: `POST /api/v1/webhooks/stripe`
+- **PayFast Integration:**
+  - Use PayFast Checkout (recommended for MVP)
+  - Backend: `payfast.checkout.sessions.create()`
+  - Webhook endpoint: `POST /api/v1/webhooks/payfast`
   - Webhook events: `checkout.session.completed`, `invoice.payment_succeeded`, `customer.subscription.deleted`
 - **Security:**
-  - Verify webhook signatures using Stripe secret
+  - Verify webhook signatures using PayFast secret
   - Never trust client-side data for subscription status
-  - Always query Stripe API to verify subscription status
+  - Always query PayFast API to verify subscription status
 - **Database:**
   - Add fields to `users` table:
     - `subscriptionTier` (free, plus, pro, power)
-    - `stripeCustomerId`
-    - `stripeSubscriptionId`
+    - `payfastCustomerId`
+    - `payfastSubscriptionId`
     - `subscriptionStatus` (active, canceled, past_due)
     - `subscriptionEndsAt` (for cancellations)
 
 **Dependencies:**
-- Stripe account with test mode enabled
-- Stripe publishable and secret keys in `.env`
-- Webhook endpoint configured in Stripe Dashboard
+- PayFast account with test mode enabled
+- PayFast publishable and secret keys in `.env`
+- Webhook endpoint configured in PayFast Dashboard
 - Backend API endpoints:
   - `POST /api/v1/checkout/session` - Create checkout session
-  - `POST /api/v1/webhooks/stripe` - Handle webhooks
+  - `POST /api/v1/webhooks/payfast` - Handle webhooks
 
 **E2E Test Cases:**
 ```typescript
-// Note: E2E tests with Stripe require mocking or using Stripe test mode
+// Note: E2E tests with PayFast require mocking or using PayFast test mode
 
 test('should complete checkout successfully', async ({ page }) => {
   await page.goto('/login');
@@ -761,10 +761,10 @@ test('should complete checkout successfully', async ({ page }) => {
   await page.goto('/pricing');
   await page.click('[data-testid="tier-pro"] [data-testid="cta-button"]');
 
-  // Wait for redirect to Stripe (or checkout page)
-  await page.waitForURL(/checkout|stripe.com/);
+  // Wait for redirect to PayFast (or checkout page)
+  await page.waitForURL(/checkout|payfast.com/);
 
-  // If using embedded Stripe Elements (not hosted Checkout):
+  // If using embedded PayFast Elements (not hosted Checkout):
   // Fill in card details
   // await page.fill('[data-testid="card-number"]', '4242424242424242');
   // await page.fill('[data-testid="card-expiry"]', '1228');
@@ -817,7 +817,7 @@ test('should handle payment failure gracefully', async ({ page }) => {
   - Amount: $19.99
   - Status: Paid
   - Action: [Download PDF]
-- **And** I can click "Download PDF" to get the Stripe invoice PDF
+- **And** I can click "Download PDF" to get the PayFast invoice PDF
 
 **AC3: View usage metrics**
 - **Given** I am on the Pro plan with limits
@@ -831,7 +831,7 @@ test('should handle payment failure gracefully', async ({ page }) => {
 **AC4: Update payment method**
 - **Given** I am on the billing page
 - **When** I click "Update Payment Method"
-- **Then** I am redirected to Stripe's payment method update page
+- **Then** I am redirected to PayFast's payment method update page
 - **And** I can add a new card or update the existing one
 - **And** after updating, I return to `/billing`
 - **And** I see the new last 4 digits of the card
@@ -844,7 +844,7 @@ test('should handle payment failure gracefully', async ({ page }) => {
   - Message: "You'll lose access to AI predictions and risk scores. Your subscription will remain active until November 9, 2025."
   - Buttons: [Keep Subscription] [Cancel Anyway]
 - **When** I click "Cancel Anyway"
-- **Then** the subscription is canceled via Stripe API
+- **Then** the subscription is canceled via PayFast API
 - **And** I see a toast: "Subscription canceled. You'll have access until Nov 9."
 - **And** my plan status changes to "Pro (Canceling on Nov 9)"
 
@@ -858,20 +858,20 @@ test('should handle payment failure gracefully', async ({ page }) => {
 - **And** I see: "Subscription reactivated! You won't be charged again until Nov 9."
 
 **Technical Notes:**
-- **Stripe API:**
-  - Fetch subscription: `stripe.subscriptions.retrieve(subscriptionId)`
-  - Update payment: Stripe Customer Portal or `stripe.paymentMethods.attach()`
-  - Cancel subscription: `stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true })`
-  - Reactivate: `stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: false })`
+- **PayFast API:**
+  - Fetch subscription: `payfast.subscriptions.retrieve(subscriptionId)`
+  - Update payment: PayFast Customer Portal or `payfast.paymentMethods.attach()`
+  - Cancel subscription: `payfast.subscriptions.update(subscriptionId, { cancel_at_period_end: true })`
+  - Reactivate: `payfast.subscriptions.update(subscriptionId, { cancel_at_period_end: false })`
 - **Invoices:**
-  - List invoices: `stripe.invoices.list({ customer: customerId })`
-  - Download PDF: Use Stripe invoice PDF URL
+  - List invoices: `payfast.invoices.list({ customer: customerId })`
+  - Download PDF: Use PayFast invoice PDF URL
 - **Usage Metrics:**
   - Query database for current month's usage
   - Compare against tier limits from constants
 
 **Dependencies:**
-- Stripe subscription active
+- PayFast subscription active
 - Backend endpoints:
   - `GET /api/v1/billing/subscription` - Get current subscription
   - `GET /api/v1/billing/invoices` - List invoices
@@ -1619,7 +1619,7 @@ test('should sort transactions by date', async ({ page }) => {
 1. **Use data-testid attributes** for stable selectors
 2. **Test user flows, not implementation** (don't test internal state)
 3. **Use page objects** for reusable test components
-4. **Mock external APIs** (Stripe, CoinGecko) in E2E tests
+4. **Mock external APIs** (PayFast, CoinGecko) in E2E tests
 5. **Run tests in CI/CD** on every PR
 
 ### Accessibility Testing

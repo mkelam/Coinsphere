@@ -718,7 +718,7 @@ EMAIL_FROM=noreply@coinsphere.app
 
 # External APIs
 COINGECKO_API_KEY=your-coingecko-api-key
-STRIPE_SECRET_KEY=your-stripe-secret-key
+STRIPE_SECRET_KEY=your-payfast-secret-key
 ```
 
 ### ML Service (.env.production)
@@ -927,7 +927,7 @@ location /api/v1/tokens {
 **External Services:**
 - CoinGecko Pro API: $129/month
 - SendGrid Email: $15/month
-- Stripe (2.9% + $0.30): Variable
+- PayFast (2.9% + $0.30): Variable
 - **Services Total: $144+/month**
 
 **Grand Total: ~$160/month**

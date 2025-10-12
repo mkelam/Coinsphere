@@ -76,7 +76,7 @@ export function percentage(value: number | string | Decimal, total: number | str
  * Round to specified decimal places (default 2 for currency)
  */
 export function roundTo(value: number | string | Decimal, decimalPlaces: number = 2): Decimal {
-  return toDecimal(value).toDecimalPlaces(decimalPlaces);
+  return toDecimal(value).toDecimalPlaces(decimalPlaces, Decimal.ROUND_HALF_UP);
 }
 
 /**

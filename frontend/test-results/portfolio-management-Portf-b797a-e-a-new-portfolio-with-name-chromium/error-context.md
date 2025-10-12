@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - button "Toggle menu" [ref=e8]:
+          - img [ref=e9]
+        - button "Go to Dashboard" [ref=e10]:
+          - generic [ref=e11]: 🔮
+          - generic [ref=e12]: CoinSphere
+      - navigation [ref=e13]:
+        - button "Dashboard" [ref=e14]:
+          - img [ref=e15]
+          - generic [ref=e20]: Dashboard
+        - button "Portfolios" [ref=e21]:
+          - img [ref=e22]
+          - generic [ref=e26]: Portfolios
+        - button "DeFi" [ref=e27]:
+          - img [ref=e28]
+          - generic [ref=e32]: DeFi
+        - button "Exchanges" [ref=e33]:
+          - img [ref=e34]
+          - generic [ref=e37]: Exchanges
+        - button "Alerts" [ref=e38]:
+          - img [ref=e39]
+          - generic [ref=e42]: Alerts
+      - button "User menu" [ref=e45]:
+        - generic [ref=e46]: P
+        - img [ref=e47]
+  - main [ref=e49]:
+    - generic [ref=e50]:
+      - heading "My Portfolios" [level=1] [ref=e51]
+      - button "New Portfolio" [ref=e52]:
+        - img
+        - text: New Portfolio
+    - generic [ref=e53]:
+      - generic [ref=e54]: 📊
+      - heading "No portfolios yet" [level=2] [ref=e55]
+      - paragraph [ref=e56]: Create your first portfolio to start tracking your crypto holdings
+      - button "+ Create Portfolio" [ref=e57]
+```

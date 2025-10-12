@@ -54,6 +54,8 @@ export const config = {
 
   api: {
     coingecko: process.env.COINGECKO_API_KEY || '',
+    cryptocompare: process.env.CRYPTOCOMPARE_API_KEY || '',
+    lunarcrush: process.env.LUNARCRUSH_API_KEY || '',
     sendgrid: process.env.SENDGRID_API_KEY || '',
   },
 

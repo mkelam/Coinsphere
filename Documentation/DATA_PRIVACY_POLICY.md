@@ -111,12 +111,12 @@ When you subscribe to a paid plan:
 
 | Data Type | How We Handle It | Who Stores It |
 |-----------|------------------|---------------|
-| **Credit Card** | We DO NOT store card numbers | Stripe (PCI DSS Level 1 compliant) |
+| **Credit Card** | We DO NOT store card numbers | PayFast (PCI DSS Level 1 compliant) |
 | **Billing Email** | Stored by us (may differ from account email) | Coinsphere database |
 | **Billing Country** | Stored by us (for tax compliance) | Coinsphere database |
 | **Invoice History** | Stored by us | Coinsphere database (7 years for tax) |
 
-**Payment Processor:** Stripe Inc. ([Stripe Privacy Policy](https://stripe.com/privacy))
+**Payment Processor:** PayFast Inc. ([PayFast Privacy Policy](https://payfast.com/privacy))
 
 #### Support & Communications
 When you contact support:
@@ -272,7 +272,7 @@ We share data with trusted service providers who help us operate our business:
 |------------------|-------------|---------|----------------|
 | **AWS (Amazon Web Services)** | All user data (encrypted) | Cloud hosting, database | [AWS Privacy](https://aws.amazon.com/privacy/) |
 | **Vercel** | Web app frontend (no user data) | Frontend hosting | [Vercel Privacy](https://vercel.com/legal/privacy-policy) |
-| **Stripe** | Email, billing country | Payment processing | [Stripe Privacy](https://stripe.com/privacy) |
+| **PayFast** | Email, billing country | Payment processing | [PayFast Privacy](https://payfast.com/privacy) |
 | **Google Analytics** | Anonymized usage data | Analytics | [GA Privacy](https://support.google.com/analytics/answer/6004245) |
 | **Sentry** | Error logs (sanitized) | Error tracking | [Sentry Privacy](https://sentry.io/privacy/) |
 | **SendGrid** | Email address | Email delivery | [SendGrid Privacy](https://www.twilio.com/legal/privacy) |
@@ -692,7 +692,7 @@ This Privacy Policy was drafted with reference to:
 - General Data Protection Regulation (GDPR) - EU Regulation 2016/679
 - California Consumer Privacy Act (CCPA) - Cal. Civ. Code § 1798.100 et seq.
 - OWASP Privacy Best Practices
-- Stripe, GitHub, and Notion privacy policies (industry benchmarks)
+- PayFast, GitHub, and Notion privacy policies (industry benchmarks)
 
 ---
 
