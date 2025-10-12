@@ -5,10 +5,14 @@
 
 import { Router, Request, Response } from 'express';
 import { lunarcrushService } from '../services/lunarcrushService.js';
+import { lunarcrushMcpService } from '../services/lunarcrushMcpService.js';
 import { logger } from '../utils/logger.js';
 import { cache } from '../middleware/cache.js';
 
 const router = Router();
+
+// Feature flag to enable MCP mode
+const USE_MCP = process.env.LUNARCRUSH_USE_MCP === 'true';
 
 /**
  * @swagger
@@ -67,7 +71,9 @@ router.get('/:symbol', cache({ ttl: 900, prefix: 'social' }), async (req: Reques
   try {
     const { symbol } = req.params;
 
-    const metrics = await lunarcrushService.getCoinData(symbol);
+    // Use MCP service if enabled, otherwise fall back to REST
+    const service = USE_MCP ? lunarcrushMcpService : lunarcrushService;
+    const metrics = await service.getCoinData(symbol);
 
     if (!metrics) {
       return res.status(404).json({
@@ -80,7 +86,8 @@ router.get('/:symbol', cache({ ttl: 900, prefix: 'social' }), async (req: Reques
       symbol: symbol.toUpperCase(),
       metrics,
       timestamp: new Date().toISOString(),
-      source: 'LunarCrush',
+      source: USE_MCP ? 'LunarCrush MCP' : 'LunarCrush REST',
+      mode: USE_MCP ? 'SSE' : 'REST',
     });
   } catch (error) {
     logger.error('Error fetching social metrics:', error);
@@ -263,6 +270,42 @@ router.get('/health/check', async (req: Request, res: Response) => {
       status: 'error',
       service: 'LunarCrush',
       error: 'Service unavailable',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /social/mcp/status:
+ *   get:
+ *     summary: Check LunarCrush MCP SSE connection status
+ *     tags: [Social]
+ *     responses:
+ *       200:
+ *         description: MCP connection status
+ */
+router.get('/mcp/status', async (req: Request, res: Response) => {
+  try {
+    const mcpHealthy = lunarcrushMcpService.isHealthy();
+    const restHealthy = await lunarcrushService.ping();
+
+    res.json({
+      mcp: {
+        enabled: USE_MCP,
+        connected: mcpHealthy,
+        status: mcpHealthy ? 'connected' : 'disconnected',
+      },
+      rest: {
+        available: restHealthy,
+        status: restHealthy ? 'available' : 'unavailable',
+      },
+      activeMode: USE_MCP ? 'MCP (SSE)' : 'REST',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error('Error checking MCP status:', error);
+    res.status(500).json({
+      error: 'Failed to check MCP status',
     });
   }
 });
