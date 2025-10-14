@@ -19,12 +19,13 @@ const galaxyS21 = {
 const generateTestEmail = () => `mobiletest${Date.now()}@coinsphere.com`;
 
 test.describe('Mobile Bottom Navigation', () => {
-  test.use(iPhone12); // Use iPhone 12 viewport
-
   let testEmail: string;
   let testPassword: string;
 
   test.beforeEach(async ({ page }) => {
+    // Set mobile viewport for this test group
+    await page.setViewportSize(iPhone12.viewport);
+
     testEmail = generateTestEmail();
     testPassword = 'TestPass123!';
 
@@ -300,9 +301,9 @@ test.describe('Desktop - Bottom Nav Should NOT Be Visible', () => {
 });
 
 test.describe('Mobile Navigation Performance', () => {
-  test.use(iPhone12);
-
   test('navigation should be fast (<100ms)', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize(iPhone12.viewport);
     const testEmail = generateTestEmail();
     await page.goto(`${BASE_URL}/signup`);
     await page.fill('input[type="email"]', testEmail);

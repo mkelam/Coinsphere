@@ -36,6 +36,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     initAuth()
+
+    // Listen for storage changes (e.g., from other tabs or E2E tests)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user' || e.key === 'accessToken') {
+        const storedUser = localStorage.getItem('user')
+        const token = localStorage.getItem('accessToken')
+
+        if (storedUser && token) {
+          try {
+            setUser(JSON.parse(storedUser))
+          } catch (error) {
+            console.error('Failed to sync user from storage:', error)
+          }
+        } else {
+          setUser(null)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [])
 
   const login = async (email: string, password: string) => {

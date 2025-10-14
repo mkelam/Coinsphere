@@ -74,7 +74,7 @@ export function SignupPage() {
         {/* Signup Form */}
         <div className="glass-card p-8">
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] text-sm">
+            <div className="mb-4 p-3 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/20 text-[#EF4444] text-sm" data-testid="error-message">
               {error}
             </div>
           )}
