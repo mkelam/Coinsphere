@@ -8,11 +8,12 @@ import { Loader2, RefreshCw, TrendingUp, Layers, DollarSign, AlertCircle, Wallet
 import { defiService, DefiPosition, DefiProtocol } from '../services/defiService';
 import { DefiProtocolCard } from '../components/DefiProtocolCard';
 import { DefiPositionTable } from '../components/DefiPositionTable';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { ConnectWallet } from '../components/ConnectWallet';
 import { useWallet } from '../contexts/WalletContext';
 import { Button } from '../components/ui/button';
 import { CHAIN_NAMES } from '../lib/wagmi';
+import { Header } from '@/components/header';
+import { Layout } from '@/components/Layout';
 
 export function DefiPage() {
   const { address, isConnected, chainId } = useWallet();
@@ -99,20 +100,29 @@ export function DefiPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-transparent">
-        <div className="glass-card p-8">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
-            <p className="text-white/70">Loading DeFi positions...</p>
+      <div className="min-h-screen bg-transparent">
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="glass-card p-8">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+                <p className="text-white/70">Loading DeFi positions...</p>
+              </div>
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header */}
+    <Layout>
+      <div className="min-h-screen bg-transparent">
+        <Header />
+
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl font-bold text-white">
@@ -328,6 +338,8 @@ export function DefiPage() {
           </div>
         </div>
       </div>
-    </div>
+        </main>
+      </div>
+    </Layout>
   );
 }
