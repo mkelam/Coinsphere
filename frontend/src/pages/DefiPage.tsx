@@ -99,10 +99,12 @@ export function DefiPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-500">Loading DeFi positions...</p>
+      <div className="flex items-center justify-center min-h-screen bg-transparent">
+        <div className="glass-card p-8">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+            <p className="text-white/70">Loading DeFi positions...</p>
+          </div>
         </div>
       </div>
     );
@@ -113,18 +115,18 @@ export function DefiPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-3xl font-bold text-white">
             DeFi Portfolio
           </h1>
           <div className="flex items-center gap-3">
             {/* Wallet Connection Status */}
             {isConnected ? (
-              <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-400">
+              <div className="flex items-center gap-2 px-4 py-2 bg-[#10b981]/10 border border-[#10b981]/30 rounded-lg backdrop-blur-sm">
+                <div className="w-2 h-2 bg-[#10b981] rounded-full animate-pulse" />
+                <span className="text-sm font-medium text-[#10b981]">
                   {address?.slice(0, 6)}...{address?.slice(-4)}
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-white/60">
                   {chainId && CHAIN_NAMES[chainId]}
                 </span>
                 <Button
@@ -139,7 +141,7 @@ export function DefiPage() {
             ) : (
               <Button
                 onClick={() => setWalletModalOpen(true)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                className="flex items-center gap-2 bg-[#3b82f6] hover:bg-[#3b82f6]/80 text-white"
               >
                 <Wallet className="w-4 h-4" />
                 Connect Wallet
@@ -150,18 +152,18 @@ export function DefiPage() {
             <button
               onClick={handleSync}
               disabled={syncing || !isConnected}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[#3b82f6] text-white rounded-lg hover:bg-[#3b82f6]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors backdrop-blur-sm"
             >
               <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
               {syncing ? 'Syncing...' : 'Sync Positions'}
             </button>
           </div>
         </div>
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-white/60">
           Track your DeFi positions across {protocols.length} protocols
         </p>
         {lastSync && (
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-white/40 mt-1">
             Last synced: {lastSync.toLocaleString()}
           </p>
         )}
@@ -172,11 +174,11 @@ export function DefiPage() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="mb-6 p-4 bg-[#ef4444]/10 border border-[#ef4444]/30 rounded-lg flex items-start gap-3 backdrop-blur-sm">
+          <AlertCircle className="w-5 h-5 text-[#ef4444] flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-red-800 dark:text-red-200">Error</p>
-            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <p className="text-sm font-medium text-[#ef4444]">Error</p>
+            <p className="text-sm text-[#ef4444]/80">{error}</p>
           </div>
         </div>
       )}
@@ -185,108 +187,90 @@ export function DefiPage() {
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           {/* Total Value */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total DeFi Value</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <div className="text-2xl font-bold">
-                  ${parseFloat(stats.totalValue).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </div>
+          <div className="glass-card p-6">
+            <p className="text-sm text-white/50 mb-2">Total DeFi Value</p>
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-[#10b981]" />
+              <div className="text-2xl font-bold text-white">
+                ${parseFloat(stats.totalValue).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Total Positions */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Total Positions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Layers className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <div className="text-2xl font-bold">
-                  {stats.totalPositions}
-                </div>
+          <div className="glass-card p-6">
+            <p className="text-sm text-white/50 mb-2">Total Positions</p>
+            <div className="flex items-center gap-2">
+              <Layers className="w-5 h-5 text-[#3b82f6]" />
+              <div className="text-2xl font-bold text-white">
+                {stats.totalPositions}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Protocols Used */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Protocols Used</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Layers className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <div className="text-2xl font-bold">
-                  {stats.protocolCount}
-                </div>
+          <div className="glass-card p-6">
+            <p className="text-sm text-white/50 mb-2">Protocols Used</p>
+            <div className="flex items-center gap-2">
+              <Layers className="w-5 h-5 text-purple-400" />
+              <div className="text-2xl font-bold text-white">
+                {stats.protocolCount}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Average APY */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Average APY</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {parseFloat(stats.averageApy).toFixed(2)}%
-                </div>
+          <div className="glass-card p-6">
+            <p className="text-sm text-white/50 mb-2">Average APY</p>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-[#10b981]" />
+              <div className="text-2xl font-bold text-[#10b981]">
+                {parseFloat(stats.averageApy).toFixed(2)}%
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
       {/* No Positions State */}
       {positions.length === 0 && !loading && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <div className="text-6xl mb-4">🏦</div>
-            <CardTitle className="text-xl mb-2">No DeFi Positions Found</CardTitle>
-            <CardDescription className="mb-6">
-              {isConnected
-                ? 'Sync to see your DeFi positions across protocols'
-                : 'Connect a wallet to track your DeFi positions'
-              }
-            </CardDescription>
-            {!isConnected ? (
-              <Button
-                onClick={() => setWalletModalOpen(true)}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700"
-              >
-                <Wallet className="w-4 h-4 mr-2" />
-                Connect Wallet
-              </Button>
-            ) : (
-              <button
-                onClick={handleSync}
-                disabled={syncing}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                {syncing ? 'Syncing...' : 'Sync Positions'}
-              </button>
-            )}
-          </CardContent>
-        </Card>
+        <div className="glass-card text-center py-12">
+          <div className="text-6xl mb-4">🏦</div>
+          <h3 className="text-xl font-semibold text-white mb-2">No DeFi Positions Found</h3>
+          <p className="text-white/60 mb-6">
+            {isConnected
+              ? 'Sync to see your DeFi positions across protocols'
+              : 'Connect a wallet to track your DeFi positions'
+            }
+          </p>
+          {!isConnected ? (
+            <Button
+              onClick={() => setWalletModalOpen(true)}
+              className="px-6 py-3 bg-[#3b82f6] hover:bg-[#3b82f6]/80 text-white"
+            >
+              <Wallet className="w-4 h-4 mr-2" />
+              Connect Wallet
+            </Button>
+          ) : (
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="px-6 py-3 bg-[#3b82f6] text-white rounded-lg hover:bg-[#3b82f6]/80 disabled:opacity-50 transition-colors backdrop-blur-sm"
+            >
+              {syncing ? 'Syncing...' : 'Sync Positions'}
+            </button>
+          )}
+        </div>
       )}
 
       {/* Protocol Cards */}
       {sortedProtocols.length > 0 && (
         <>
           <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+            <h2 className="text-xl font-semibold mb-4 text-white">
               Positions by Protocol
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -303,7 +287,7 @@ export function DefiPage() {
 
           {/* Position Table */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+            <h2 className="text-xl font-semibold mb-4 text-white">
               All Positions
             </h2>
             <DefiPositionTable positions={positions} />
@@ -313,40 +297,36 @@ export function DefiPage() {
 
       {/* Supported Protocols Info */}
       <div className="mt-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Supported Protocols ({protocols.length})</CardTitle>
-            <CardDescription>
-              We track positions across {protocols.length} DeFi protocols using The Graph
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {protocols.map((protocol) => (
-                <div
-                  key={protocol.id}
-                  className="flex flex-col items-center gap-2 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
-                >
-                  {protocol.logoUrl ? (
-                    <img
-                      src={protocol.logoUrl}
-                      alt={protocol.name}
-                      className="w-10 h-10 rounded-full"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-xl">
-                      💼
-                    </div>
-                  )}
-                  <div className="text-center">
-                    <div className="text-xs font-medium">{protocol.name}</div>
-                    <div className="text-xs text-gray-500">{protocol.blockchain}</div>
+        <div className="glass-card p-6">
+          <h3 className="text-xl font-semibold text-white mb-2">Supported Protocols ({protocols.length})</h3>
+          <p className="text-white/60 mb-6">
+            We track positions across {protocols.length} DeFi protocols using The Graph
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {protocols.map((protocol) => (
+              <div
+                key={protocol.id}
+                className="flex flex-col items-center gap-2 p-3 border border-white/10 rounded-lg hover:border-[#3b82f6] transition-colors backdrop-blur-sm"
+              >
+                {protocol.logoUrl ? (
+                  <img
+                    src={protocol.logoUrl}
+                    alt={protocol.name}
+                    className="w-10 h-10 rounded-full"
+                  />
+                ) : (
+                  <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-xl">
+                    💼
                   </div>
+                )}
+                <div className="text-center">
+                  <div className="text-xs font-medium text-white">{protocol.name}</div>
+                  <div className="text-xs text-white/50">{protocol.blockchain}</div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
