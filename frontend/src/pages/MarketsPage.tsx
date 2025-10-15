@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Search, Star, StarOff, Loader2, RefreshCw } from 'lucide-react';
+import { TrendingUp, TrendingDown, Search, Star, StarOff, Loader2, RefreshCw, Sparkles, Target } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Layout } from '@/components/Layout';
 
@@ -26,8 +26,19 @@ interface CryptoAsset {
   };
 }
 
+interface PricePrediction {
+  symbol: string;
+  predicted_price_7d: number;
+  predicted_price_30d: number;
+  confidence: number;
+  sentiment: 'bullish' | 'bearish' | 'neutral';
+  bull_target: number;
+  bear_target: number;
+}
+
 export function MarketsPage() {
   const [cryptos, setCryptos] = useState<CryptoAsset[]>([]);
+  const [predictions, setPredictions] = useState<Map<string, PricePrediction>>(new Map());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +47,56 @@ export function MarketsPage() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [showPredictions, setShowPredictions] = useState(true);
+
+  // Generate AI price predictions (mock implementation - can be replaced with actual ML API)
+  const generatePredictions = (cryptos: CryptoAsset[]): Map<string, PricePrediction> => {
+    const predictionsMap = new Map<string, PricePrediction>();
+
+    cryptos.forEach(crypto => {
+      const currentPrice = crypto.current_price;
+      const change24h = crypto.price_change_percentage_24h;
+      const change7d = crypto.price_change_percentage_7d || 0;
+
+      // Calculate momentum and sentiment
+      const momentum = (change24h * 0.4) + (change7d * 0.6);
+      const volatility = Math.abs(change24h - change7d);
+
+      // Determine sentiment
+      let sentiment: 'bullish' | 'bearish' | 'neutral' = 'neutral';
+      if (momentum > 5) sentiment = 'bullish';
+      else if (momentum < -5) sentiment = 'bearish';
+
+      // Generate predictions based on momentum and volatility
+      const bullMultiplier = 1 + (0.15 + (Math.random() * 0.25)); // 15-40% gain
+      const bearMultiplier = 1 - (0.10 + (Math.random() * 0.15)); // 10-25% loss
+
+      // 7-day prediction (short-term momentum)
+      const predicted7d = currentPrice * (1 + (momentum / 100) * 1.2);
+
+      // 30-day prediction (longer-term trend)
+      const predicted30d = currentPrice * (1 + (momentum / 100) * 2.5);
+
+      // Bull and bear targets
+      const bullTarget = currentPrice * bullMultiplier;
+      const bearTarget = currentPrice * bearMultiplier;
+
+      // Confidence based on volatility (lower volatility = higher confidence)
+      const confidence = Math.max(60, Math.min(95, 85 - (volatility * 2)));
+
+      predictionsMap.set(crypto.symbol.toLowerCase(), {
+        symbol: crypto.symbol,
+        predicted_price_7d: predicted7d,
+        predicted_price_30d: predicted30d,
+        confidence: Math.round(confidence),
+        sentiment,
+        bull_target: bullTarget,
+        bear_target: bearTarget,
+      });
+    });
+
+    return predictionsMap;
+  };
 
   // Fetch top 100 cryptocurrencies
   const fetchCryptos = async (isRefresh = false) => {
@@ -58,6 +119,11 @@ export function MarketsPage() {
 
       const data = await response.json();
       setCryptos(data);
+
+      // Generate AI predictions
+      const predictionsData = generatePredictions(data);
+      setPredictions(predictionsData);
+
       setLastUpdate(new Date());
     } catch (err: any) {
       console.error('Error fetching crypto data:', err);
@@ -177,18 +243,41 @@ export function MarketsPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-3xl font-bold text-white">Cryptocurrency Markets</h1>
-              <button
-                onClick={() => fetchCryptos(true)}
-                disabled={refreshing}
-                className="flex items-center gap-2 px-4 py-2 bg-[#3b82f6] hover:bg-[#3b82f6]/80 text-white rounded-lg transition-colors backdrop-blur-sm disabled:opacity-50"
-              >
-                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </button>
+              <div className="flex items-center gap-3">
+                {/* AI Predictions Toggle */}
+                <button
+                  onClick={() => setShowPredictions(!showPredictions)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors backdrop-blur-sm ${
+                    showPredictions
+                      ? 'bg-[#10b981] hover:bg-[#10b981]/80 text-white'
+                      : 'bg-white/5 hover:bg-white/10 text-white/70'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  AI Predictions
+                </button>
+
+                <button
+                  onClick={() => fetchCryptos(true)}
+                  disabled={refreshing}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#3b82f6] hover:bg-[#3b82f6]/80 text-white rounded-lg transition-colors backdrop-blur-sm disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  {refreshing ? 'Refreshing...' : 'Refresh'}
+                </button>
+              </div>
             </div>
-            <p className="text-white/60">
-              Live prices for the top 100 cryptocurrencies by market cap
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-white/60">
+                Live prices for the top 100 cryptocurrencies by market cap
+              </p>
+              {showPredictions && (
+                <span className="flex items-center gap-1 text-xs bg-[#10b981]/20 text-[#10b981] px-2 py-1 rounded border border-[#10b981]/30">
+                  <Sparkles className="w-3 h-3" />
+                  Bull market targets enabled
+                </span>
+              )}
+            </div>
             {lastUpdate && (
               <p className="text-sm text-white/40 mt-1">
                 Last updated: {lastUpdate.toLocaleTimeString()}
@@ -270,6 +359,14 @@ export function MarketsPage() {
                     >
                       Volume (24h)
                     </th>
+                    {showPredictions && (
+                      <th className="text-right py-4 px-4 text-sm font-medium text-white/70">
+                        <div className="flex items-center justify-end gap-1">
+                          <Target className="w-4 h-4" />
+                          Bull Target
+                        </div>
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -277,6 +374,7 @@ export function MarketsPage() {
                     const isPositive24h = crypto.price_change_percentage_24h > 0;
                     const isPositive7d = crypto.price_change_percentage_7d > 0;
                     const isInWatchlist = watchlist.has(crypto.id);
+                    const prediction = predictions.get(crypto.symbol.toLowerCase());
 
                     return (
                       <tr
@@ -355,6 +453,32 @@ export function MarketsPage() {
                         <td className="py-4 px-4 text-right text-white/70">
                           {formatNumber(crypto.total_volume)}
                         </td>
+
+                        {/* Bull Target */}
+                        {showPredictions && prediction && (
+                          <td className="py-4 px-4 text-right">
+                            <div className="flex flex-col items-end gap-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-[#10b981]">
+                                  {formatPrice(prediction.bull_target)}
+                                </span>
+                                <span className="text-xs text-[#10b981]/70">
+                                  +{(((prediction.bull_target - crypto.current_price) / crypto.current_price) * 100).toFixed(0)}%
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-white/40">
+                                <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                  prediction.sentiment === 'bullish' ? 'bg-[#10b981]/20 text-[#10b981]' :
+                                  prediction.sentiment === 'bearish' ? 'bg-[#ef4444]/20 text-[#ef4444]' :
+                                  'bg-white/10 text-white/60'
+                                }`}>
+                                  {prediction.sentiment}
+                                </span>
+                                <span>{prediction.confidence}% confidence</span>
+                              </div>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
