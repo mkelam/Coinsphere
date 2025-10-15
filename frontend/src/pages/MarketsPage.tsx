@@ -1,6 +1,6 @@
 /**
  * Markets Page - Live Crypto Feed
- * Displays top 100 cryptocurrencies with real-time prices, market cap, volume, and 24h changes
+ * Displays top 250 cryptocurrencies with real-time prices, market cap, volume, and 24h changes
  */
 
 import { useState, useEffect } from 'react';
@@ -98,7 +98,7 @@ export function MarketsPage() {
     return predictionsMap;
   };
 
-  // Fetch top 100 cryptocurrencies
+  // Fetch top 250 cryptocurrencies
   const fetchCryptos = async (isRefresh = false) => {
     try {
       if (isRefresh) {
@@ -108,9 +108,9 @@ export function MarketsPage() {
       }
       setError(null);
 
-      // Using CoinGecko API (free tier)
+      // Using CoinGecko API (free tier) - fetch top 250 cryptos
       const response = await fetch(
-        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h,7d'
+        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=true&price_change_percentage=24h,7d'
       );
 
       if (!response.ok) {
@@ -275,7 +275,7 @@ export function MarketsPage() {
             </div>
             <div className="flex items-center gap-2">
               <p className="text-white/60">
-                Live prices for the top 100 cryptocurrencies by market cap
+                Live prices for the top 250 cryptocurrencies by market cap
               </p>
               {showPredictions && (
                 <span className="flex items-center gap-1 text-xs bg-[#10b981]/20 text-[#10b981] px-2 py-1 rounded border border-[#10b981]/30">
