@@ -1,0 +1,26 @@
+
+Running 21 tests using 4 workers
+
+  ok  4 [chromium] › tests\e2e\multi-level-navigation.spec.ts:111:3 › 2nd Level Navigation - Hamburger Menu › should close hamburger menu when clicking outside (17.8s)
+  ok  1 [chromium] › tests\e2e\multi-level-navigation.spec.ts:59:3 › 2nd Level Navigation - Hamburger Menu › should open hamburger menu and navigate to Dashboard (19.0s)
+  ok  3 [chromium] › tests\e2e\multi-level-navigation.spec.ts:129:3 › 2nd Level Navigation - Hamburger Menu › should toggle hamburger menu with X button (18.7s)
+  ok  2 [chromium] › tests\e2e\multi-level-navigation.spec.ts:82:3 › 2nd Level Navigation - Hamburger Menu › should navigate to all primary pages from hamburger menu (33.2s)
+  ok  5 [chromium] › tests\e2e\multi-level-navigation.spec.ts:147:3 › 2nd Level Navigation - Hamburger Menu › should highlight active route in hamburger menu (18.2s)
+  ok  7 [chromium] › tests\e2e\multi-level-navigation.spec.ts:197:3 › 3rd Level Navigation - User Menu Dropdown › should navigate to Settings from user menu (18.9s)
+  ok  6 [chromium] › tests\e2e\multi-level-navigation.spec.ts:181:3 › 3rd Level Navigation - User Menu Dropdown › should open user menu dropdown (19.9s)
+  ok  8 [chromium] › tests\e2e\multi-level-navigation.spec.ts:211:3 › 3rd Level Navigation - User Menu Dropdown › should navigate to Billing from user menu (14.7s)
+  ok  9 [chromium] › tests\e2e\multi-level-navigation.spec.ts:224:3 › 3rd Level Navigation - User Menu Dropdown › should navigate to Help from user menu (17.2s)
+  ok 11 [chromium] › tests\e2e\multi-level-navigation.spec.ts:264:3 › 3rd Level Navigation - User Menu Dropdown › should display user information in dropdown (18.7s)
+  ok 12 [chromium] › tests\e2e\multi-level-navigation.spec.ts:280:3 › 3rd Level Navigation - User Menu Dropdown › should close user menu when clicking outside (20.6s)
+  ok 10 [chromium] › tests\e2e\multi-level-navigation.spec.ts:237:3 › 3rd Level Navigation - User Menu Dropdown › should show upgrade button for free tier users (35.8s)
+  ok 13 [chromium] › tests\e2e\multi-level-navigation.spec.ts:296:3 › 3rd Level Navigation - User Menu Dropdown › should logout from user menu (20.6s)
+  ok 14 [chromium] › tests\e2e\multi-level-navigation.spec.ts:325:3 › 4th Level Navigation - Within-Page Navigation › should navigate within Portfolio page - Create Portfolio (27.8s)
+  ok 17 [chromium] › tests\e2e\multi-level-navigation.spec.ts:384:3 › 4th Level Navigation - Within-Page Navigation › should navigate within Dashboard - Portfolio selector (29.6s)
+  ok 15 [chromium] › tests\e2e\multi-level-navigation.spec.ts:345:3 › 4th Level Navigation - Within-Page Navigation › should navigate within DeFi page - Wallet connection (35.8s)
+  ok 16 [chromium] › tests\e2e\multi-level-navigation.spec.ts:365:3 › 4th Level Navigation - Within-Page Navigation › should navigate within Alerts page - Create Alert (32.5s)
+  ok 18 [chromium] › tests\e2e\multi-level-navigation.spec.ts:403:3 › 4th Level Navigation - Within-Page Navigation › should navigate between tabs within Settings page (26.6s)
+  ok 19 [chromium] › tests\e2e\multi-level-navigation.spec.ts:436:3 › 4th Level Navigation - Within-Page Navigation › should navigate to individual portfolio detail page (21.6s)
+  ok 21 [chromium] › tests\e2e\multi-level-navigation.spec.ts:503:3 › Cross-Level Navigation Combinations › should maintain state when navigating between levels (20.5s)
+  ok 20 [chromium] › tests\e2e\multi-level-navigation.spec.ts:477:3 › Cross-Level Navigation Combinations › should navigate: Hamburger (2nd) -> User Menu (3rd) -> Settings (3rd) -> Back to Dashboard (2nd) (24.4s)
+
+  21 passed (2.6m)
