@@ -43,7 +43,7 @@ export function MarketsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'market_cap' | 'price' | 'volume' | 'change_24h'>('market_cap');
+  const [sortBy, setSortBy] = useState<'market_cap' | 'price' | 'volume' | 'change_24h' | 'bull_target'>('market_cap');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -179,6 +179,12 @@ export function MarketsPage() {
       case 'change_24h':
         aValue = a.price_change_percentage_24h;
         bValue = b.price_change_percentage_24h;
+        break;
+      case 'bull_target':
+        const aPrediction = predictions.get(a.symbol.toLowerCase());
+        const bPrediction = predictions.get(b.symbol.toLowerCase());
+        aValue = aPrediction?.bull_target || 0;
+        bValue = bPrediction?.bull_target || 0;
         break;
       case 'market_cap':
       default:
@@ -318,6 +324,9 @@ export function MarketsPage() {
                   <option value="price" className="bg-black">Price</option>
                   <option value="volume" className="bg-black">Volume</option>
                   <option value="change_24h" className="bg-black">24h Change</option>
+                  {showPredictions && (
+                    <option value="bull_target" className="bg-black">Bull Target</option>
+                  )}
                 </select>
               </div>
             </div>
