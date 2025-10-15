@@ -33,6 +33,7 @@ const CheckoutPage = lazy(() => import("@/pages/CheckoutPage").then(m => ({ defa
 const HelpPage = lazy(() => import("@/pages/HelpPage").then(m => ({ default: m.HelpPage })))
 const ExchangeConnectionsPage = lazy(() => import("@/pages/ExchangeConnectionsPage"))
 const DefiPage = lazy(() => import("@/pages/DefiPage").then(m => ({ default: m.DefiPage })))
+const MarketsPage = lazy(() => import("@/pages/MarketsPage").then(m => ({ default: m.MarketsPage })))
 
 export default function App() {
   return (
@@ -88,6 +89,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DefiPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/markets"
+            element={
+              <ProtectedRoute>
+                <MarketsPage />
               </ProtectedRoute>
             }
           />

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { Bell, LogOut, Settings, CreditCard, HelpCircle, LayoutDashboard, Wallet, Link2, Menu, X, ChevronDown, Layers } from "lucide-react"
+import { Bell, LogOut, Settings, CreditCard, HelpCircle, LayoutDashboard, Wallet, Link2, Menu, X, ChevronDown, Layers, TrendingUp } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -14,6 +14,7 @@ export function Header() {
   // Primary navigation items
   const primaryNav = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Markets', path: '/markets', icon: TrendingUp },
     { name: 'Portfolios', path: '/portfolios', icon: Wallet },
     { name: 'DeFi', path: '/defi', icon: Layers },
     { name: 'Exchanges', path: '/exchanges', icon: Link2 },
