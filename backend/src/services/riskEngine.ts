@@ -8,6 +8,7 @@ import { prisma } from '../lib/prisma.js';
 import { logger } from '../utils/logger.js';
 import { toDecimal, divide, subtract, toNumber } from '../utils/decimal.js';
 import Decimal from 'decimal.js';
+import { cryptocompareService } from './cryptocompare.js';
 
 interface RiskScoreResult {
   overallScore: number; // 0-100
@@ -17,6 +18,8 @@ interface RiskScoreResult {
     volatilityScore: number;
     marketCapScore: number;
     volumeScore: number;
+    socialSentimentScore: number; // NEW: Social sentiment risk (0-100)
+    galaxyScore?: number; // NEW: Raw Galaxy Score from LunarCrush (0-100)
   };
   analysis: {
     summary: string;
@@ -42,6 +45,9 @@ export class RiskEngine {
       // Get historical data for volatility analysis
       const historicalData = await this.getHistoricalData(tokenId, 7); // 7 days
 
+      // Get social sentiment data (Galaxy Score)
+      const socialData = await this.getSocialSentimentData(token.symbol);
+
       // Calculate component scores
       const liquidityScore = this.calculateLiquidityScore(token);
       const volatilityScore = this.calculateVolatilityScore(historicalData);
@@ -50,6 +56,7 @@ export class RiskEngine {
         token.volume24h || 0,
         token.marketCap || 0
       );
+      const socialSentimentScore = this.calculateSocialSentimentScore(socialData);
 
       // Calculate weighted overall score
       const overallScore = this.calculateOverallScore({
@@ -57,6 +64,7 @@ export class RiskEngine {
         volatilityScore,
         marketCapScore,
         volumeScore,
+        socialSentimentScore,
       });
 
       // Determine risk level
@@ -71,6 +79,8 @@ export class RiskEngine {
           volatilityScore,
           marketCapScore,
           volumeScore,
+          socialSentimentScore,
+          galaxyScore: socialData.galaxyScore,
         }
       );
 
@@ -82,6 +92,8 @@ export class RiskEngine {
           volatilityScore,
           marketCapScore,
           volumeScore,
+          socialSentimentScore,
+          galaxyScore: socialData.galaxyScore,
         },
         analysis,
       };
@@ -201,27 +213,110 @@ export class RiskEngine {
   }
 
   /**
-   * Calculate weighted overall score
+   * Get social sentiment data from LunarCrush/CryptoCompare
+   */
+  private async getSocialSentimentData(symbol: string): Promise<{
+    galaxyScore: number;
+    sentiment: number;
+    socialVolume: number;
+    tweets24h: number;
+  }> {
+    try {
+      // Get detailed social stats from CryptoCompare
+      const socialStats = await cryptocompareService.getSocialStatsDetailed(symbol);
+
+      return {
+        galaxyScore: socialStats.galaxy_score || 50, // Default to neutral if no data
+        sentiment: socialStats.sentiment || 0,
+        socialVolume: socialStats.social_volume || 0,
+        tweets24h: socialStats.tweets_24h || 0,
+      };
+    } catch (error) {
+      logger.warn(`Could not fetch social data for ${symbol}, using defaults:`, error);
+      return {
+        galaxyScore: 50, // Neutral default
+        sentiment: 0,
+        socialVolume: 0,
+        tweets24h: 0,
+      };
+    }
+  }
+
+  /**
+   * Calculate social sentiment risk score based on Galaxy Score and social metrics
+   * Lower Galaxy Score = Higher Risk
+   * High social volume spikes = Potential pump & dump risk
+   */
+  private calculateSocialSentimentScore(socialData: {
+    galaxyScore: number;
+    sentiment: number;
+    socialVolume: number;
+    tweets24h: number;
+  }): number {
+    const { galaxyScore, sentiment, socialVolume, tweets24h } = socialData;
+
+    // Base score: Invert Galaxy Score (high Galaxy Score = low risk)
+    // Galaxy Score 100 = safest (score 10), Galaxy Score 0 = riskiest (score 90)
+    let baseScore = 100 - galaxyScore;
+
+    // Sentiment modifier: Negative sentiment increases risk
+    // Sentiment ranges from -1 (bearish) to +1 (bullish)
+    // Extremely negative or extremely positive can both be risky
+    const sentimentRisk = Math.abs(sentiment) > 0.7 ? 15 : Math.abs(sentiment) > 0.5 ? 10 : 0;
+
+    // Social volume spike detection (potential pump & dump)
+    // Very high social volume relative to typical coins can indicate manipulation
+    let spikeRisk = 0;
+    if (socialVolume > 1_000_000) {
+      spikeRisk = 20; // Massive hype = potential dump incoming
+    } else if (socialVolume > 500_000) {
+      spikeRisk = 15;
+    } else if (socialVolume > 100_000) {
+      spikeRisk = 10;
+    } else if (socialVolume < 1000 && galaxyScore < 30) {
+      spikeRisk = 25; // Low social activity + low score = very risky/unknown coin
+    }
+
+    // Twitter activity check
+    let twitterRisk = 0;
+    if (tweets24h === 0 && galaxyScore < 40) {
+      twitterRisk = 20; // No social presence = very risky
+    } else if (tweets24h < 100) {
+      twitterRisk = 10; // Low activity
+    }
+
+    // Combined score
+    const combinedScore = baseScore + sentimentRisk + spikeRisk + twitterRisk;
+
+    // Cap at 100
+    return Math.min(Math.round(combinedScore), 100);
+  }
+
+  /**
+   * Calculate weighted overall score (including social sentiment)
    */
   private calculateOverallScore(components: {
     liquidityScore: number;
     volatilityScore: number;
     marketCapScore: number;
     volumeScore: number;
+    socialSentimentScore: number;
   }): number {
-    // Weighted average (can adjust weights based on importance)
+    // Weighted average (adjusted to include social sentiment)
     const weights = {
-      liquidity: 0.25,
-      volatility: 0.30,
-      marketCap: 0.30,
-      volume: 0.15,
+      liquidity: 0.20,        // 20%
+      volatility: 0.25,       // 25%
+      marketCap: 0.25,        // 25%
+      volume: 0.15,           // 15%
+      socialSentiment: 0.15,  // 15% - NEW: Social sentiment weight
     };
 
     const weighted =
       components.liquidityScore * weights.liquidity +
       components.volatilityScore * weights.volatility +
       components.marketCapScore * weights.marketCap +
-      components.volumeScore * weights.volume;
+      components.volumeScore * weights.volume +
+      components.socialSentimentScore * weights.socialSentiment;
 
     return Math.round(weighted);
   }
@@ -238,7 +333,7 @@ export class RiskEngine {
   }
 
   /**
-   * Generate human-readable analysis
+   * Generate human-readable analysis (including social sentiment)
    */
   private generateAnalysis(
     token: any,
@@ -270,6 +365,17 @@ export class RiskEngine {
       warnings.push('Low trading volume - price may not reflect true market value');
     }
 
+    // Social sentiment warnings (NEW)
+    if (components.socialSentimentScore > 70) {
+      if (components.galaxyScore && components.galaxyScore < 30) {
+        warnings.push(`Low social sentiment (Galaxy Score: ${components.galaxyScore}/100) - limited community support`);
+      } else {
+        warnings.push('Social sentiment indicates elevated risk - watch for pump & dump patterns');
+      }
+    } else if (components.socialSentimentScore > 50) {
+      warnings.push('Moderate social risk - monitor community sentiment closely');
+    }
+
     // Positive insights
     if (components.marketCapScore < 30) {
       insights.push('Established market cap provides stability');
@@ -281,6 +387,17 @@ export class RiskEngine {
 
     if (components.liquidityScore < 30) {
       insights.push('Good liquidity supports easy trading');
+    }
+
+    // Social sentiment insights (NEW)
+    if (components.galaxyScore && components.galaxyScore > 70) {
+      insights.push(`Strong community support (Galaxy Score: ${components.galaxyScore}/100)`);
+    } else if (components.galaxyScore && components.galaxyScore > 50) {
+      insights.push(`Moderate community engagement (Galaxy Score: ${components.galaxyScore}/100)`);
+    }
+
+    if (components.socialSentimentScore < 30) {
+      insights.push('Positive social sentiment indicates healthy community interest');
     }
 
     // Generate summary
