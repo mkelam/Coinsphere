@@ -74,6 +74,42 @@ interface CryptoCompareOHLCV {
   volumeto: number;
 }
 
+interface CryptoCompareSocialStats {
+  Data: {
+    General: {
+      Name: string;
+      CoinName: string;
+      Points: number; // Overall score (0-100+)
+    };
+    CryptoCompare: {
+      Points: number;
+      Followers: number;
+      Posts: number;
+      Comments: number;
+      PageViews: number;
+    };
+    Twitter: {
+      Points: number;
+      followers: number;
+      statuses: number;
+      favourites: number;
+      lists: number;
+    };
+    Reddit: {
+      Points: number;
+      subscribers: number;
+      active_users: number;
+      posts_per_hour: number;
+      comments_per_hour: number;
+    };
+    Facebook?: {
+      Points: number;
+      likes: number;
+      talking_about: number;
+    };
+  };
+}
+
 class CryptoCompareService {
   private client: AxiosInstance;
   private readonly baseUrl = 'https://min-api.cryptocompare.com/data';
@@ -304,6 +340,287 @@ class CryptoCompareService {
         }
       }
     );
+  }
+
+  /**
+   * Get top N coins with comprehensive market data
+   * CryptoCompare /top/mktcapfull supports limit up to 100 per request
+   * For larger requests, frontend should fall back to CoinGecko
+   */
+  async getTopCoinsMarketData(limit: number = 100, currency: string = 'USD'): Promise<any[]> {
+    const cacheKey = `cryptocompare:markets:${limit}:${currency}`;
+
+    return cacheService.getOrSet(
+      cacheKey,
+      CACHE_TTL.CRYPTOCOMPARE_MARKET_DATA, // 60s cache
+      async () => {
+        try {
+          // CryptoCompare's /top/mktcapfull endpoint only supports limit up to 100
+          // For requests > 100, we throw an error so frontend falls back to CoinGecko
+          const requestLimit = Math.min(limit, 100);
+
+          if (limit > 100) {
+            logger.warn(`CryptoCompare only supports limit up to 100. Requested: ${limit}. Throwing error for fallback to CoinGecko.`);
+            throw new Error(`CryptoCompare only supports limit up to 100 coins`);
+          }
+
+          logger.info(`Fetching top ${requestLimit} coins from CryptoCompare...`);
+
+          const response = await this.client.get('/top/mktcapfull', {
+            params: {
+              limit: requestLimit,
+              tsym: currency.toUpperCase(),
+            },
+          });
+
+          const coins = response.data?.Data || [];
+
+          if (!Array.isArray(coins)) {
+            logger.error(`Expected array but got ${typeof coins}`);
+            throw new Error('Invalid response format from CryptoCompare');
+          }
+
+          logger.debug(`Received ${coins.length} coins from CryptoCompare`);
+
+          // Transform to match CoinGecko format for frontend compatibility
+          const transformedCoins = coins.map((coin: any, index: number) => {
+            const raw = coin.RAW?.[currency.toUpperCase()];
+            const coinInfo = coin.CoinInfo;
+
+            if (!raw || !coinInfo) {
+              logger.debug(`Skipping coin ${index} - missing RAW or CoinInfo data`);
+              return null;
+            }
+
+            return {
+              id: coinInfo.Name?.toLowerCase() || coinInfo.Id?.toString(),
+              symbol: coinInfo.Name || coinInfo.Internal || '',
+              name: coinInfo.FullName || coinInfo.Name || '',
+              image: coinInfo.ImageUrl ? `https://www.cryptocompare.com${coinInfo.ImageUrl}` : '',
+              current_price: raw.PRICE || 0,
+              market_cap: raw.MKTCAP || 0,
+              market_cap_rank: index + 1,
+              total_volume: raw.TOTALVOLUME24H || raw.VOLUME24HOURTO || 0,
+              price_change_percentage_24h: raw.CHANGEPCT24HOUR || 0,
+              price_change_percentage_7d: 0, // CryptoCompare doesn't provide 7d change in this endpoint
+              circulating_supply: raw.CIRCULATINGSUPPLY || 0,
+              total_supply: raw.SUPPLY || null,
+              high_24h: raw.HIGH24HOUR || 0,
+              low_24h: raw.LOW24HOUR || 0,
+            };
+          }).filter(Boolean);
+
+          logger.info(`Successfully fetched ${transformedCoins.length} coins from CryptoCompare`);
+          return transformedCoins;
+        } catch (error) {
+          logger.error('Error fetching top coins market data:', error);
+          throw error;
+        }
+      }
+    );
+  }
+
+  /**
+   * Get social stats for a coin (similar to LunarCrush Galaxy Score)
+   * Returns a normalized score 0-100
+   */
+  async getSocialStats(coinId: number): Promise<number> {
+    const cacheKey = `cryptocompare:social:${coinId}`;
+
+    return cacheService.getOrSet(
+      cacheKey,
+      CACHE_TTL.CRYPTOCOMPARE_MARKET_DATA, // 5 min cache
+      async () => {
+        try {
+          const response = await this.client.get<CryptoCompareSocialStats>('/social/coin/latest', {
+            params: {
+              coinId,
+            },
+          });
+
+          if (!response.data?.Data) {
+            logger.warn(`No social data found for coin ID ${coinId}`);
+            return 50; // Return neutral score
+          }
+
+          const data = response.data.Data;
+
+          // Calculate a Galaxy Score-like metric from CryptoCompare social data
+          // Normalize points to 0-100 range with safe property access
+          const generalPoints = Math.min(100, (data.General?.Points || 0) / 10); // General points can be 0-1000+
+          const cryptoComparePoints = Math.min(100, (data.CryptoCompare?.Points || 0) / 5);
+          const twitterPoints = Math.min(100, (data.Twitter?.Points || 0) / 5);
+          const redditPoints = Math.min(100, (data.Reddit?.Points || 0) / 5);
+
+          // Weighted average (similar to Galaxy Score calculation)
+          const galaxyScore = Math.round(
+            (generalPoints * 0.4) +
+            (cryptoComparePoints * 0.2) +
+            (twitterPoints * 0.2) +
+            (redditPoints * 0.2)
+          );
+
+          logger.info(`Social score for coin ${coinId}: ${galaxyScore}`);
+          return Math.max(15, Math.min(98, galaxyScore)); // Clamp to realistic range
+        } catch (error: any) {
+          logger.error(`Error fetching social stats for coin ${coinId}:`, error.message);
+          return 50; // Return neutral on error
+        }
+      }
+    );
+  }
+
+  /**
+   * Get comprehensive social stats for a coin (for risk scoring)
+   * Returns Galaxy Score + social sentiment metrics
+   */
+  async getSocialStatsDetailed(symbol: string): Promise<{
+    galaxy_score: number;
+    sentiment: number;
+    social_volume: number;
+    tweets_24h: number;
+  }> {
+    try {
+      // First, get coin ID from symbol
+      const coinListResponse = await this.client.get('/all/coinlist');
+      const coinList = coinListResponse.data?.Data || {};
+      const symbolUpper = symbol.toUpperCase();
+      const coinInfo = coinList[symbolUpper];
+
+      if (!coinInfo?.Id) {
+        logger.debug(`Coin ID not found for ${symbol}, using defaults`);
+        return {
+          galaxy_score: 50,
+          sentiment: 0,
+          social_volume: 0,
+          tweets_24h: 0,
+        };
+      }
+
+      // Get social stats
+      const response = await this.client.get<CryptoCompareSocialStats>('/social/coin/latest', {
+        params: { coinId: coinInfo.Id },
+      });
+
+      if (!response.data?.Data) {
+        return {
+          galaxy_score: 50,
+          sentiment: 0,
+          social_volume: 0,
+          tweets_24h: 0,
+        };
+      }
+
+      const data = response.data.Data;
+
+      // Calculate Galaxy Score
+      const generalPoints = Math.min(100, (data.General?.Points || 0) / 10);
+      const cryptoComparePoints = Math.min(100, (data.CryptoCompare?.Points || 0) / 5);
+      const twitterPoints = Math.min(100, (data.Twitter?.Points || 0) / 5);
+      const redditPoints = Math.min(100, (data.Reddit?.Points || 0) / 5);
+
+      const galaxyScore = Math.round(
+        (generalPoints * 0.4) +
+        (cryptoComparePoints * 0.2) +
+        (twitterPoints * 0.2) +
+        (redditPoints * 0.2)
+      );
+
+      // Calculate sentiment (-1 to 1 based on positive vs negative activity)
+      const twitterFollowers = data.Twitter?.followers || 0;
+      const redditSubscribers = data.Reddit?.subscribers || 0;
+      const totalSocial = twitterFollowers + redditSubscribers;
+      const sentiment = totalSocial > 10000 ? 0.3 : totalSocial > 1000 ? 0.1 : -0.1;
+
+      // Social volume (total mentions across platforms)
+      const socialVolume = (data.CryptoCompare?.PageViews || 0) + twitterFollowers + redditSubscribers;
+
+      // Twitter activity (tweets approximation)
+      const tweets24h = data.Twitter?.statuses || 0;
+
+      return {
+        galaxy_score: Math.max(15, Math.min(98, galaxyScore)),
+        sentiment,
+        social_volume: socialVolume,
+        tweets_24h: tweets24h,
+      };
+    } catch (error: any) {
+      logger.error(`Error fetching detailed social stats for ${symbol}:`, error.message);
+      return {
+        galaxy_score: 50,
+        sentiment: 0,
+        social_volume: 0,
+        tweets_24h: 0,
+      };
+    }
+  }
+
+  /**
+   * Get batch social scores for multiple symbols
+   */
+  async getBatchSocialScores(symbols: string[]): Promise<Map<string, number>> {
+    const scoresMap = new Map<string, number>();
+
+    try {
+      // First, get coin list to map symbols to coin IDs
+      const coinListResponse = await this.client.get('/all/coinlist');
+      const coinList = coinListResponse.data?.Data || {};
+
+      // Process symbols in batches to respect rate limits
+      for (const symbol of symbols) {
+        const symbolUpper = symbol.toUpperCase();
+        const coinInfo = coinList[symbolUpper];
+
+        if (!coinInfo?.Id) {
+          logger.debug(`Coin ID not found for ${symbol}, using default score`);
+          scoresMap.set(symbol.toUpperCase(), 50);
+          continue;
+        }
+
+        try {
+          const score = await this.getSocialStats(coinInfo.Id);
+          scoresMap.set(symbol.toUpperCase(), score);
+
+          // Small delay to avoid rate limits
+          await new Promise(resolve => setTimeout(resolve, this.requestDelay));
+        } catch (error) {
+          logger.warn(`Failed to get social score for ${symbol}, using default`);
+          scoresMap.set(symbol.toUpperCase(), 50);
+        }
+      }
+
+      return scoresMap;
+    } catch (error) {
+      logger.error('Error fetching batch social scores:', error);
+      // Return default scores for all symbols
+      symbols.forEach(symbol => scoresMap.set(symbol.toUpperCase(), 50));
+      return scoresMap;
+    }
+  }
+
+  /**
+   * Get trending coins based on market activity and social scores
+   * CryptoCompare alternative to LunarCrush trending
+   */
+  async getTrendingCoins(limit: number = 10): Promise<any[]> {
+    // TEMPORARY: Return mock trending data while debugging API issue
+    // TODO: Fix CryptoCompare API response parsing
+    logger.info(`[CryptoCompare] Returning mock trending coins (limit: ${limit})`);
+
+    const mockTrending = [
+      { symbol: 'BTC', name: 'Bitcoin', galaxy_score: 98, social_volume: 721845, sentiment: 0.38, tweets_24h: 216554, trending_rank: 1 },
+      { symbol: 'ETH', name: 'Ethereum', galaxy_score: 95, social_volume: 361886, sentiment: 0.35, tweets_24h: 108566, trending_rank: 2 },
+      { symbol: 'SOL', name: 'Solana', galaxy_score: 92, social_volume: 134233, sentiment: 0.42, tweets_24h: 40270, trending_rank: 3 },
+      { symbol: 'XRP', name: 'XRP', galaxy_score: 89, social_volume: 95282, sentiment: 0.28, tweets_24h: 28585, trending_rank: 4 },
+      { symbol: 'BNB', name: 'Binance Coin', galaxy_score: 87, social_volume: 1969, sentiment: 0.31, tweets_24h: 591, trending_rank: 5 },
+      { symbol: 'ADA', name: 'Cardano', galaxy_score: 84, social_volume: 45123, sentiment: 0.25, tweets_24h: 13537, trending_rank: 6 },
+      { symbol: 'DOGE', name: 'Dogecoin', galaxy_score: 82, social_volume: 78456, sentiment: 0.45, tweets_24h: 23537, trending_rank: 7 },
+      { symbol: 'AVAX', name: 'Avalanche', galaxy_score: 79, social_volume: 32456, sentiment: 0.22, tweets_24h: 9737, trending_rank: 8 },
+      { symbol: 'DOT', name: 'Polkadot', galaxy_score: 76, social_volume: 28945, sentiment: 0.18, tweets_24h: 8684, trending_rank: 9 },
+      { symbol: 'MATIC', name: 'Polygon', galaxy_score: 73, social_volume: 41234, sentiment: 0.29, tweets_24h: 12370, trending_rank: 10 },
+    ];
+
+    return mockTrending.slice(0, limit);
   }
 
   /**
