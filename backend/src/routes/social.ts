@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import { lunarcrushService } from '../services/lunarcrushService.js';
 import { lunarcrushMcpService } from '../services/lunarcrushMcpService.js';
 import { mcpMetricsService } from '../services/mcpMetricsService.js';
+import { cryptocompareService } from '../services/cryptocompare.js';
 import { logger } from '../utils/logger.js';
 import { cache } from '../middleware/cache.js';
 
@@ -119,13 +120,31 @@ router.get('/trending/coins', cache({ ttl: 900, prefix: 'social-trending' }), as
   try {
     const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 10, 1), 50);
 
-    const trending = await lunarcrushService.getTrendingCoins(limit);
+    let trending: any[] = [];
+    let source = 'LunarCrush';
+
+    // Try LunarCrush first
+    try {
+      trending = await lunarcrushService.getTrendingCoins(limit);
+
+      // If empty or rate limited, fall back to CryptoCompare
+      if (trending.length === 0) {
+        logger.info('LunarCrush returned no trending coins, falling back to CryptoCompare');
+        trending = await cryptocompareService.getTrendingCoins(limit);
+        source = 'CryptoCompare';
+      }
+    } catch (error: any) {
+      // Fallback to CryptoCompare on any error (rate limit, auth, network)
+      logger.warn(`LunarCrush trending failed (${error.message}), using CryptoCompare fallback`);
+      trending = await cryptocompareService.getTrendingCoins(limit);
+      source = 'CryptoCompare';
+    }
 
     res.json({
       trending,
       count: trending.length,
       timestamp: new Date().toISOString(),
-      source: 'LunarCrush',
+      source,
     });
   } catch (error) {
     logger.error('Error fetching trending coins:', error);
@@ -228,17 +247,19 @@ router.post('/batch', async (req: Request, res: Response) => {
       });
     }
 
-    const sentimentMap = await lunarcrushService.getBatchSentiment(symbols);
+    // Use CryptoCompare for social sentiment (more reliable than LunarCrush free tier)
+    const sentimentMap = await cryptocompareService.getBatchSocialScores(symbols);
 
     const results = symbols.map((symbol) => ({
       symbol: symbol.toUpperCase(),
-      sentiment: sentimentMap.get(symbol.toUpperCase()) || 0,
+      sentiment: sentimentMap.get(symbol.toUpperCase()) || 50,
     }));
 
     res.json({
       results,
       count: results.length,
       timestamp: new Date().toISOString(),
+      source: 'CryptoCompare',
     });
   } catch (error) {
     logger.error('Error fetching batch sentiment:', error);
