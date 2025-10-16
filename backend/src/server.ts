@@ -32,6 +32,7 @@ import paymentsRoutes from './routes/payments.js';
 import exchangesRoutes from './routes/exchanges.js';
 import defiRoutes from './routes/defi.js';
 import socialRoutes from './routes/social.js';
+import marketsRoutes from './routes/markets.js';
 import adminRoutes from './routes/admin.js';
 
 const app = express();
@@ -164,6 +165,7 @@ app.use('/api/v1/2fa', authenticate, validateCsrfToken, authLimiter, twoFactorRo
 app.use('/api/v1/tokens', apiLimiter, tokensRoutes); // Public read-only, auth required for mutations (handled in routes)
 app.use('/api/v1/predictions', apiLimiter, predictionsRoutes); // Public read-only ML predictions
 app.use('/api/v1/risk', apiLimiter, riskRoutes); // Public read-only risk scores
+app.use('/api/v1/markets', apiLimiter, marketsRoutes); // Public read-only market data (CryptoCompare)
 app.use('/api/v1/social', apiLimiter, socialRoutes); // Public read-only social sentiment (LunarCrush)
 app.use('/api/v1/portfolios', authenticate, validateCsrfToken, apiLimiter, portfoliosRoutes);
 app.use('/api/v1/holdings', authenticate, validateCsrfToken, apiLimiter, holdingsRoutes);
