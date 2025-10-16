@@ -47,6 +47,10 @@ coverage/
 .nyc_output/
 .pytest_cache/
 htmlcov/
+test-results/
+test-results.json/
+playwright-report/
+security-audit-report.json
 
 # Database
 *.db
