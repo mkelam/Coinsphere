@@ -41,7 +41,7 @@ export default function App() {
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Navigate to="/markets" replace />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
           <Route
@@ -92,14 +92,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/markets"
-            element={
-              <ProtectedRoute>
-                <MarketsPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/markets" element={<MarketsPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route
             path="/onboarding"

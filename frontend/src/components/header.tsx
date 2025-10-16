@@ -71,9 +71,9 @@ export function Header() {
 
             {/* Logo - Clickable */}
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/markets')}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-              aria-label="Go to Dashboard"
+              aria-label="Go to Markets"
             >
               <div className="text-2xl">🔮</div>
               <span className="text-xl font-semibold text-white">CoinSphere</span>
@@ -220,8 +220,8 @@ export function Header() {
 
       {/* Menu Drawer - Now visible on all screens */}
       {showMobileMenu && (
-        <div className="absolute left-4 sm:left-6 lg:left-8 top-full mt-2 w-[570px] bg-white/[0.05] backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-50">
-          <div className="px-4 py-4 space-y-1">
+        <div className="absolute left-4 sm:left-6 lg:left-8 top-full mt-2 w-[570px] glass-menu p-4 z-50">
+          <div className="space-y-1">
             {/* Primary Navigation - Mobile */}
             {primaryNav.map((item) => {
               const isActive = isActiveRoute(item.path)
