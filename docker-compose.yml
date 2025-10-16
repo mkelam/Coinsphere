@@ -45,6 +45,14 @@ services:
       DATABASE_URL: postgresql://coinsphere:password@postgres:5432/coinsphere_dev
       REDIS_URL: redis://redis:6379
       JWT_SECRET: dev-secret-key-change-in-production-min-32-chars
+      # External API Keys
+      COINGECKO_API_KEY: ${COINGECKO_API_KEY:-}
+      LUNARCRUSH_API_KEY: ${LUNARCRUSH_API_KEY:-}
+      LUNARCRUSH_USE_MCP: ${LUNARCRUSH_USE_MCP:-false}
+      CRYPTOCOMPARE_API_KEY: ${CRYPTOCOMPARE_API_KEY:-}
+      # Email
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL:-}
     ports:
       - '3001:3001'
     volumes:
