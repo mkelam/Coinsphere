@@ -99,8 +99,9 @@ class LunarCrushService {
         throw new Error('Authentication failed');
       }
 
-      logger.error('LunarCrush API error:', error.message);
-      throw error;
+      const errorMessage = error.message || 'Unknown error';
+      logger.error('LunarCrush API error:', errorMessage);
+      throw new Error(errorMessage);
     }
   }
 
@@ -172,6 +173,7 @@ class LunarCrushService {
 
   /**
    * Get trending coins based on social metrics
+   * NOTE: Individual tier workaround - fetch top coins individually
    */
   async getTrendingCoins(limit: number = 10): Promise<LunarCrushInsight[]> {
     try {
@@ -188,29 +190,47 @@ class LunarCrushService {
         logger.debug('Redis cache unavailable, fetching directly from API');
       }
 
-      // Fetch from API (using coins list sorted by galaxy score)
-      const data = await this.makeRequest<{ data: LunarCrushCoinData[] }>(
-        '/coins/list/v2',
-        {
-          sort: 'galaxy_score',
-          limit,
+      // Workaround for Individual tier: Fetch data for top coins manually (parallel)
+      // Top 15 coins by market cap (usually have high social activity)
+      const topCoins = ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'AVAX', 'DOT', 'MATIC', 'LINK', 'UNI', 'ATOM', 'LTC', 'SHIB'];
+
+      logger.info(`Fetching social data for ${Math.min(limit, topCoins.length)} top coins (parallel)...`);
+
+      // Fetch all coins in parallel
+      const fetchPromises = topCoins.slice(0, limit).map(async (symbol) => {
+        try {
+          const data = await this.makeRequest<{ data: LunarCrushCoinData }>(
+            `/coins/${symbol.toLowerCase()}/v1`
+          );
+
+          if (data.data) {
+            const coin = data.data;
+            return {
+              symbol: coin.symbol,
+              name: coin.name,
+              galaxy_score: coin.galaxy_score || 0,
+              social_volume: coin.social_volume || 0,
+              sentiment: coin.sentiment || 0,
+              tweets_24h: coin.tweets_24h || 0,
+              trending_rank: 0, // Will be set after sorting
+            };
+          }
+        } catch (error) {
+          logger.warn(`Failed to fetch data for ${symbol}, skipping...`);
         }
-      );
+        return null;
+      });
 
-      if (!data.data || data.data.length === 0) {
-        logger.warn('No trending coins from LunarCrush');
-        return [];
-      }
+      const results = await Promise.all(fetchPromises);
+      const insights: LunarCrushInsight[] = results.filter((r): r is LunarCrushInsight => r !== null);
 
-      const insights: LunarCrushInsight[] = data.data.map((coin, index) => ({
-        symbol: coin.symbol,
-        name: coin.name,
-        galaxy_score: coin.galaxy_score || 0,
-        social_volume: coin.social_volume || 0,
-        sentiment: coin.sentiment || 0,
-        tweets_24h: coin.tweets_24h || 0,
-        trending_rank: index + 1,
-      }));
+      // Sort by galaxy score (descending)
+      insights.sort((a, b) => b.galaxy_score - a.galaxy_score);
+
+      // Update trending ranks after sorting
+      insights.forEach((coin, index) => {
+        coin.trending_rank = index + 1;
+      });
 
       // Try to cache for 15 minutes (graceful degradation if Redis unavailable)
       try {
@@ -219,7 +239,7 @@ class LunarCrushService {
         logger.debug('Redis cache unavailable, skipping cache write');
       }
 
-      logger.info(`Fetched ${insights.length} trending coins from LunarCrush`);
+      logger.info(`Fetched ${insights.length} trending coins from LunarCrush (Individual tier workaround)`);
 
       return insights;
     } catch (error) {
