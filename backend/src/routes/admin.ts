@@ -6,6 +6,7 @@ import { logger } from '../utils/logger.js';
 import { priceUpdaterService } from '../services/priceUpdater.js';
 import { priceHistoryService } from '../services/priceHistoryService.js';
 import { auditLogService } from '../services/auditLog.js';
+import { triggerManualUpdate } from '../services/priceUpdateScheduler.js';
 
 const router = Router();
 
@@ -148,6 +149,50 @@ router.post('/update-history', authenticate, requireAdmin, async (req: AuthReque
       return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
     logger.error('Error in update history endpoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /admin/trigger-price-update:
+ *   post:
+ *     summary: Manually trigger automated price data update (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Price update triggered successfully
+ *       403:
+ *         description: Admin access required
+ */
+router.post('/trigger-price-update', authenticate, requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    logger.info(`Admin ${req.user!.email} manually triggered price data update`);
+
+    // Audit log
+    auditLogService.logAdmin({
+      action: 'system_update',
+      userId: req.user!.id,
+      status: 'success',
+      req,
+      metadata: { operation: 'manual_price_update_trigger' },
+    }).catch((err) => logger.error('Failed to log trigger audit:', err));
+
+    // Trigger update async
+    triggerManualUpdate().then(() => {
+      logger.info('Manual price update completed successfully');
+    }).catch((err) => {
+      logger.error('Manual price update failed:', err);
+    });
+
+    res.json({
+      success: true,
+      message: 'Price data update triggered successfully. This will fetch latest data from CoinGecko for all configured symbols. Check logs for progress.',
+    });
+  } catch (error) {
+    logger.error('Error in trigger-price-update endpoint:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

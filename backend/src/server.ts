@@ -204,6 +204,11 @@ server.listen(PORT, () => {
   // Initialize exchange sync jobs
   initializeExchangeSyncJobs();
   logger.info(`🔄 Exchange sync jobs initialized`);
+
+  // Initialize price update scheduler
+  const { initializePriceScheduler } = await import('./services/priceUpdateScheduler.js');
+  initializePriceScheduler();
+  logger.info(`⏰ Price update scheduler initialized`);
 });
 
 // Handle graceful shutdown
@@ -214,6 +219,11 @@ process.on('SIGTERM', async () => {
     priceUpdaterService.stop();
     websocketService.stop();
     await stopExchangeSyncQueue();
+
+    // Stop price scheduler
+    const { stopPriceScheduler } = await import('./services/priceUpdateScheduler.js');
+    stopPriceScheduler();
+
     await closeRedisConnection();
     process.exit(0);
   });
@@ -226,6 +236,11 @@ process.on('SIGINT', async () => {
     priceUpdaterService.stop();
     websocketService.stop();
     await stopExchangeSyncQueue();
+
+    // Stop price scheduler
+    const { stopPriceScheduler } = await import('./services/priceUpdateScheduler.js');
+    stopPriceScheduler();
+
     await closeRedisConnection();
     process.exit(0);
   });
