@@ -34,6 +34,7 @@ const HelpPage = lazy(() => import("@/pages/HelpPage").then(m => ({ default: m.H
 const ExchangeConnectionsPage = lazy(() => import("@/pages/ExchangeConnectionsPage"))
 const DefiPage = lazy(() => import("@/pages/DefiPage").then(m => ({ default: m.DefiPage })))
 const MarketsPage = lazy(() => import("@/pages/MarketsPage").then(m => ({ default: m.MarketsPage })))
+const AccuracyPage = lazy(() => import("@/pages/AccuracyPage"))
 
 export default function App() {
   return (
@@ -93,6 +94,7 @@ export default function App() {
             }
           />
           <Route path="/markets" element={<MarketsPage />} />
+          <Route path="/accuracy" element={<AccuracyPage />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route
             path="/onboarding"
