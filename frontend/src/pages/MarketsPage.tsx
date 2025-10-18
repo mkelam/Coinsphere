@@ -4,10 +4,11 @@
  */
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Search, Star, StarOff, Loader2, RefreshCw, Sparkles, Target } from 'lucide-react';
+import { TrendingUp, TrendingDown, Search, Star, StarOff, Loader2, RefreshCw, Sparkles, Target, Brain } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Layout } from '@/components/Layout';
 import { TrendingWidget } from '@/components/TrendingWidget';
+import { PredictionModal } from '@/components/PredictionModal';
 
 interface CryptoAsset {
   id: string;
@@ -53,6 +54,8 @@ export function MarketsPage() {
   const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [showPredictions, setShowPredictions] = useState(true);
+  const [showTrending, setShowTrending] = useState(true);
+  const [selectedCrypto, setSelectedCrypto] = useState<CryptoAsset | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -152,6 +155,48 @@ export function MarketsPage() {
     }
   };
 
+  // Fetch Risk Scores from ML service
+  const fetchRiskScores = async (symbols: string[]): Promise<Map<string, { risk_score: number; risk_level: string }>> => {
+    console.log(`[Risk Scores] Starting fetch for ${symbols.length} symbols...`);
+
+    const riskScoresMap = new Map<string, { risk_score: number; risk_level: string }>();
+
+    // Fetch risk scores in batches of 10 to avoid overwhelming the ML service
+    const batches = [];
+    for (let i = 0; i < symbols.length; i += 10) {
+      batches.push(symbols.slice(i, i + 10));
+    }
+
+    console.log(`[Risk Scores] Split into ${batches.length} batches`);
+
+    for (const batch of batches) {
+      await Promise.all(batch.map(async (symbol) => {
+        try {
+          const response = await fetch('http://localhost:8000/risk-score', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ symbol: symbol.toUpperCase() }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            riskScoresMap.set(symbol.toLowerCase(), {
+              risk_score: data.risk_score,
+              risk_level: data.risk_level,
+            });
+          }
+        } catch (err) {
+          console.error(`[Risk Scores] Failed to fetch risk score for ${symbol}:`, err);
+        }
+      }));
+    }
+
+    console.log(`[Risk Scores] Fetched ${riskScoresMap.size} risk scores`);
+    return riskScoresMap;
+  };
+
   // Generate AI price predictions with Galaxy Score integration
   const generatePredictions = async (cryptos: CryptoAsset[]): Promise<Map<string, PricePrediction>> => {
     console.log(`[Predictions] Generating predictions for ${cryptos.length} cryptocurrencies...`);
@@ -166,6 +211,11 @@ export function MarketsPage() {
     const galaxyScores = await fetchGalaxyScores(topSymbols, topCryptos);
     console.log(`[Predictions] Received ${galaxyScores.size} Galaxy Scores`);
 
+    // Fetch Risk Scores for top 100 coins
+    console.log(`[Predictions] Fetching Risk Scores for top ${topCryptos.length} coins...`);
+    const riskScores = await fetchRiskScores(topSymbols);
+    console.log(`[Predictions] Received ${riskScores.size} Risk Scores`);
+
     cryptos.forEach(crypto => {
       const currentPrice = crypto.current_price;
       const change24h = crypto.price_change_percentage_24h;
@@ -175,6 +225,11 @@ export function MarketsPage() {
       const socialData = galaxyScores.get(crypto.symbol.toLowerCase());
       const galaxyScore = socialData?.galaxyScore || 50; // Default to neutral if unavailable
       const socialSentiment = socialData?.sentiment || 50;
+
+      // Get Risk Score if available
+      const riskData = riskScores.get(crypto.symbol.toLowerCase());
+      const riskScore = riskData?.risk_score;
+      const riskLevel = riskData?.risk_level;
 
       // Calculate momentum and sentiment
       const momentum = (change24h * 0.4) + (change7d * 0.6);
@@ -218,6 +273,8 @@ export function MarketsPage() {
         bear_target: bearTarget,
         galaxy_score: galaxyScore,
         social_sentiment: socialSentiment,
+        risk_score: riskScore,
+        risk_level: riskLevel,
       });
     });
 
@@ -497,12 +554,36 @@ export function MarketsPage() {
       <div className="min-h-screen bg-transparent">
         <Header />
 
+        {/* Prediction Modal */}
+        {selectedCrypto && (
+          <PredictionModal
+            symbol={selectedCrypto.symbol}
+            name={selectedCrypto.name}
+            currentPrice={selectedCrypto.current_price}
+            image={selectedCrypto.image}
+            onClose={() => setSelectedCrypto(null)}
+          />
+        )}
+
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Page Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-3xl font-bold text-white">Cryptocurrency Markets</h1>
               <div className="flex items-center gap-3">
+                {/* Trending Toggle */}
+                <button
+                  onClick={() => setShowTrending(!showTrending)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors backdrop-blur-sm ${
+                    showTrending
+                      ? 'bg-[#f59e0b] hover:bg-[#f59e0b]/80 text-white'
+                      : 'bg-white/5 hover:bg-white/10 text-white/70'
+                  }`}
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  Trending
+                </button>
+
                 {/* AI Predictions Toggle */}
                 <button
                   onClick={() => setShowPredictions(!showPredictions)}
@@ -560,9 +641,11 @@ export function MarketsPage() {
           )}
 
           {/* Trending Widget */}
-          <div className="mb-6">
-            <TrendingWidget limit={10} />
-          </div>
+          {showTrending && (
+            <div className="mb-6">
+              <TrendingWidget limit={10} />
+            </div>
+          )}
 
           {/* Search and Filters */}
           <div className="glass-card p-6 mb-6">
@@ -668,6 +751,12 @@ export function MarketsPage() {
                           <div className="flex items-center justify-end gap-1">
                             <Target className="w-4 h-4" />
                             Bull Target
+                          </div>
+                        </th>
+                        <th className="text-center py-4 px-4 text-sm font-medium text-white/70">
+                          <div className="flex items-center justify-center gap-1">
+                            <Brain className="w-4 h-4" />
+                            AI Analysis
                           </div>
                         </th>
                       </>
@@ -826,28 +915,40 @@ export function MarketsPage() {
 
                         {/* Bull Target */}
                         {showPredictions && prediction && (
-                          <td className="py-4 px-4 text-right">
-                            <div className="flex flex-col items-end gap-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-[#10b981]">
-                                  {formatPrice(prediction.bull_target)}
-                                </span>
-                                <span className="text-xs text-[#10b981]/70">
-                                  +{(((prediction.bull_target - crypto.current_price) / crypto.current_price) * 100).toFixed(0)}%
-                                </span>
+                          <>
+                            <td className="py-4 px-4 text-right">
+                              <div className="flex flex-col items-end gap-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-[#10b981]">
+                                    {formatPrice(prediction.bull_target)}
+                                  </span>
+                                  <span className="text-xs text-[#10b981]/70">
+                                    +{(((prediction.bull_target - crypto.current_price) / crypto.current_price) * 100).toFixed(0)}%
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-white/40">
+                                  <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                    prediction.sentiment === 'bullish' ? 'bg-[#10b981]/20 text-[#10b981]' :
+                                    prediction.sentiment === 'bearish' ? 'bg-[#ef4444]/20 text-[#ef4444]' :
+                                    'bg-white/10 text-white/60'
+                                  }`}>
+                                    {prediction.sentiment}
+                                  </span>
+                                  <span>{prediction.confidence}% confidence</span>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1 text-xs text-white/40">
-                                <span className={`px-1.5 py-0.5 rounded text-xs ${
-                                  prediction.sentiment === 'bullish' ? 'bg-[#10b981]/20 text-[#10b981]' :
-                                  prediction.sentiment === 'bearish' ? 'bg-[#ef4444]/20 text-[#ef4444]' :
-                                  'bg-white/10 text-white/60'
-                                }`}>
-                                  {prediction.sentiment}
-                                </span>
-                                <span>{prediction.confidence}% confidence</span>
-                              </div>
-                            </div>
-                          </td>
+                            </td>
+                            {/* AI Analysis Button */}
+                            <td className="py-4 px-4 text-center">
+                              <button
+                                onClick={() => setSelectedCrypto(crypto)}
+                                className="flex items-center gap-2 px-3 py-2 bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-[#3b82f6] rounded-lg transition-colors border border-[#3b82f6]/30 mx-auto"
+                              >
+                                <Brain className="w-4 h-4" />
+                                <span className="text-sm font-medium">View</span>
+                              </button>
+                            </td>
+                          </>
                         )}
                       </tr>
                     );

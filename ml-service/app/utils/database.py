@@ -102,6 +102,7 @@ async def fetch_price_history(symbol: str, days: int = 90) -> pd.DataFrame:
         session = get_db_session()
 
         # Query to get OHLCV data
+        # Calculate percent_change_24h from close prices using LAG window function
         query = text("""
             SELECT
                 pd.time,
@@ -109,13 +110,17 @@ async def fetch_price_history(symbol: str, days: int = 90) -> pd.DataFrame:
                 pd.volume as volume_24h,
                 t.market_cap as market_cap,
                 0 as change_1h,
-                pd.percent_change_24h as change_24h,
+                COALESCE(
+                    ((pd.close - LAG(pd.close, 1) OVER (ORDER BY pd.time)) /
+                     LAG(pd.close, 1) OVER (ORDER BY pd.time)) * 100,
+                    0
+                ) as change_24h,
                 pd.high,
                 pd.low
             FROM price_data pd
             JOIN tokens t ON pd.token_id = t.id
             WHERE t.symbol = :symbol
-            AND pd.time >= NOW() - INTERVAL ':days days'
+            AND pd.time >= NOW() - INTERVAL '1 day' * :days
             ORDER BY pd.time ASC
         """)
 

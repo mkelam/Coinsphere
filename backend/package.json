@@ -22,6 +22,7 @@
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "seed": "tsx prisma/seed.ts",
+    "populate:prices": "tsx scripts/populate-historical-data.ts",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio"
   },

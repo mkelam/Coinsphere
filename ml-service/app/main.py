@@ -20,6 +20,7 @@ from app.models.crypto_lstm import CryptoLSTM
 from app.utils.feature_engineering import engineer_features, create_sequences
 from app.utils.database import fetch_price_history, get_latest_prices
 from app.training.trainer import load_checkpoint
+from app.ensemble import PredictionEnsemble, ModelPrediction, create_ensemble_prediction
 
 # Configure logging
 logging.basicConfig(
@@ -67,7 +68,7 @@ SUPPORTED_SYMBOLS = [
 # Configuration
 MODEL_CHECKPOINT_DIR = os.getenv('MODEL_CHECKPOINT_DIR', './models/checkpoints')
 CACHE_TTL = int(os.getenv('CACHE_TTL', 300))  # 5 minutes
-SEQUENCE_LENGTH = 90
+SEQUENCE_LENGTH = 70  # Reduced from 90 to work with 90 days of data from free API
 INPUT_FEATURES = 20
 
 # ============================================================================
@@ -102,11 +103,11 @@ class PredictionResponse(BaseModel):
 class RiskScoreRequest(BaseModel):
     """Request model for risk scoring"""
     symbol: str = Field(..., description="Cryptocurrency symbol")
+    portfolio_allocation: Optional[float] = Field(None, ge=0, le=1, description="Portfolio allocation percentage (0-1)")
 
     @validator('symbol')
     def validate_symbol(cls, v):
-        if v.upper() not in SUPPORTED_SYMBOLS:
-            raise ValueError(f"Symbol {v} not supported")
+        # Allow all symbols for risk scoring (no model required)
         return v.upper()
 
 
@@ -142,6 +143,34 @@ class ModelInfo(BaseModel):
     checkpoint_path: Optional[str]
 
 
+class EnsemblePredictionRequest(BaseModel):
+    """Request model for ensemble prediction"""
+    symbol: str = Field(..., description="Cryptocurrency symbol")
+    timeframe: Literal['7d', '14d', '30d'] = Field(default='7d', description="Prediction timeframe")
+    ensemble_method: Literal['weighted_average', 'majority_voting', 'max_confidence'] = Field(
+        default='weighted_average',
+        description="Ensemble combination method"
+    )
+    min_confidence: float = Field(default=0.3, ge=0, le=1, description="Minimum confidence threshold")
+
+    @validator('symbol')
+    def validate_symbol(cls, v):
+        return v.upper()
+
+
+class EnsemblePredictionResponse(BaseModel):
+    """Response model for ensemble prediction"""
+    symbol: str
+    timeframe: str
+    prediction: Dict = Field(..., description="Ensemble prediction details")
+    indicators: Dict = Field(..., description="Technical indicators")
+    explanation: str = Field(..., description="Human-readable explanation")
+    ensemble_metadata: Dict = Field(..., description="Ensemble combination metadata")
+    generated_at: str
+    expires_at: str
+    model_version: str
+
+
 # ============================================================================
 # Helper Functions
 # ============================================================================
@@ -173,15 +202,25 @@ async def load_model(symbol: str) -> Dict:
         )
 
     try:
-        # Create model instance
+        # Load checkpoint first to get architecture config
+        checkpoint = torch.load(checkpoint_path, map_location='cpu')
+        config = checkpoint.get('config', {})
+
+        # Extract architecture parameters from config
+        hidden_sizes = config.get('hidden_sizes', [128, 64, 32])
+        dropout = config.get('dropout', 0.2)
+
+        # Create model instance with correct architecture
         model = CryptoLSTM(
             input_size=INPUT_FEATURES,
-            hidden_sizes=[128, 64, 32],
+            hidden_sizes=hidden_sizes,
             num_classes=3,
-            dropout=0.2
+            dropout=dropout
         )
 
-        # Load checkpoint
+        logger.info(f"Loading model for {symbol} with architecture: {hidden_sizes}")
+
+        # Load checkpoint weights
         checkpoint_data = load_checkpoint(checkpoint_path, model)
 
         model.eval()  # Set to evaluation mode
@@ -282,10 +321,10 @@ async def fetch_and_prepare_data(symbol: str) -> tuple:
         # Fetch 120 days to ensure we have 90 days after feature engineering
         df = await fetch_price_history(symbol, days=120)
 
-        if len(df) < 100:
+        if len(df) < 91:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Insufficient historical data for {symbol} (need 100+ days, got {len(df)})"
+                detail=f"Insufficient historical data for {symbol} (need 91+ days, got {len(df)})"
             )
 
         # Engineer features
@@ -294,10 +333,10 @@ async def fetch_and_prepare_data(symbol: str) -> tuple:
         if len(features) < SEQUENCE_LENGTH:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Insufficient data after feature engineering (need {SEQUENCE_LENGTH} days)"
+                detail=f"Insufficient data after feature engineering (need {SEQUENCE_LENGTH}+ days, got {len(features)})"
             )
 
-        # Get last 90 days for prediction
+        # Get last N days for prediction (based on SEQUENCE_LENGTH)
         features_for_prediction = features.tail(SEQUENCE_LENGTH)
 
         # Convert to numpy array
@@ -684,6 +723,198 @@ async def get_model_info(symbol: str):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to read model information: {str(e)}"
+        )
+
+
+@app.post("/predict/ensemble", response_model=EnsemblePredictionResponse, tags=["Predictions"])
+async def predict_ensemble(request: EnsemblePredictionRequest):
+    """
+    Generate ensemble AI price prediction combining multiple models
+
+    This endpoint uses ensemble learning to combine predictions from different
+    model architectures and training runs for improved accuracy.
+
+    - **symbol**: Cryptocurrency symbol (BTC, ETH, etc.)
+    - **timeframe**: Prediction timeframe (7d, 14d, 30d)
+    - **ensemble_method**: How to combine predictions
+        - weighted_average: Weight by model accuracy (recommended)
+        - majority_voting: Take most common prediction
+        - max_confidence: Use highest confidence prediction
+    - **min_confidence**: Minimum confidence to include a prediction (0-1)
+
+    Returns enhanced prediction with ensemble metadata.
+    """
+    symbol = request.symbol
+    timeframe = request.timeframe
+    method = request.ensemble_method
+    min_confidence = request.min_confidence
+
+    # Check cache first
+    cache_key = f"ensemble:{symbol}:{timeframe}:{method}"
+    try:
+        cached_result = redis_client.get(cache_key)
+        if cached_result:
+            logger.info(f"Returning cached ensemble prediction for {symbol} {timeframe}")
+            return pickle.loads(cached_result)
+    except Exception as e:
+        logger.warning(f"Cache read error: {e}")
+
+    try:
+        # Fetch and prepare data once
+        features_tensor, latest_features, price_history = await fetch_and_prepare_data(symbol)
+        current_price = float(price_history['price'].iloc[-1])
+
+        # Collect predictions from available models
+        model_predictions = []
+
+        # Try to load both original and improved models if they exist
+        model_variants = [
+            f"{symbol}_best.pth",      # Current/improved model
+            f"{symbol}_v1.pth",         # Original model (if backed up)
+        ]
+
+        for model_file in model_variants:
+            checkpoint_path = os.path.join(MODEL_CHECKPOINT_DIR, model_file)
+
+            if not os.path.exists(checkpoint_path):
+                continue
+
+            try:
+                # Load model
+                checkpoint = torch.load(checkpoint_path, map_location='cpu')
+                config = checkpoint.get('config', {})
+                metadata = checkpoint.get('metadata', {})
+
+                hidden_sizes = config.get('hidden_sizes', [128, 64, 32])
+                dropout = config.get('dropout', 0.2)
+
+                model = CryptoLSTM(
+                    input_size=INPUT_FEATURES,
+                    hidden_sizes=hidden_sizes,
+                    num_classes=3,
+                    dropout=dropout
+                )
+
+                checkpoint_data = load_checkpoint(checkpoint_path, model)
+                model.eval()
+
+                # Make prediction
+                with torch.no_grad():
+                    output = model(features_tensor)
+                    probabilities = output[0].cpu().numpy()
+
+                direction = get_direction_from_probabilities(probabilities)
+                confidence_score, _ = calculate_confidence(probabilities)
+
+                # Add to predictions list
+                model_predictions.append({
+                    'probabilities': probabilities,
+                    'direction': direction,
+                    'confidence': confidence_score,
+                    'model_name': f"{symbol}_{hidden_sizes}",
+                    'accuracy': metadata.get('test_accuracy', 0.5)
+                })
+
+                logger.info(f"Loaded model {model_file}: {direction} ({confidence_score:.3f})")
+
+            except Exception as e:
+                logger.warning(f"Could not load {model_file}: {e}")
+                continue
+
+        if not model_predictions:
+            # Fallback to single model
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No models available for ensemble prediction for {symbol}"
+            )
+
+        # Create ensemble prediction
+        ensemble_result = create_ensemble_prediction(
+            symbol=symbol,
+            model_predictions=model_predictions,
+            method=method,
+            min_confidence=min_confidence
+        )
+
+        # Parse ensemble results
+        direction = ensemble_result['direction']
+        confidence_score = ensemble_result['confidence']
+        ensemble_metadata = ensemble_result['ensemble_metadata']
+
+        # Calculate target price
+        timeframe_days = int(timeframe.replace('d', ''))
+        historical_volatility = price_history['price'].pct_change().std()
+
+        if direction == 'bullish':
+            target_price = current_price * (1 + historical_volatility * timeframe_days / 30 * confidence_score)
+        elif direction == 'bearish':
+            target_price = current_price * (1 - historical_volatility * timeframe_days / 30 * confidence_score)
+        else:
+            target_price = current_price
+
+        target_price_range = {
+            'low': target_price * 0.95,
+            'high': target_price * 1.05
+        }
+
+        potential_gain = ((target_price - current_price) / current_price) * 100
+
+        # Extract indicators
+        indicators = {
+            'rsi': round(float(latest_features.get('rsi', 50)), 2),
+            'macd': 'bullish' if latest_features.get('macd', 0) > latest_features.get('macd_signal', 0) else 'bearish',
+            'volumeTrend': 'increasing' if latest_features.get('volume_change', 0) > 0 else 'decreasing',
+            'socialSentiment': round(float(latest_features.get('social_score', 50)) / 100, 2)
+        }
+
+        # Enhanced explanation for ensemble
+        explanation = generate_explanation(symbol, direction, indicators, confidence_score)
+        explanation += f" Ensemble of {ensemble_metadata['models_used']} models using {method.replace('_', ' ')} method."
+
+        # Build response
+        generated_at = datetime.utcnow()
+        expires_at = generated_at + timedelta(seconds=CACHE_TTL)
+
+        response = EnsemblePredictionResponse(
+            symbol=symbol,
+            timeframe=timeframe,
+            prediction={
+                'direction': direction,
+                'confidence': 'high' if confidence_score >= 0.7 else 'medium' if confidence_score >= 0.5 else 'low',
+                'confidenceScore': round(confidence_score, 3),
+                'targetPrice': round(target_price, 2),
+                'targetPriceRange': {
+                    'low': round(target_price_range['low'], 2),
+                    'high': round(target_price_range['high'], 2)
+                },
+                'currentPrice': round(current_price, 2),
+                'potentialGain': round(potential_gain, 2)
+            },
+            indicators=indicators,
+            explanation=explanation,
+            ensemble_metadata=ensemble_metadata,
+            generated_at=generated_at.isoformat() + 'Z',
+            expires_at=expires_at.isoformat() + 'Z',
+            model_version='ensemble-v1.0.0'
+        )
+
+        # Cache response
+        try:
+            redis_client.setex(cache_key, CACHE_TTL, pickle.dumps(response))
+        except Exception as e:
+            logger.warning(f"Cache write error: {e}")
+
+        logger.info(f"Ensemble prediction generated for {symbol}: {direction} ({confidence_score:.3f})")
+
+        return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Ensemble prediction failed for {symbol}: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ensemble prediction failed: {str(e)}"
         )
 
 

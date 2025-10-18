@@ -42,6 +42,36 @@ TRAINING_CONFIG = {
     'train_val_test_split': [0.7, 0.15, 0.15],
 }
 
+# IMPROVED Training configuration for better accuracy
+IMPROVED_TRAINING_CONFIG = {
+    # Model architecture - Larger capacity
+    'input_size': 20,
+    'hidden_sizes': [256, 128, 64],  # Increased from [128, 64, 32]
+    'num_classes': 3,
+    'dropout': 0.3,  # Increased from 0.2 to prevent overfitting
+
+    # Training - Better optimization
+    'batch_size': 16,  # Reduced from 32 for better gradient estimates
+    'epochs': 150,  # Increased from 100
+    'learning_rate': 0.0005,  # Reduced from 0.001 for more stable training
+    'optimizer': 'Adam',
+    'loss_function': 'CrossEntropyLoss',
+
+    # Regularization - More aggressive
+    'weight_decay': 1e-4,  # Increased from 1e-5
+    'early_stopping_patience': 20,  # Increased from 10 to allow more time
+
+    # Learning rate scheduling
+    'use_lr_scheduler': True,
+    'lr_scheduler_patience': 5,
+    'lr_scheduler_factor': 0.5,
+    'lr_scheduler_min_lr': 1e-6,
+
+    # Data - More historical data
+    'sequence_length': 90,
+    'train_val_test_split': [0.7, 0.15, 0.15],
+}
+
 
 class ModelTrainer:
     """
@@ -83,6 +113,18 @@ class ModelTrainer:
             lr=self.config['learning_rate'],
             weight_decay=self.config['weight_decay']
         )
+
+        # Learning rate scheduler (if enabled)
+        self.scheduler = None
+        if self.config.get('use_lr_scheduler', False):
+            self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                self.optimizer,
+                mode='min',
+                factor=self.config.get('lr_scheduler_factor', 0.5),
+                patience=self.config.get('lr_scheduler_patience', 5),
+                min_lr=self.config.get('lr_scheduler_min_lr', 1e-6),
+                verbose=True
+            )
 
         # Training state
         self.best_val_loss = float('inf')
@@ -304,12 +346,21 @@ class ModelTrainer:
                     'val_accuracy': val_accuracy
                 }, step=epoch)
 
+            # Learning rate scheduling
+            if self.scheduler is not None:
+                self.scheduler.step(val_loss)
+                current_lr = self.optimizer.param_groups[0]['lr']
+                if self.use_mlflow:
+                    self.mlflow.log_metric('learning_rate', current_lr, step=epoch)
+
             # Print progress
             if verbose and (epoch + 1) % 10 == 0:
+                current_lr = self.optimizer.param_groups[0]['lr']
                 print(f"\nEpoch {epoch+1}/{self.config['epochs']}")
                 print(f"  Train Loss: {train_loss:.4f}")
                 print(f"  Val Loss: {val_loss:.4f}")
                 print(f"  Val Accuracy: {val_accuracy:.4f}")
+                print(f"  Learning Rate: {current_lr:.6f}")
 
             # Early stopping
             if val_loss < self.best_val_loss:
