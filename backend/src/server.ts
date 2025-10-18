@@ -209,6 +209,11 @@ server.listen(PORT, () => {
   const { initializePriceScheduler } = await import('./services/priceUpdateScheduler.js');
   initializePriceScheduler();
   logger.info(`⏰ Price update scheduler initialized`);
+
+  // Initialize accuracy calculation scheduler
+  const { initializeAccuracyScheduler } = await import('./services/accuracyScheduler.js');
+  initializeAccuracyScheduler();
+  logger.info(`📊 Accuracy calculation scheduler initialized`);
 });
 
 // Handle graceful shutdown
@@ -223,6 +228,10 @@ process.on('SIGTERM', async () => {
     // Stop price scheduler
     const { stopPriceScheduler } = await import('./services/priceUpdateScheduler.js');
     stopPriceScheduler();
+
+    // Stop accuracy scheduler
+    const { stopAccuracyScheduler } = await import('./services/accuracyScheduler.js');
+    stopAccuracyScheduler();
 
     await closeRedisConnection();
     process.exit(0);
@@ -240,6 +249,10 @@ process.on('SIGINT', async () => {
     // Stop price scheduler
     const { stopPriceScheduler } = await import('./services/priceUpdateScheduler.js');
     stopPriceScheduler();
+
+    // Stop accuracy scheduler
+    const { stopAccuracyScheduler } = await import('./services/accuracyScheduler.js');
+    stopAccuracyScheduler();
 
     await closeRedisConnection();
     process.exit(0);

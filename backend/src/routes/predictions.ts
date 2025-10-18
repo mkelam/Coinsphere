@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { logger } from '../utils/logger.js';
 import { prisma } from '../lib/prisma.js';
 import { predictionEngine } from '../services/predictionEngine.js';
+import { predictionTrackingService } from '../services/predictionTrackingService.js';
 
 const router = Router();
 
@@ -104,17 +105,94 @@ router.post('/batch', async (req: Request, res: Response) => {
 router.get('/:symbol/history', async (req: Request, res: Response) => {
   try {
     const { symbol } = req.params;
-    const { limit = 30 } = req.query;
+    const { limit = 50 } = req.query;
 
-    // TODO: Fetch from predictions history table
-    // For now, return empty array
+    // Find token
+    const token = await prisma.token.findFirst({
+      where: {
+        symbol: symbol.toUpperCase(),
+      },
+    });
+
+    if (!token) {
+      return res.status(404).json({ error: 'Token not found' });
+    }
+
+    // Get prediction history from tracking service
+    const history = await predictionTrackingService.getPredictionHistory(
+      token.id,
+      parseInt(limit as string)
+    );
+
     res.json({
       symbol: symbol.toUpperCase(),
-      history: [],
-      limit: parseInt(limit as string),
+      history,
+      total: history.length,
     });
   } catch (error) {
     logger.error('Error fetching prediction history:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /api/v1/predictions/:symbol/accuracy
+ * Get accuracy metrics for a specific token's predictions
+ */
+router.get('/:symbol/accuracy', async (req: Request, res: Response) => {
+  try {
+    const { symbol } = req.params;
+    const { days = 30 } = req.query;
+
+    // Find token
+    const token = await prisma.token.findFirst({
+      where: {
+        symbol: symbol.toUpperCase(),
+      },
+    });
+
+    if (!token) {
+      return res.status(404).json({ error: 'Token not found' });
+    }
+
+    // Get accuracy metrics
+    const accuracy = await predictionTrackingService.getTokenAccuracy(
+      token.id,
+      parseInt(days as string)
+    );
+
+    res.json({
+      symbol: symbol.toUpperCase(),
+      period: `last ${days} days`,
+      ...accuracy,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error('Error fetching prediction accuracy:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /api/v1/predictions/accuracy/overall
+ * Get overall accuracy metrics across all tokens
+ */
+router.get('/accuracy/overall', async (req: Request, res: Response) => {
+  try {
+    const { days = 30 } = req.query;
+
+    // Get overall accuracy metrics
+    const accuracy = await predictionTrackingService.getOverallAccuracy(
+      parseInt(days as string)
+    );
+
+    res.json({
+      period: `last ${days} days`,
+      ...accuracy,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error('Error fetching overall accuracy:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

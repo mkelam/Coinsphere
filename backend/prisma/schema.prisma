@@ -166,23 +166,37 @@ model Transaction {
   @@index([type])
 }
 
-// Price Predictions
+// Price Predictions (Historical Tracking)
 model Prediction {
   id            String   @id @default(uuid())
   tokenId       String   @map("token_id")
 
   // Prediction Details - Using Decimal for precision
-  predictionType String  @map("prediction_type") // 7d, 14d, 30d
+  timeframe     String   // 7d, 14d, 30d
+  direction     String   // bullish, bearish, neutral
   predictedPrice Decimal @db.Decimal(18, 8) @map("predicted_price")
+  priceAtPrediction Decimal @db.Decimal(18, 8) @map("price_at_prediction") // Current price when prediction was made
+  targetPriceRange Json   @map("target_price_range") // {low, high}
   confidence    Decimal  @db.Decimal(5, 4) // 0.0000-1.0000
+  confidenceScore Decimal @db.Decimal(5, 4) @map("confidence_score") // Raw confidence score
 
   // Model Info
   modelVersion  String   @map("model_version")
-  features      Json?    // Store feature values used
+  modelType     String?  @map("model_type") // single, ensemble
+  ensembleMethod String? @map("ensemble_method") // weighted_average, majority_voting, max_confidence
+  features      Json?    // Store feature values used (RSI, MACD, etc.)
+
+  // Actual Outcome (populated after prediction period ends)
+  actualPrice   Decimal? @db.Decimal(18, 8) @map("actual_price") // Actual price at target date
+  outcomeCalculatedAt DateTime? @map("outcome_calculated_at")
+  wasCorrect    Boolean? @map("was_correct") // Did price move in predicted direction?
+  accuracyScore Decimal? @db.Decimal(5, 4) @map("accuracy_score") // How close was the prediction? (0-1)
+  priceError    Decimal? @db.Decimal(10, 4) @map("price_error") // Absolute error percentage
 
   // Timestamps
   createdAt     DateTime @default(now()) @map("created_at")
-  expiresAt     DateTime @map("expires_at")
+  targetDate    DateTime @map("target_date") // When prediction should be evaluated
+  expiresAt     DateTime @map("expires_at") // When prediction data is no longer fresh
 
   // Relations
   token         Token    @relation(fields: [tokenId], references: [id])
@@ -190,6 +204,10 @@ model Prediction {
   @@map("predictions")
   @@index([tokenId])
   @@index([createdAt])
+  @@index([targetDate])
+  @@index([timeframe])
+  @@index([modelVersion])
+  @@index([wasCorrect])
 }
 
 // Degen Risk Scores
