@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { Bell, LogOut, Settings, CreditCard, HelpCircle, LayoutDashboard, Wallet, Link2, Menu, X, ChevronDown, Layers, TrendingUp } from "lucide-react"
+import { Bell, LogOut, Settings, CreditCard, HelpCircle, LayoutDashboard, Wallet, Link2, Menu, X, ChevronDown, Layers, TrendingUp, BarChart3, Database } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -11,7 +11,7 @@ export function Header() {
   const location = useLocation()
   const userMenuRef = useRef<HTMLDivElement>(null)
 
-  // Primary navigation items
+  // Primary navigation items (desktop navbar)
   const primaryNav = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Markets', path: '/markets', icon: TrendingUp },
@@ -19,6 +19,12 @@ export function Header() {
     { name: 'DeFi', path: '/defi', icon: Layers },
     { name: 'Exchanges', path: '/exchanges', icon: Link2 },
     { name: 'Alerts', path: '/alerts', icon: Bell },
+  ]
+
+  // Additional items for hamburger menu only
+  const hamburgerOnlyNav = [
+    { name: 'Backtesting', path: '/backtesting', icon: BarChart3 },
+    { name: 'MCP Data', path: '/mcp-data', icon: Database },
   ]
 
   const handleLogout = async () => {
@@ -224,6 +230,28 @@ export function Header() {
           <div className="space-y-1">
             {/* Primary Navigation - Mobile */}
             {primaryNav.map((item) => {
+              const isActive = isActiveRoute(item.path)
+              const Icon = item.icon
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={`
+                    w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors
+                    ${isActive
+                      ? 'bg-[#3B82F6] text-white'
+                      : 'text-white/70 hover:bg-white/[0.05] hover:text-white'
+                    }
+                  `}
+                >
+                  <Icon className="w-5 h-5" />
+                  {item.name}
+                </button>
+              )
+            })}
+
+            {/* Hamburger-Only Navigation Items */}
+            {hamburgerOnlyNav.map((item) => {
               const isActive = isActiveRoute(item.path)
               const Icon = item.icon
               return (

@@ -1,9 +1,9 @@
 {
-  "bmadVersion": "4.43.0",
+  "bmadVersion": "6.0.0-alpha.0",
   "projectName": "Coinsphere",
-  "installedPacks": ["bmad-core"],
+  "installedPacks": ["bmad-core", "bmad-method"],
   "ideIntegration": ["claude-code"],
   "setupComplete": true,
-  "installDate": "2025-10-06",
-  "coreConfigPath": ".bmad-core/core-config.yaml"
+  "installDate": "2025-10-18",
+  "lastUpdated": "2025-10-18"
 }

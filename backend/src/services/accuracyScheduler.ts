@@ -34,7 +34,7 @@ export function initializeAccuracyScheduler(): void {
   );
 
   logger.info('✅ Accuracy calculation scheduler started successfully', {
-    nextRun: task.nextDate()?.toISOString(),
+    schedule: SCHEDULE_CRON,
   });
 }
 

@@ -17,7 +17,7 @@ const execAsync = promisify(exec);
  * Default: Run daily at 2:00 AM
  */
 const SCHEDULE_CRON = process.env.PRICE_UPDATE_SCHEDULE || '0 2 * * *';
-const ENABLE_SCHEDULER = process.env.ENABLE_PRICE_SCHEDULER !== 'false';
+const ENABLE_PRICE_SCHEDULER = process.env.ENABLE_PRICE_SCHEDULER !== 'false';
 
 /**
  * Run the price population script
@@ -84,7 +84,6 @@ export function initializePriceScheduler(): void {
   });
 
   logger.info('✅ Price update scheduler started successfully', {
-    nextRun: task.nextDate()?.toISOString(),
     schedule: SCHEDULE_CRON,
   });
 }

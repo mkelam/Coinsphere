@@ -35,6 +35,9 @@ const ExchangeConnectionsPage = lazy(() => import("@/pages/ExchangeConnectionsPa
 const DefiPage = lazy(() => import("@/pages/DefiPage").then(m => ({ default: m.DefiPage })))
 const MarketsPage = lazy(() => import("@/pages/MarketsPage").then(m => ({ default: m.MarketsPage })))
 const AccuracyPage = lazy(() => import("@/pages/AccuracyPage"))
+const BacktestingDashboard = lazy(() => import("@/pages/BacktestingDashboard"))
+const BacktestResults = lazy(() => import("@/pages/BacktestResults"))
+const McpDataDashboard = lazy(() => import("@/pages/McpDataDashboard"))
 
 export default function App() {
   return (
@@ -95,6 +98,9 @@ export default function App() {
           />
           <Route path="/markets" element={<MarketsPage />} />
           <Route path="/accuracy" element={<AccuracyPage />} />
+          <Route path="/backtesting" element={<BacktestingDashboard />} />
+          <Route path="/backtesting/results/:id" element={<BacktestResults />} />
+          <Route path="/mcp-data" element={<McpDataDashboard />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route
             path="/onboarding"
