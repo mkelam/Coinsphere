@@ -98,10 +98,39 @@ backend/Payfast.txt
 .turbo/
 
 # Prisma
-prisma/migrations/
+# Note: We track migrations for production deployment
+# prisma/migrations/ (commented out - we track these)
 
 # Editor
 .vscode/settings.json
 .vscode/launch.json
 nul
 frontend/nul
+
+# Backup files
+*-backup/
+*-v4-backup.json
+v4-backup/
+bmad-v4-backup/
+
+# ML Training Outputs
+ml-service/training_summary_*.json
+
+# Temporary scripts (one-off migrations)
+backend/scripts/insert-nansen.js
+backend/scripts/insert-nansen.mjs
+backend/scripts/add-nansen-final.mjs
+backend/scripts/add-remaining-nansen.cjs
+backend/scripts/fix-nansen-strategy-ids.cjs
+backend/scripts/apply-metrics-migration.ts
+backend/scripts/run-migration.ts
+
+# BMAD AI Assistant
+BMAD-METHOD/
+bmad/
+
+# Trading notes
+Trading/
+
+# Test HTML files
+test-*.html
