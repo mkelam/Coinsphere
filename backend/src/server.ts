@@ -34,6 +34,11 @@ import defiRoutes from './routes/defi.js';
 import socialRoutes from './routes/social.js';
 import marketsRoutes from './routes/markets.js';
 import adminRoutes from './routes/admin.js';
+import tradingResearchRoutes from './routes/tradingResearch.js';
+import backtestingRoutes from './routes/backtesting.js';
+import exchangeRoutes from './routes/exchange.js';
+import marketDataRoutes from './routes/marketData.js';
+import strategiesRoutes from './routes/strategies.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -174,6 +179,11 @@ app.use('/api/v1/transactions', authenticate, validateCsrfToken, apiLimiter, tra
 app.use('/api/v1/payments', apiLimiter, paymentsRoutes); // PayFast webhook doesn't need CSRF
 app.use('/api/v1/exchanges', authenticate, validateCsrfToken, apiLimiter, exchangesRoutes);
 app.use('/api/v1/defi', apiLimiter, defiRoutes); // DeFi routes (auth required for user positions)
+app.use('/api/v1/trading-research', apiLimiter, tradingResearchRoutes); // Phase 0 Trading Research (public read, admin write)
+app.use('/api/v1/backtesting', apiLimiter, backtestingRoutes); // Phase 1 Backtesting Dashboard (public read, admin write)
+app.use('/api/v1/exchange', authenticate, validateCsrfToken, apiLimiter, exchangeRoutes); // Phase 2 Live Trading Exchange API
+app.use('/api/v1/market-data', authenticate, validateCsrfToken, apiLimiter, marketDataRoutes); // Phase 2 Market Data Streaming
+app.use('/api/v1/strategies', authenticate, validateCsrfToken, apiLimiter, strategiesRoutes); // Phase 2 Strategy Execution & Management
 app.use('/api/v1/admin', authenticate, validateCsrfToken, apiLimiter, adminRoutes); // Admin only routes
 
 // Sentry error handler must be before custom error handlers
@@ -186,7 +196,7 @@ app.use(errorHandler);
 
 // Start server
 const PORT = config.port || 3001;
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   logger.info(`🚀 Coinsphere API Server running on port ${PORT}`);
   logger.info(`📊 Environment: ${config.env}`);
   logger.info(`🔗 Health check: http://localhost:${PORT}/health`);

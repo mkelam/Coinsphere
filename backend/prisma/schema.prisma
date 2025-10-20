@@ -1,6 +1,3 @@
-// Coinsphere - Prisma Schema
-// Database: PostgreSQL 15 + TimescaleDB
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,634 +7,1007 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User Authentication & Profile
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  passwordHash  String   @map("password_hash")
-  emailVerified Boolean  @default(false) @map("email_verified")
-
-  // Profile
-  firstName     String?  @map("first_name")
-  lastName      String?  @map("last_name")
-  avatarUrl     String?  @map("avatar_url")
-  role          String   @default("user") // user, admin
-
-  // Two-Factor Authentication
-  twoFactorEnabled Boolean @default(false) @map("two_factor_enabled")
-  twoFactorSecret  String?  @map("two_factor_secret") // Encrypted TOTP secret
-
-  // Subscription
-  subscriptionTier String @default("free") @map("subscription_tier") // free, plus, pro, power_trader
-  subscriptionStatus String @default("active") @map("subscription_status") // active, cancelled, past_due
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  lastLoginAt   DateTime? @map("last_login_at")
-
-  // Relations
-  portfolios           Portfolio[]
-  alerts               Alert[]
-  apiKeys              ApiKey[]
-  emailVerifications   EmailVerification[]
-  passwordResets       PasswordReset[]
-  auditLogs            AuditLog[]
-  paymentIntents       PaymentIntent[]
-  exchangeConnections  ExchangeConnection[]
-  walletConnections    WalletConnection[]
+  id                     String               @id @default(uuid())
+  email                  String               @unique
+  passwordHash           String               @map("password_hash")
+  emailVerified          Boolean              @default(false) @map("email_verified")
+  firstName              String?              @map("first_name")
+  lastName               String?              @map("last_name")
+  avatarUrl              String?              @map("avatar_url")
+  subscriptionTier       String               @default("free") @map("subscription_tier")
+  subscriptionStatus     String               @default("active") @map("subscription_status")
+  stripe_customer_id     String?
+  stripe_subscription_id String?
+  createdAt              DateTime             @default(now()) @map("created_at")
+  updatedAt              DateTime             @updatedAt @map("updated_at")
+  lastLoginAt            DateTime?            @map("last_login_at")
+  role                   String               @default("user")
+  twoFactorEnabled       Boolean              @default(false) @map("two_factor_enabled")
+  twoFactorSecret        String?              @map("two_factor_secret")
+  alerts                 Alert[]
+  apiKeys                ApiKey[]
+  auditLogs              AuditLog[]
+  emailVerifications     EmailVerification[]
+  exchangeConnections    ExchangeConnection[]
+  passwordResets         PasswordReset[]
+  portfolios             Portfolio[]
 
   @@map("users")
 }
 
-// Crypto Token Metadata
 model Token {
-  id            String   @id @default(uuid())
-  symbol        String   @unique // BTC, ETH, SOL
-  name          String   // Bitcoin, Ethereum, Solana
-  coingeckoId   String?  @unique @map("coingecko_id")
-
-  // Token Details
-  blockchain    String   // ethereum, solana, bitcoin, etc
-  contractAddress String? @map("contract_address")
-  decimals      Int?
-  logoUrl       String?  @map("logo_url")
-
-  // Market Data (cached) - Using Decimal for precision
-  currentPrice  Decimal? @db.Decimal(18, 8) @map("current_price")
-  marketCap     Decimal? @db.Decimal(24, 2) @map("market_cap")
-  volume24h     Decimal? @db.Decimal(24, 2) @map("volume_24h")
-  priceChange24h Decimal? @db.Decimal(10, 4) @map("price_change_24h")
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  holdings      Holding[]
-  transactions  Transaction[]
-  predictions   Prediction[]
-  riskScores    RiskScore[]
+  id              String        @id @default(uuid())
+  symbol          String        @unique
+  name            String
+  coingeckoId     String?       @unique @map("coingecko_id")
+  blockchain      String
+  contractAddress String?       @map("contract_address")
+  decimals        Int?
+  logoUrl         String?       @map("logo_url")
+  currentPrice    Decimal?      @map("current_price") @db.Decimal(18, 8)
+  marketCap       Decimal?      @map("market_cap") @db.Decimal(24, 2)
+  volume24h       Decimal?      @map("volume_24h") @db.Decimal(24, 2)
+  priceChange24h  Decimal?      @map("price_change_24h") @db.Decimal(10, 4)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  holdings        Holding[]
+  predictions     Prediction[]
+  riskScores      RiskScore[]
+  transactions    Transaction[]
 
   @@map("tokens")
 }
 
-// User Portfolio Holdings
 model Portfolio {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-  name          String   @default("Main Portfolio")
-  description   String?
-  icon          String   @default("💼") // Emoji icon for portfolio
-  currency      String   @default("USD") // Base currency (USD, EUR, BTC, etc)
-  isActive      Boolean  @default(false) @map("is_active") // Is this the active portfolio
+  id           String        @id @default(uuid())
+  userId       String        @map("user_id")
+  name         String        @default("Main Portfolio")
+  description  String?
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  icon         String        @default("💼")
+  currency     String        @default("USD")
+  isActive     Boolean       @default(false) @map("is_active")
+  holdings     Holding[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  holdings      Holding[]
-  transactions  Transaction[]
-
-  @@map("portfolios")
   @@index([userId])
-  @@index([userId, isActive]) // Index for finding active portfolio
+  @@index([userId, isActive])
+  @@map("portfolios")
 }
 
-// Individual Holdings
 model Holding {
-  id            String   @id @default(uuid())
-  portfolioId   String   @map("portfolio_id")
-  tokenId       String   @map("token_id")
+  id              String    @id @default(uuid())
+  portfolioId     String    @map("portfolio_id")
+  tokenId         String    @map("token_id")
+  amount          Decimal   @db.Decimal(24, 8)
+  averageBuyPrice Decimal?  @map("average_buy_price") @db.Decimal(18, 8)
+  source          String?
+  sourceId        String?   @map("source_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  portfolio       Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  token           Token     @relation(fields: [tokenId], references: [id])
 
-  // Holding Details - Using Decimal for precision
-  amount        Decimal  @db.Decimal(24, 8)
-  averageBuyPrice Decimal? @db.Decimal(18, 8) @map("average_buy_price")
-  source        String?  // exchange, wallet, manual
-  sourceId      String?  @map("source_id") // exchange account ID or wallet address
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-  token         Token     @relation(fields: [tokenId], references: [id])
-
-  @@map("holdings")
   @@unique([portfolioId, tokenId])
   @@index([portfolioId])
   @@index([tokenId])
+  @@map("holdings")
 }
 
-// Portfolio Transactions
 model Transaction {
-  id            String   @id @default(uuid())
-  portfolioId   String   @map("portfolio_id")
-  tokenId       String   @map("token_id")
+  id          String    @id @default(uuid())
+  portfolioId String    @map("portfolio_id")
+  tokenId     String    @map("token_id")
+  type        String
+  amount      Decimal   @db.Decimal(24, 8)
+  price       Decimal   @db.Decimal(18, 8)
+  fee         Decimal   @default(0) @db.Decimal(18, 8)
+  feeToken    String?   @map("fee_token")
+  notes       String?
+  txHash      String?   @map("tx_hash")
+  exchange    String?
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  token       Token     @relation(fields: [tokenId], references: [id])
 
-  // Transaction Details - Using Decimal for precision
-  type          String   // buy, sell, transfer_in, transfer_out, swap
-  amount        Decimal  @db.Decimal(24, 8) // Amount of token
-  price         Decimal  @db.Decimal(18, 8) // Price per token at time of transaction
-  fee           Decimal  @db.Decimal(18, 8) @default(0) // Transaction fee
-  feeToken      String?  @map("fee_token") // Token used for fee (e.g., ETH for gas)
-
-  // Transaction Context
-  notes         String?  // User notes
-  txHash        String?  @map("tx_hash") // Blockchain transaction hash
-  exchange      String?  // Exchange where transaction occurred
-  timestamp     DateTime @default(now()) // When transaction occurred
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-  token         Token     @relation(fields: [tokenId], references: [id])
-
-  @@map("transactions")
   @@index([portfolioId])
   @@index([tokenId])
   @@index([timestamp])
   @@index([type])
+  @@map("transactions")
 }
 
-// Price Predictions (Historical Tracking)
 model Prediction {
-  id            String   @id @default(uuid())
-  tokenId       String   @map("token_id")
-
-  // Prediction Details - Using Decimal for precision
-  timeframe     String   // 7d, 14d, 30d
-  direction     String   // bullish, bearish, neutral
-  predictedPrice Decimal @db.Decimal(18, 8) @map("predicted_price")
-  priceAtPrediction Decimal @db.Decimal(18, 8) @map("price_at_prediction") // Current price when prediction was made
-  targetPriceRange Json   @map("target_price_range") // {low, high}
-  confidence    Decimal  @db.Decimal(5, 4) // 0.0000-1.0000
-  confidenceScore Decimal @db.Decimal(5, 4) @map("confidence_score") // Raw confidence score
-
-  // Model Info
-  modelVersion  String   @map("model_version")
-  modelType     String?  @map("model_type") // single, ensemble
-  ensembleMethod String? @map("ensemble_method") // weighted_average, majority_voting, max_confidence
-  features      Json?    // Store feature values used (RSI, MACD, etc.)
-
-  // Actual Outcome (populated after prediction period ends)
-  actualPrice   Decimal? @db.Decimal(18, 8) @map("actual_price") // Actual price at target date
+  id                  String    @id @default(uuid())
+  tokenId             String    @map("token_id")
+  timeframe           String
+  predictedPrice      Decimal   @map("predicted_price") @db.Decimal(18, 8)
+  confidence          Decimal   @db.Decimal(5, 4)
+  modelVersion        String    @map("model_version")
+  features            Json?
+  createdAt           DateTime  @default(now()) @map("created_at")
+  expiresAt           DateTime  @map("expires_at")
+  direction           String?
+  priceAtPrediction   Decimal?  @map("price_at_prediction") @db.Decimal(18, 8)
+  targetPriceRange    Json?     @map("target_price_range")
+  confidenceScore     Decimal?  @map("confidence_score") @db.Decimal(5, 4)
+  modelType           String?   @map("model_type")
+  ensembleMethod      String?   @map("ensemble_method")
+  actualPrice         Decimal?  @map("actual_price") @db.Decimal(18, 8)
   outcomeCalculatedAt DateTime? @map("outcome_calculated_at")
-  wasCorrect    Boolean? @map("was_correct") // Did price move in predicted direction?
-  accuracyScore Decimal? @db.Decimal(5, 4) @map("accuracy_score") // How close was the prediction? (0-1)
-  priceError    Decimal? @db.Decimal(10, 4) @map("price_error") // Absolute error percentage
+  wasCorrect          Boolean?  @map("was_correct")
+  accuracyScore       Decimal?  @map("accuracy_score") @db.Decimal(5, 4)
+  priceError          Decimal?  @map("price_error") @db.Decimal(10, 4)
+  targetDate          DateTime? @map("target_date")
+  token               Token     @relation(fields: [tokenId], references: [id])
 
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  targetDate    DateTime @map("target_date") // When prediction should be evaluated
-  expiresAt     DateTime @map("expires_at") // When prediction data is no longer fresh
-
-  // Relations
-  token         Token    @relation(fields: [tokenId], references: [id])
-
-  @@map("predictions")
   @@index([tokenId])
   @@index([createdAt])
   @@index([targetDate])
   @@index([timeframe])
   @@index([modelVersion])
   @@index([wasCorrect])
+  @@map("predictions")
 }
 
-// Degen Risk Scores
 model RiskScore {
-  id            String   @id @default(uuid())
-  tokenId       String   @map("token_id")
+  id              String   @id @default(uuid())
+  tokenId         String   @map("token_id")
+  overallScore    Int      @map("overall_score")
+  liquidityScore  Int?     @map("liquidity_score")
+  volatilityScore Int?     @map("volatility_score")
+  contractScore   Int?     @map("contract_score")
+  holderScore     Int?     @map("holder_score")
+  analysis        Json?
+  createdAt       DateTime @default(now()) @map("created_at")
+  expiresAt       DateTime @map("expires_at")
+  token           Token    @relation(fields: [tokenId], references: [id])
 
-  // Risk Score (0-100)
-  overallScore  Int      @map("overall_score")
-
-  // Component Scores
-  liquidityScore Int?    @map("liquidity_score")
-  volatilityScore Int?   @map("volatility_score")
-  contractScore Int?     @map("contract_score")
-  holderScore   Int?     @map("holder_score")
-
-  // Details
-  analysis      Json?    // Store detailed analysis
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  expiresAt     DateTime @map("expires_at")
-
-  // Relations
-  token         Token    @relation(fields: [tokenId], references: [id])
-
-  @@map("risk_scores")
   @@index([tokenId])
   @@index([createdAt])
+  @@map("risk_scores")
 }
 
-// User Alerts
 model Alert {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-
-  // Alert Configuration - Using Decimal for price thresholds
-  alertType     String   @map("alert_type") // price, risk, prediction
-  tokenSymbol   String   @map("token_symbol")
-  condition     String   // above, below, equals
-  threshold     Decimal  @db.Decimal(18, 8)
-
-  // Status
-  isActive      Boolean  @default(true) @map("is_active")
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  alertType     String    @map("alert_type")
+  tokenSymbol   String    @map("token_symbol")
+  condition     String
+  threshold     Decimal   @db.Decimal(18, 8)
+  isActive      Boolean   @default(true) @map("is_active")
   lastTriggered DateTime? @map("last_triggered")
-  triggerCount  Int      @default(0) @map("trigger_count")
+  triggerCount  Int       @default(0) @map("trigger_count")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("alerts")
   @@index([userId])
   @@index([isActive])
+  @@map("alerts")
 }
 
-// API Keys for Programmatic Access
 model ApiKey {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id")
+  name       String
+  keyHash    String    @unique @map("key_hash")
+  lastUsedAt DateTime? @map("last_used_at")
+  scopes     String[]  @default(["read:portfolio"])
+  isActive   Boolean   @default(true) @map("is_active")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  expiresAt  DateTime? @map("expires_at")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Key Details
-  name          String
-  keyHash       String   @unique @map("key_hash") // Hashed API key
-  lastUsedAt    DateTime? @map("last_used_at")
-
-  // Permissions
-  scopes        String[] @default(["read:portfolio"]) // read:portfolio, write:portfolio, etc
-
-  // Status
-  isActive      Boolean  @default(true) @map("is_active")
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  expiresAt     DateTime? @map("expires_at")
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@index([userId])
   @@map("api_keys")
-  @@index([userId])
 }
 
-// Time-Series Price Data (TimescaleDB hypertable)
-// Note: This will be created via raw SQL after migration
 model PriceData {
-  time          DateTime
-  tokenId       String   @map("token_id")
+  time    DateTime @db.Timestamp(6)
+  tokenId String   @map("token_id")
+  open    Decimal  @db.Decimal(18, 8)
+  high    Decimal  @db.Decimal(18, 8)
+  low     Decimal  @db.Decimal(18, 8)
+  close   Decimal  @db.Decimal(18, 8)
+  volume  Decimal  @db.Decimal(24, 8)
 
-  // OHLCV - Using Decimal for precision
-  open          Decimal  @db.Decimal(18, 8)
-  high          Decimal  @db.Decimal(18, 8)
-  low           Decimal  @db.Decimal(18, 8)
-  close         Decimal  @db.Decimal(18, 8)
-  volume        Decimal  @db.Decimal(24, 8)
-
-  @@id([time, tokenId])
-  @@map("price_data")
+  @@id([time, tokenId], map: "price_data_decimal_pkey")
   @@index([tokenId])
+  @@map("price_data")
 }
 
-// Email Verification Tokens
 model EmailVerification {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-  token         String   @unique
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  isUsed    Boolean  @default(false) @map("is_used")
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Status
-  isUsed        Boolean  @default(false) @map("is_used")
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  expiresAt     DateTime @map("expires_at")
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
   @@map("email_verifications")
-  @@index([userId])
-  @@index([token])
-  @@index([expiresAt])
 }
 
-// Password Reset Tokens
 model PasswordReset {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-  token         String   @unique
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  isUsed    Boolean  @default(false) @map("is_used")
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Status
-  isUsed        Boolean  @default(false) @map("is_used")
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  expiresAt     DateTime @map("expires_at")
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("password_resets")
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
+  @@map("password_resets")
 }
 
-// Audit Logs for Security-Sensitive Operations
 model AuditLog {
-  id            String   @id @default(uuid())
-  userId        String?  @map("user_id") // Nullable for failed auth attempts
+  id           String   @id @default(uuid())
+  userId       String?  @map("user_id")
+  action       String
+  resource     String?
+  resourceId   String?  @map("resource_id")
+  status       String
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  method       String?
+  path         String?
+  metadata     Json?
+  errorMessage String?  @map("error_message")
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User?    @relation(fields: [userId], references: [id])
 
-  // Event Details
-  action        String   // login, logout, password_reset, token_create, user_update, admin_action, etc.
-  resource      String?  // Resource type (user, token, portfolio, etc.)
-  resourceId    String?  @map("resource_id") // ID of the affected resource
-  status        String   // success, failure, error
-
-  // Request Context
-  ipAddress     String?  @map("ip_address")
-  userAgent     String?  @map("user_agent")
-  method        String?  // GET, POST, PUT, DELETE
-  path          String?  // API endpoint path
-
-  // Additional Details
-  metadata      Json?    // Store additional context (e.g., changed fields, error messages)
-  errorMessage  String?  @map("error_message")
-
-  // Timestamp
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@map("audit_logs")
   @@index([userId])
   @@index([action])
   @@index([createdAt])
   @@index([status])
   @@index([ipAddress])
+  @@map("audit_logs")
 }
 
-// Payment Intents for PayFast and other payment gateways
 model PaymentIntent {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  provider    String
+  referenceId String    @unique @map("reference_id")
+  amount      Decimal   @db.Decimal(18, 2)
+  currency    String    @default("ZAR")
+  plan        String
+  status      String
+  metadata    Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
 
-  // Payment Gateway Details
-  provider      String   // payfast
-  referenceId   String   @unique @map("reference_id") // External payment reference
-  amount        Decimal  @db.Decimal(18, 2)
-  currency      String   @default("USD")
-
-  // Subscription Details
-  plan          String   // plus, pro, power-trader
-  status        String   // pending, completed, cancelled, failed
-
-  // Additional Data
-  metadata      Json?    // Store additional payment context
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  completedAt   DateTime? @map("completed_at")
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  @@index([referenceId], map: "idx_payment_intents_reference_id")
+  @@index([status], map: "idx_payment_intents_status")
+  @@index([userId], map: "idx_payment_intents_user_id")
   @@map("payment_intents")
-  @@index([userId])
-  @@index([status])
-  @@index([referenceId])
 }
 
-// Exchange Connections for API Integration
 model ExchangeConnection {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
+  id                  String    @id @default(uuid())
+  userId              String    @map("user_id")
+  exchange            String
+  label               String?
+  apiKeyEncrypted     String    @map("api_key_encrypted")
+  apiSecretEncrypted  String    @map("api_secret_encrypted")
+  passphraseEncrypted String?   @map("passphrase_encrypted")
+  status              String    @default("active")
+  lastSyncAt          DateTime? @map("last_sync_at")
+  lastError           String?   @map("last_error")
+  autoSync            Boolean   @default(true) @map("auto_sync")
+  syncInterval        Int       @default(300) @map("sync_interval")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Exchange Details
-  exchange      String   // binance, coinbase, kraken, etc.
-  label         String?  // User-friendly name for the connection
-
-  // Encrypted API Credentials (AES-256-GCM)
-  apiKeyEncrypted    String   @map("api_key_encrypted")
-  apiSecretEncrypted String   @map("api_secret_encrypted")
-  passphraseEncrypted String? @map("passphrase_encrypted") // For Coinbase Pro
-
-  // Connection Status
-  status        String   @default("active") // active, disabled, error
-  lastSyncAt    DateTime? @map("last_sync_at")
-  lastError     String?   @map("last_error")
-
-  // Sync Configuration
-  autoSync      Boolean  @default(true) @map("auto_sync")
-  syncInterval  Int      @default(300) @map("sync_interval") // Seconds between syncs
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("exchange_connections")
   @@index([userId])
   @@index([status])
   @@index([lastSyncAt])
+  @@map("exchange_connections")
 }
 
-// Wallet Connections for DeFi Tracking
-model WalletConnection {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-
-  // Wallet Details
-  address       String   // Wallet address (e.g., 0x123...)
-  label         String?  // User-friendly name
-  blockchain    String   // ethereum, bsc, polygon, etc.
-  walletType    String   @map("wallet_type") // metamask, walletconnect, manual
-
-  // Connection Status
-  status        String   @default("active") // active, disabled
-  lastSyncAt    DateTime? @map("last_sync_at")
-  lastError     String?   @map("last_error")
-
-  // Sync Configuration
-  autoSync      Boolean  @default(true) @map("auto_sync")
-  syncInterval  Int      @default(600) @map("sync_interval") // Seconds (10 min default)
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("wallet_connections")
-  @@unique([userId, address, blockchain])
-  @@index([userId])
-  @@index([address])
-  @@index([blockchain])
-  @@index([lastSyncAt])
-}
-
-// DeFi Protocol Tracking
 model DefiProtocol {
-  id            String   @id @default(uuid())
+  id          String         @id @default(uuid())
+  name        String
+  slug        String         @unique
+  category    String
+  blockchain  String
+  logoUrl     String?        @map("logo_url")
+  website     String?
+  tvl         Decimal?       @db.Decimal(24, 2)
+  subgraphUrl String?        @map("subgraph_url")
+  isActive    Boolean        @default(true) @map("is_active")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  positions   DefiPosition[]
 
-  // Protocol Details
-  name          String   // Uniswap, Aave, Compound, Curve, etc.
-  slug          String   @unique // uniswap-v3, aave-v2, etc.
-  category      String   // dex, lending, staking, yield, derivatives
-  blockchain    String   // ethereum, bsc, polygon, arbitrum, etc.
-
-  // Protocol Metadata
-  logoUrl       String?  @map("logo_url")
-  website       String?
-  tvl           Decimal? @db.Decimal(24, 2) // Total Value Locked
-
-  // The Graph Integration
-  subgraphUrl   String?  @map("subgraph_url") // The Graph subgraph endpoint
-  isActive      Boolean  @default(true) @map("is_active")
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  positions     DefiPosition[]
-
-  @@map("defi_protocols")
   @@index([blockchain])
   @@index([category])
   @@index([isActive])
+  @@map("defi_protocols")
 }
 
-// User's DeFi Positions
 model DefiPosition {
-  id            String   @id @default(uuid())
-  userId        String   @map("user_id")
-  protocolId    String   @map("protocol_id")
-  walletAddress String   @map("wallet_address")
-  blockchain    String   @default("ethereum") // ethereum, polygon, optimism, arbitrum, base, bsc
-
-  // Position Details
-  positionType  String   @map("position_type") // liquidity, lending, borrowing, staking, farming
-  tokenSymbol   String   @map("token_symbol") // Primary token (ETH, USDC, etc.)
-  amount        Decimal  @db.Decimal(24, 8) // Amount deposited/staked
-  valueUsd      Decimal  @db.Decimal(18, 2) @map("value_usd") // USD value
-
-  // Yield/Rewards
-  apy           Decimal? @db.Decimal(8, 4) // Annual Percentage Yield
-  rewardsEarned Decimal? @db.Decimal(24, 8) @map("rewards_earned")
-  rewardsToken  String?  @map("rewards_token") // Token rewards are paid in
-
-  // Additional Data
-  metadata      Json?    // Store protocol-specific data (pool info, etc.)
-
-  // Status
-  status        String   @default("active") // active, closed, liquidated
-  lastSyncAt    DateTime @default(now()) @map("last_sync_at")
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
+  id            String       @id @default(uuid())
+  userId        String       @map("user_id")
+  protocolId    String       @map("protocol_id")
+  walletAddress String       @map("wallet_address")
+  positionType  String       @map("position_type")
+  tokenSymbol   String       @map("token_symbol")
+  amount        Decimal      @db.Decimal(24, 8)
+  valueUsd      Decimal      @map("value_usd") @db.Decimal(18, 2)
+  apy           Decimal?     @db.Decimal(8, 4)
+  rewardsEarned Decimal?     @map("rewards_earned") @db.Decimal(24, 8)
+  rewardsToken  String?      @map("rewards_token")
+  metadata      Json?
+  status        String       @default("active")
+  lastSyncAt    DateTime     @default(now()) @map("last_sync_at")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+  blockchain    String       @default("ethereum")
   protocol      DefiProtocol @relation(fields: [protocolId], references: [id])
 
-  @@map("defi_positions")
-  @@unique([userId, protocolId, walletAddress, blockchain, tokenSymbol])
+  @@unique([userId, protocolId, walletAddress, blockchain, tokenSymbol], map: "defi_positions_userId_protocolId_walletAddress_blockchain_token")
   @@index([userId])
   @@index([protocolId])
   @@index([walletAddress])
   @@index([blockchain])
   @@index([status])
   @@index([lastSyncAt])
+  @@map("defi_positions")
 }
 
-// NFT Collections
 model NftCollection {
-  id            String   @id @default(uuid())
+  id              String   @id @default(uuid())
+  contractAddress String   @unique @map("contract_address")
+  blockchain      String
+  name            String
+  slug            String   @unique
+  symbol          String?
+  imageUrl        String?  @map("image_url")
+  description     String?
+  externalUrl     String?  @map("external_url")
+  floorPrice      Decimal? @map("floor_price") @db.Decimal(18, 8)
+  totalSupply     Int?     @map("total_supply")
+  numOwners       Int?     @map("num_owners")
+  volumeTotal     Decimal? @map("volume_total") @db.Decimal(24, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  nfts            Nft[]
 
-  // Collection Details
-  contractAddress String @unique @map("contract_address")
-  blockchain    String   // ethereum, polygon, solana, etc.
-  name          String
-  slug          String   @unique
-  symbol        String?
-
-  // Collection Metadata
-  imageUrl      String?  @map("image_url")
-  description   String?  @db.Text
-  externalUrl   String?  @map("external_url")
-
-  // Market Data
-  floorPrice    Decimal? @db.Decimal(18, 8) @map("floor_price")
-  totalSupply   Int?     @map("total_supply")
-  numOwners     Int?     @map("num_owners")
-  volumeTotal   Decimal? @db.Decimal(24, 2) @map("volume_total")
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  nfts          Nft[]
-
-  @@map("nft_collections")
   @@index([blockchain])
   @@index([slug])
+  @@map("nft_collections")
 }
 
-// Individual NFTs
 model Nft {
-  id            String   @id @default(uuid())
-  collectionId  String   @map("collection_id")
-  userId        String   @map("user_id")
-
-  // NFT Details
-  tokenId       String   @map("token_id")
+  id            String        @id @default(uuid())
+  collectionId  String        @map("collection_id")
+  userId        String        @map("user_id")
+  tokenId       String        @map("token_id")
   name          String?
-  description   String?  @db.Text
-  imageUrl      String?  @map("image_url")
-
-  // Ownership
-  walletAddress String   @map("wallet_address")
-
-  // Purchase Info
-  purchasePrice Decimal? @db.Decimal(18, 8) @map("purchase_price")
-  purchaseDate  DateTime? @map("purchase_date")
-
-  // Current Value
-  lastValuation Decimal? @db.Decimal(18, 8) @map("last_valuation")
-  valuationDate DateTime? @map("valuation_date")
-
-  // Metadata
-  attributes    Json?    // NFT traits/attributes
-
-  // Timestamps
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Relations
+  description   String?
+  imageUrl      String?       @map("image_url")
+  walletAddress String        @map("wallet_address")
+  purchasePrice Decimal?      @map("purchase_price") @db.Decimal(18, 8)
+  purchaseDate  DateTime?     @map("purchase_date")
+  lastValuation Decimal?      @map("last_valuation") @db.Decimal(18, 8)
+  valuationDate DateTime?     @map("valuation_date")
+  attributes    Json?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
   collection    NftCollection @relation(fields: [collectionId], references: [id])
 
-  @@map("nfts")
   @@unique([collectionId, tokenId, walletAddress])
   @@index([userId])
   @@index([collectionId])
   @@index([walletAddress])
+  @@map("nfts")
+}
+
+model VerifiedWallet {
+  id                     String               @id @default(uuid())
+  address                String               @unique
+  nansenLabel            String?              @map("nansen_label")
+  blockchain             String               @default("ethereum")
+  discoverySource        String               @map("discovery_source")
+  verificationDate       DateTime             @map("verification_date")
+  researchPhase          String               @default("week_1") @map("research_phase")
+  totalTradesAnalyzed    Int?                 @map("total_trades_analyzed")
+  winRate                Decimal?             @map("win_rate") @db.Decimal(5, 4)
+  avgHoldTimeDays        Decimal?             @map("avg_hold_time_days") @db.Decimal(8, 2)
+  avgPositionSizeUsd     Decimal?             @map("avg_position_size_usd") @db.Decimal(18, 2)
+  totalProfitUsd         Decimal?             @map("total_profit_usd") @db.Decimal(18, 2)
+  maxDrawdownPct         Decimal?             @map("max_drawdown_pct") @db.Decimal(5, 4)
+  sharpeRatio            Decimal?             @map("sharpe_ratio") @db.Decimal(8, 4)
+  primaryTokens          String[]             @map("primary_tokens")
+  tradingFrequency       String?              @map("trading_frequency")
+  strategyType           String?              @map("strategy_type")
+  socialLeadingScore     Decimal?             @map("social_leading_score") @db.Decimal(5, 4)
+  behaviorType           String?              @map("behavior_type")
+  avgSocialVolumeAtEntry Decimal?             @map("avg_social_volume_at_entry") @db.Decimal(18, 2)
+  avgSocialVolumeAtPeak  Decimal?             @map("avg_social_volume_at_peak") @db.Decimal(18, 2)
+  sentimentCorrelation   Decimal?             @map("sentiment_correlation") @db.Decimal(5, 4)
+  strategyArchetype      String?              @map("strategy_archetype")
+  patternNotes           String?              @map("pattern_notes")
+  authenticityScore      Int?                 @map("authenticity_score")
+  transparencyScore      Int?                 @map("transparency_score")
+  skinInGameScore        Int?                 @map("skin_in_game_score")
+  totalVerificationScore Int?                 @map("total_verification_score")
+  verificationStatus     String               @default("pending") @map("verification_status")
+  monitorActive          Boolean              @default(true) @map("monitor_active")
+  lastChecked            DateTime?            @map("last_checked")
+  checkFrequency         Int?                 @default(86400) @map("check_frequency")
+  metadata               Json?
+  createdAt              DateTime             @default(now()) @map("created_at")
+  updatedAt              DateTime             @updatedAt @map("updated_at")
+  socialSignals          WalletSocialSignal[]
+  trades                 WalletTrade[]
+
+  @@index([blockchain])
+  @@index([verificationStatus])
+  @@index([researchPhase])
+  @@index([strategyArchetype])
+  @@index([socialLeadingScore])
+  @@index([winRate])
+  @@index([monitorActive])
+  @@map("verified_wallets")
+}
+
+model WalletTrade {
+  id                   String         @id @default(uuid())
+  walletId             String         @map("wallet_id")
+  txHash               String         @unique @map("tx_hash")
+  blockchain           String         @default("ethereum")
+  timestamp            DateTime
+  action               String
+  tokenSymbol          String         @map("token_symbol")
+  tokenAddress         String?        @map("token_address")
+  amount               Decimal        @db.Decimal(24, 8)
+  priceUsd             Decimal        @map("price_usd") @db.Decimal(18, 8)
+  valueUsd             Decimal        @map("value_usd") @db.Decimal(18, 2)
+  gasFeesUsd           Decimal?       @map("gas_fees_usd") @db.Decimal(18, 2)
+  holdTimeDays         Decimal?       @map("hold_time_days") @db.Decimal(8, 2)
+  profitLossUsd        Decimal?       @map("profit_loss_usd") @db.Decimal(18, 2)
+  profitLossPct        Decimal?       @map("profit_loss_pct") @db.Decimal(10, 4)
+  wasWinner            Boolean?       @map("was_winner")
+  socialVolume         Decimal?       @map("social_volume") @db.Decimal(18, 2)
+  socialSentiment      Decimal?       @map("social_sentiment") @db.Decimal(5, 4)
+  daysBeforeSocialPeak Int?           @map("days_before_social_peak")
+  socialTiming         String?        @map("social_timing")
+  metadata             Json?
+  createdAt            DateTime       @default(now()) @map("created_at")
+  wallet               VerifiedWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([timestamp])
+  @@index([tokenSymbol])
+  @@index([action])
+  @@index([wasWinner])
+  @@map("wallet_trades")
+}
+
+model WalletSocialSignal {
+  id                 String         @id @default(uuid())
+  walletId           String         @map("wallet_id")
+  timestamp          DateTime
+  tokenSymbol        String         @map("token_symbol")
+  socialVolume       Decimal        @map("social_volume") @db.Decimal(18, 2)
+  socialScore        Decimal?       @map("social_score") @db.Decimal(8, 4)
+  sentiment          Decimal        @db.Decimal(5, 4)
+  influencerActivity Int?           @map("influencer_activity")
+  priceUsd           Decimal        @map("price_usd") @db.Decimal(18, 8)
+  priceChangePct     Decimal?       @map("price_change_pct") @db.Decimal(10, 4)
+  metadata           Json?
+  createdAt          DateTime       @default(now()) @map("created_at")
+  wallet             VerifiedWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@unique([walletId, timestamp, tokenSymbol])
+  @@index([walletId])
+  @@index([tokenSymbol])
+  @@index([timestamp])
+  @@map("wallet_social_signals")
+}
+
+model PublicTrader {
+  id                     String    @id @default(uuid())
+  name                   String
+  platform               String
+  profileUrl             String    @unique @map("profile_url")
+  handle                 String?
+  discoverySource        String    @map("discovery_source")
+  verificationDate       DateTime  @map("verification_date")
+  researchPhase          String    @default("week_1") @map("research_phase")
+  claimedWinRate         Decimal?  @map("claimed_win_rate") @db.Decimal(5, 4)
+  claimedReturns         Decimal?  @map("claimed_returns") @db.Decimal(10, 4)
+  tradingExperience      Int?      @map("trading_experience")
+  followersCount         Int?      @map("followers_count")
+  hasProofOfTrades       Boolean   @default(false) @map("has_proof_of_trades")
+  hasPublicPortfolio     Boolean   @default(false) @map("has_public_portfolio")
+  hasWalletAddress       Boolean   @default(false) @map("has_wallet_address")
+  walletAddress          String?   @map("wallet_address")
+  creatorScore           Decimal?  @map("creator_score") @db.Decimal(8, 4)
+  socialInfluence        Decimal?  @map("social_influence") @db.Decimal(18, 2)
+  avgEngagementRate      Decimal?  @map("avg_engagement_rate") @db.Decimal(5, 4)
+  primaryStrategy        String?   @map("primary_strategy")
+  assetFocus             String[]  @map("asset_focus")
+  timeframe              String?
+  authenticityScore      Int?      @map("authenticity_score")
+  transparencyScore      Int?      @map("transparency_score")
+  skinInGameScore        Int?      @map("skin_in_game_score")
+  totalVerificationScore Int?      @map("total_verification_score")
+  verificationStatus     String    @default("pending") @map("verification_status")
+  monitorActive          Boolean   @default(true) @map("monitor_active")
+  lastChecked            DateTime? @map("last_checked")
+  researchNotes          String?   @map("research_notes")
+  metadata               Json?
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  @@index([platform])
+  @@index([verificationStatus])
+  @@index([researchPhase])
+  @@index([hasProofOfTrades])
+  @@map("public_traders")
+}
+
+model ResearchSource {
+  id                  String    @id @default(uuid())
+  title               String
+  sourceType          String    @map("source_type")
+  url                 String    @unique
+  authors             String[]
+  publishedDate       DateTime? @map("published_date")
+  venue               String?
+  citations           Int?
+  abstract            String?
+  keyFindings         String?   @map("key_findings")
+  strategyType        String?   @map("strategy_type")
+  assetClass          String[]  @map("asset_class")
+  reportedSharpe      Decimal?  @map("reported_sharpe") @db.Decimal(8, 4)
+  reportedReturns     Decimal?  @map("reported_returns") @db.Decimal(10, 4)
+  backtestPeriod      String?   @map("backtest_period")
+  discoveryDate       DateTime  @map("discovery_date")
+  researchPhase       String    @default("week_1") @map("research_phase")
+  relevanceScore      Int?      @map("relevance_score")
+  extractedPatterns   String?   @map("extracted_patterns")
+  implementationNotes String?   @map("implementation_notes")
+  metadata            Json?
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([sourceType])
+  @@index([researchPhase])
+  @@index([relevanceScore])
+  @@index([publishedDate])
+  @@map("research_sources")
+}
+
+model TradingStrategy {
+  id                  String              @id @default(uuid())
+  name                String              @unique
+  archetype           String
+  description         String
+  timeframe           String
+  avgHoldTime         String              @map("avg_hold_time")
+  winRate             Decimal?            @map("win_rate") @db.Decimal(5, 4)
+  riskRewardRatio     Decimal?            @map("risk_reward_ratio") @db.Decimal(5, 2)
+  entryConditions     String[]            @map("entry_conditions")
+  exitConditions      String[]            @map("exit_conditions")
+  technicalIndicators String[]            @map("technical_indicators")
+  onChainMetrics      String[]            @map("on_chain_metrics")
+  socialSignals       String[]            @map("social_signals")
+  sourceWalletIds     String[]            @map("source_wallet_ids")
+  sourceTraderIds     String[]            @map("source_trader_ids")
+  sourceResearchIds   String[]            @map("source_research_ids")
+  evidenceCount       Int                 @map("evidence_count")
+  performanceScore    Decimal?            @map("performance_score") @db.Decimal(5, 2)
+  practicalityScore   Decimal?            @map("practicality_score") @db.Decimal(5, 2)
+  verifiabilityScore  Decimal?            @map("verifiability_score") @db.Decimal(5, 2)
+  totalScore          Decimal?            @map("total_score") @db.Decimal(5, 2)
+  status              String              @default("identified")
+  priority            Int?
+  researchNotes       String?             @map("research_notes")
+  metadata            Json?
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+  backtest_configs    BacktestConfig[]
+  walkforward_periods WalkforwardPeriod[]
+  live_positions      LivePosition[]
+  live_orders         LiveOrder[]
+  execution_state     StrategyExecutionState?
+  trading_signals     TradingSignal[]
+
+  @@index([archetype])
+  @@index([status])
+  @@index([totalScore])
+  @@index([priority])
+  @@map("trading_strategies")
+}
+
+model BacktestConfig {
+  id                                                                          String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  strategyId                                                                  String              @map("strategy_id")
+  name                                                                        String              @db.VarChar(255)
+  description                                                                 String?
+  startDate                                                                   DateTime            @map("start_date") @db.Timestamp(6)
+  endDate                                                                     DateTime            @map("end_date") @db.Timestamp(6)
+  timeframe                                                                   String              @db.VarChar(20)
+  initialCapital                                                              Decimal             @default(10000.00) @map("initial_capital") @db.Decimal(18, 2)
+  positionSizePct                                                             Decimal             @default(0.05) @map("position_size_pct") @db.Decimal(5, 4)
+  maxPortfolioHeat                                                            Decimal             @default(0.25) @map("max_portfolio_heat") @db.Decimal(5, 4)
+  maxDrawdownLimit                                                            Decimal             @default(0.20) @map("max_drawdown_limit") @db.Decimal(5, 4)
+  makerFee                                                                    Decimal             @default(0.001) @map("maker_fee") @db.Decimal(6, 5)
+  takerFee                                                                    Decimal             @default(0.001) @map("taker_fee") @db.Decimal(6, 5)
+  slippagePct                                                                 Decimal             @default(0.005) @map("slippage_pct") @db.Decimal(6, 5)
+  latencyMs                                                                   Int?                @default(100) @map("latency_ms")
+  status                                                                      String              @default("pending") @db.VarChar(50)
+  totalTrades                                                                 Int?                @map("total_trades")
+  winRate                                                                     Decimal?            @map("win_rate") @db.Decimal(5, 4)
+  totalReturnPct                                                              Decimal?            @map("total_return_pct") @db.Decimal(10, 4)
+  sharpeRatio                                                                 Decimal?            @map("sharpe_ratio") @db.Decimal(8, 4)
+  sortinoRatio                                                                Decimal?            @map("sortino_ratio") @db.Decimal(8, 4)
+  maxDrawdownPct                                                              Decimal?            @map("max_drawdown_pct") @db.Decimal(5, 4)
+  profitFactor                                                                Decimal?            @map("profit_factor") @db.Decimal(8, 4)
+  startedAt                                                                   DateTime?           @map("started_at") @db.Timestamp(6)
+  completedAt                                                                 DateTime?           @map("completed_at") @db.Timestamp(6)
+  errorMessage                                                                String?             @map("error_message")
+  metadata                                                                    Json?
+  createdAt                                                                   DateTime?           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                                                   DateTime?           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  calmarRatio                                                                 Decimal?            @map("calmar_ratio") @db.Decimal(8, 4)
+  ulcerIndex                                                                  Decimal?            @map("ulcer_index") @db.Decimal(8, 4)
+  kellyCriterion                                                              Decimal?            @map("kelly_criterion") @db.Decimal(5, 4)
+  expectancy                                                                  Decimal?            @map("expectancy") @db.Decimal(18, 2)
+  payoffRatio                                                                 Decimal?            @map("payoff_ratio") @db.Decimal(8, 4)
+  avgDrawdownPct                                                              Decimal?            @map("avg_drawdown_pct") @db.Decimal(5, 4)
+  maxDrawdownDuration                                                         Decimal?            @map("max_drawdown_duration") @db.Decimal(10, 2)
+  recoveryFactor                                                              Decimal?            @map("recovery_factor") @db.Decimal(8, 4)
+  consecutiveWins                                                             Int?                @map("consecutive_wins")
+  consecutiveLosses                                                           Int?                @map("consecutive_losses")
+  winStreakAvg                                                                Decimal?            @map("win_streak_avg") @db.Decimal(5, 2)
+  loseStreakAvg                                                               Decimal?            @map("lose_streak_avg") @db.Decimal(5, 2)
+  trading_strategies                                                          TradingStrategy     @relation(fields: [strategyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  metrics                                                                     BacktestMetric[]
+  trades                                                                      BacktestTrade[]
+  walkforward_periods_walkforward_periods_test_backtest_idTobacktest_configs  WalkforwardPeriod[] @relation("walkforward_periods_test_backtest_idTobacktest_configs")
+  walkforward_periods_walkforward_periods_train_backtest_idTobacktest_configs WalkforwardPeriod[] @relation("walkforward_periods_train_backtest_idTobacktest_configs")
+
+  @@index([strategyId], map: "idx_backtest_configs_strategy")
+  @@index([status], map: "idx_backtest_configs_status")
+  @@index([startDate, endDate], map: "idx_backtest_configs_date_range")
+  @@map("backtest_configs")
+}
+
+model BacktestTrade {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  backtestId       String         @map("backtest_id") @db.Uuid
+  tradeNumber      Int            @map("trade_number")
+  symbol           String         @db.VarChar(50)
+  entryTime        DateTime       @map("entry_time") @db.Timestamp(6)
+  entryPrice       Decimal        @map("entry_price") @db.Decimal(18, 8)
+  entryReason      String?        @map("entry_reason")
+  positionSize     Decimal        @map("position_size") @db.Decimal(18, 8)
+  positionValueUsd Decimal        @map("position_value_usd") @db.Decimal(18, 2)
+  exitTime         DateTime?      @map("exit_time") @db.Timestamp(6)
+  exitPrice        Decimal?       @map("exit_price") @db.Decimal(18, 8)
+  exitReason       String?        @map("exit_reason") @db.VarChar(100)
+  pnlUsd           Decimal?       @map("pnl_usd") @db.Decimal(18, 2)
+  pnlPct           Decimal?       @map("pnl_pct") @db.Decimal(10, 4)
+  feesPaid         Decimal?       @map("fees_paid") @db.Decimal(18, 2)
+  slippageCost     Decimal?       @map("slippage_cost") @db.Decimal(18, 2)
+  holdTimeHours    Decimal?       @map("hold_time_hours") @db.Decimal(10, 2)
+  stopLossPrice    Decimal?       @map("stop_loss_price") @db.Decimal(18, 8)
+  takeProfitPrice  Decimal?       @map("take_profit_price") @db.Decimal(18, 8)
+  riskRewardRatio  Decimal?       @map("risk_reward_ratio") @db.Decimal(8, 4)
+  status           String         @default("open") @db.VarChar(50)
+  marketContext    Json?          @map("market_context")
+  createdAt        DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt        DateTime?      @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  backtest         BacktestConfig @relation(fields: [backtestId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([backtestId], map: "idx_backtest_trades_backtest")
+  @@index([symbol], map: "idx_backtest_trades_symbol")
+  @@index([entryTime], map: "idx_backtest_trades_entry_time")
+  @@index([status], map: "idx_backtest_trades_status")
+  @@map("backtest_trades")
+}
+
+model BacktestMetric {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  backtestId          String         @map("backtest_id") @db.Uuid
+  timestamp           DateTime       @db.Timestamp(6)
+  portfolioValue      Decimal        @map("portfolio_value") @db.Decimal(18, 2)
+  cashBalance         Decimal        @map("cash_balance") @db.Decimal(18, 2)
+  positionsValue      Decimal        @map("positions_value") @db.Decimal(18, 2)
+  totalReturnPct      Decimal        @map("total_return_pct") @db.Decimal(10, 4)
+  drawdownFromPeakPct Decimal        @map("drawdown_from_peak_pct") @db.Decimal(5, 4)
+  sharpeRatio         Decimal?       @map("sharpe_ratio") @db.Decimal(8, 4)
+  openPositions       Int            @default(0) @map("open_positions")
+  portfolioHeatPct    Decimal?       @map("portfolio_heat_pct") @db.Decimal(5, 4)
+  totalTrades         Int            @default(0) @map("total_trades")
+  winningTrades       Int            @default(0) @map("winning_trades")
+  losingTrades        Int            @default(0) @map("losing_trades")
+  createdAt           DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  backtest            BacktestConfig @relation(fields: [backtestId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([backtestId], map: "idx_backtest_metrics_backtest")
+  @@index([timestamp], map: "idx_backtest_metrics_timestamp")
+  @@map("backtest_metrics")
+}
+
+model MarketDataOhlcv {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  symbol      String    @db.VarChar(50)
+  timeframe   String    @db.VarChar(20)
+  timestamp   DateTime  @db.Timestamp(6)
+  open        Decimal   @db.Decimal(18, 8)
+  high        Decimal   @db.Decimal(18, 8)
+  low         Decimal   @db.Decimal(18, 8)
+  close       Decimal   @db.Decimal(18, 8)
+  volume      Decimal   @db.Decimal(20, 8)
+  quoteVolume Decimal?  @map("quote_volume") @db.Decimal(20, 2)
+  tradeCount  Int?      @map("trade_count")
+  dataSource  String?   @map("data_source") @db.VarChar(100)
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@unique([symbol, timeframe, timestamp])
+  @@index([symbol, timeframe, timestamp], map: "idx_market_data_ohlcv_symbol_time")
+  @@index([timestamp], map: "idx_market_data_ohlcv_timestamp")
+  @@map("market_data_ohlcv")
+}
+
+model TechnicalIndicator {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  symbol          String    @db.VarChar(50)
+  timeframe       String    @db.VarChar(20)
+  timestamp       DateTime  @db.Timestamp(6)
+  ema9            Decimal?  @map("ema_9") @db.Decimal(18, 8)
+  ema20           Decimal?  @map("ema_20") @db.Decimal(18, 8)
+  ema50           Decimal?  @map("ema_50") @db.Decimal(18, 8)
+  ema200          Decimal?  @map("ema_200") @db.Decimal(18, 8)
+  sma20           Decimal?  @map("sma_20") @db.Decimal(18, 8)
+  sma50           Decimal?  @map("sma_50") @db.Decimal(18, 8)
+  rsi14           Decimal?  @map("rsi_14") @db.Decimal(5, 2)
+  rsi9            Decimal?  @map("rsi_9") @db.Decimal(5, 2)
+  macdLine        Decimal?  @map("macd_line") @db.Decimal(18, 8)
+  macdSignal      Decimal?  @map("macd_signal") @db.Decimal(18, 8)
+  macdHistogram   Decimal?  @map("macd_histogram") @db.Decimal(18, 8)
+  atr14           Decimal?  @map("atr_14") @db.Decimal(18, 8)
+  bollingerUpper  Decimal?  @map("bollinger_upper") @db.Decimal(18, 8)
+  bollingerMiddle Decimal?  @map("bollinger_middle") @db.Decimal(18, 8)
+  bollingerLower  Decimal?  @map("bollinger_lower") @db.Decimal(18, 8)
+  volumeSma20     Decimal?  @map("volume_sma_20") @db.Decimal(20, 8)
+  volumeRatio     Decimal?  @map("volume_ratio") @db.Decimal(8, 4)
+  adx14           Decimal?  @map("adx_14") @db.Decimal(5, 2)
+  supportLevel    Decimal?  @map("support_level") @db.Decimal(18, 8)
+  resistanceLevel Decimal?  @map("resistance_level") @db.Decimal(18, 8)
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@unique([symbol, timeframe, timestamp])
+  @@index([symbol, timeframe, timestamp], map: "idx_technical_indicators_symbol_time")
+  @@index([timestamp], map: "idx_technical_indicators_timestamp")
+  @@map("technical_indicators")
+}
+
+model OnchainMetric {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  protocolName      String    @map("protocol_name") @db.VarChar(100)
+  metricType        String    @map("metric_type") @db.VarChar(100)
+  timestamp         DateTime  @db.Timestamp(6)
+  valueNumeric      Decimal?  @map("value_numeric") @db.Decimal(20, 2)
+  valuePctChange24h Decimal?  @map("value_pct_change_24h") @db.Decimal(10, 4)
+  valuePctChange7d  Decimal?  @map("value_pct_change_7d") @db.Decimal(10, 4)
+  metadata          Json?
+  dataSource        String?   @map("data_source") @db.VarChar(100)
+  createdAt         DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@unique([protocolName, metricType, timestamp])
+  @@index([protocolName], map: "idx_onchain_metrics_protocol")
+  @@index([metricType], map: "idx_onchain_metrics_type")
+  @@index([timestamp], map: "idx_onchain_metrics_timestamp")
+  @@map("onchain_metrics")
+}
+
+model SocialMetric {
+  id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  symbol                   String    @db.VarChar(50)
+  timestamp                DateTime  @db.Timestamp(6)
+  socialVolume             Int?      @map("social_volume")
+  socialVolume24hChangePct Decimal?  @map("social_volume_24h_change_pct") @db.Decimal(10, 4)
+  sentimentScore           Decimal?  @map("sentiment_score") @db.Decimal(5, 4)
+  galaxyScore              Decimal?  @map("galaxy_score") @db.Decimal(8, 4)
+  altRank                  Int?      @map("alt_rank")
+  priceUsd                 Decimal?  @map("price_usd") @db.Decimal(18, 8)
+  priceBtc                 Decimal?  @map("price_btc") @db.Decimal(18, 8)
+  metadata                 Json?
+  dataSource               String?   @default("lunarcrush") @map("data_source") @db.VarChar(100)
+  createdAt                DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@unique([symbol, timestamp])
+  @@index([symbol], map: "idx_social_metrics_symbol")
+  @@index([timestamp], map: "idx_social_metrics_timestamp")
+  @@map("social_metrics")
+}
+
+model WalkforwardPeriod {
+  id                                                                       String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  strategyId                                                               String          @map("strategy_id")
+  periodNumber                                                             Int             @map("period_number")
+  trainStart                                                               DateTime        @map("train_start") @db.Timestamp(6)
+  trainEnd                                                                 DateTime        @map("train_end") @db.Timestamp(6)
+  testStart                                                                DateTime        @map("test_start") @db.Timestamp(6)
+  testEnd                                                                  DateTime        @map("test_end") @db.Timestamp(6)
+  trainBacktestId                                                          String?         @map("train_backtest_id") @db.Uuid
+  testBacktestId                                                           String?         @map("test_backtest_id") @db.Uuid
+  trainSharpe                                                              Decimal?        @map("train_sharpe") @db.Decimal(8, 4)
+  testSharpe                                                               Decimal?        @map("test_sharpe") @db.Decimal(8, 4)
+  sharpeDegradationPct                                                     Decimal?        @map("sharpe_degradation_pct") @db.Decimal(10, 4)
+  status                                                                   String?         @default("pending") @db.VarChar(50)
+  createdAt                                                                DateTime?       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt                                                                DateTime?       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  trading_strategies                                                       TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  backtest_configs_walkforward_periods_test_backtest_idTobacktest_configs  BacktestConfig? @relation("walkforward_periods_test_backtest_idTobacktest_configs", fields: [testBacktestId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  backtest_configs_walkforward_periods_train_backtest_idTobacktest_configs BacktestConfig? @relation("walkforward_periods_train_backtest_idTobacktest_configs", fields: [trainBacktestId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([strategyId, periodNumber])
+  @@index([strategyId], map: "idx_walkforward_periods_strategy")
+  @@map("walkforward_periods")
+}
+
+// ========== PHASE 2: LIVE TRADING TABLES ==========
+
+model LivePosition {
+  id            String    @id @default(uuid())
+  strategyId    String    @map("strategy_id")
+  exchange      String    @db.VarChar(50)
+  symbol        String    @db.VarChar(50)
+  side          String    @db.VarChar(10)
+  entryPrice    Decimal   @map("entry_price") @db.Decimal(18, 8)
+  quantity      Decimal   @db.Decimal(20, 8)
+  status        String    @db.VarChar(20)
+  pnl           Decimal   @default(0) @db.Decimal(18, 2)
+  pnlPercent    Decimal?  @map("pnl_percent") @db.Decimal(10, 4)
+  stopLoss      Decimal?  @map("stop_loss") @db.Decimal(18, 8)
+  takeProfit    Decimal?  @map("take_profit") @db.Decimal(18, 8)
+  entryOrderId  String?   @map("entry_order_id")
+  exitOrderId   String?   @map("exit_order_id")
+  closeReason   String?   @map("close_reason") @db.VarChar(100)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  closedAt      DateTime? @map("closed_at")
+  strategy      TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId], map: "idx_live_positions_strategy")
+  @@index([status], map: "idx_live_positions_status")
+  @@index([exchange], map: "idx_live_positions_exchange")
+  @@index([symbol], map: "idx_live_positions_symbol")
+  @@index([createdAt], map: "idx_live_positions_created")
+  @@map("live_positions")
+}
+
+model LiveOrder {
+  id           String    @id @default(uuid())
+  strategyId   String    @map("strategy_id")
+  positionId   String?   @map("position_id")
+  exchange     String    @db.VarChar(50)
+  symbol       String    @db.VarChar(50)
+  orderType    String    @map("order_type") @db.VarChar(20)
+  side         String    @db.VarChar(10)
+  amount       Decimal   @db.Decimal(20, 8)
+  price        Decimal?  @db.Decimal(18, 8)
+  stopPrice    Decimal?  @map("stop_price") @db.Decimal(18, 8)
+  status       String    @db.VarChar(20)
+  filled       Decimal   @default(0) @db.Decimal(20, 8)
+  remaining    Decimal   @db.Decimal(20, 8)
+  avgFillPrice Decimal?  @map("avg_fill_price") @db.Decimal(18, 8)
+  fee          Decimal?  @db.Decimal(18, 8)
+  feeCurrency  String?   @map("fee_currency") @db.VarChar(20)
+  exchangeOrderId String? @map("exchange_order_id")
+  errorMessage String?   @map("error_message")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  filledAt     DateTime? @map("filled_at")
+  canceledAt   DateTime? @map("canceled_at")
+  strategy     TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId], map: "idx_live_orders_strategy")
+  @@index([positionId], map: "idx_live_orders_position")
+  @@index([status], map: "idx_live_orders_status")
+  @@index([exchange], map: "idx_live_orders_exchange")
+  @@index([symbol], map: "idx_live_orders_symbol")
+  @@index([createdAt], map: "idx_live_orders_created")
+  @@map("live_orders")
+}
+
+model StrategyExecutionState {
+  id                    String    @id @default(uuid())
+  strategyId            String    @unique @map("strategy_id")
+  isActive              Boolean   @default(false) @map("is_active")
+  mode                  String    @default("paper") @db.VarChar(20)
+  currentCapital        Decimal   @map("current_capital") @db.Decimal(18, 2)
+  allocatedCapital      Decimal   @map("allocated_capital") @db.Decimal(18, 2)
+  totalPnl              Decimal   @default(0) @map("total_pnl") @db.Decimal(18, 2)
+  realizedPnl           Decimal   @default(0) @map("realized_pnl") @db.Decimal(18, 2)
+  unrealizedPnl         Decimal   @default(0) @map("unrealized_pnl") @db.Decimal(18, 2)
+  totalTrades           Int       @default(0) @map("total_trades")
+  winningTrades         Int       @default(0) @map("winning_trades")
+  losingTrades          Int       @default(0) @map("losing_trades")
+  winRate               Decimal?  @map("win_rate") @db.Decimal(5, 4)
+  sharpeRatio           Decimal?  @map("sharpe_ratio") @db.Decimal(8, 4)
+  maxDrawdown           Decimal?  @map("max_drawdown") @db.Decimal(5, 4)
+  dailyLossLimit        Decimal   @default(0.05) @map("daily_loss_limit") @db.Decimal(5, 4)
+  dailyLossCurrent      Decimal   @default(0) @map("daily_loss_current") @db.Decimal(18, 2)
+  maxPositionSize       Decimal   @default(0.20) @map("max_position_size") @db.Decimal(5, 4)
+  maxOpenPositions      Int       @default(5) @map("max_open_positions")
+  currentOpenPositions  Int       @default(0) @map("current_open_positions")
+  lastTradeAt           DateTime? @map("last_trade_at")
+  lastPnlUpdateAt       DateTime? @map("last_pnl_update_at")
+  emergencyStopTriggered Boolean  @default(false) @map("emergency_stop_triggered")
+  stopReason            String?   @map("stop_reason")
+  metadata              Json?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  strategy              TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([isActive], map: "idx_strategy_execution_state_active")
+  @@index([mode], map: "idx_strategy_execution_state_mode")
+  @@map("strategy_execution_state")
+}
+
+model AccountBalance {
+  id           String   @id @default(uuid())
+  exchange     String   @db.VarChar(50)
+  asset        String   @db.VarChar(20)
+  free         Decimal  @db.Decimal(20, 8)
+  locked       Decimal  @db.Decimal(20, 8)
+  total        Decimal  @db.Decimal(20, 8)
+  valueUsd     Decimal? @map("value_usd") @db.Decimal(18, 2)
+  timestamp    DateTime
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@unique([exchange, asset, timestamp])
+  @@index([exchange], map: "idx_account_balances_exchange")
+  @@index([asset], map: "idx_account_balances_asset")
+  @@index([timestamp], map: "idx_account_balances_timestamp")
+  @@map("account_balances")
+}
+
+model TradingSignal {
+  id              String    @id @default(uuid())
+  strategyId      String    @map("strategy_id")
+  symbol          String    @db.VarChar(50)
+  signalType      String    @map("signal_type") @db.VarChar(20)
+  action          String    @db.VarChar(10)
+  strength        Decimal   @db.Decimal(5, 4)
+  entryPrice      Decimal?  @map("entry_price") @db.Decimal(18, 8)
+  stopLoss        Decimal?  @map("stop_loss") @db.Decimal(18, 8)
+  takeProfit      Decimal?  @map("take_profit") @db.Decimal(18, 8)
+  positionSize    Decimal?  @map("position_size") @db.Decimal(5, 4)
+  reasoning       String?
+  metadata        Json?
+  executed        Boolean   @default(false)
+  executedAt      DateTime? @map("executed_at")
+  positionId      String?   @map("position_id")
+  expiresAt       DateTime? @map("expires_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  strategy        TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId], map: "idx_trading_signals_strategy")
+  @@index([symbol], map: "idx_trading_signals_symbol")
+  @@index([executed], map: "idx_trading_signals_executed")
+  @@index([createdAt], map: "idx_trading_signals_created")
+  @@map("trading_signals")
 }
