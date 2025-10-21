@@ -37,26 +37,48 @@ model User {
 }
 
 model Token {
-  id              String        @id @default(uuid())
-  symbol          String        @unique
+  id              String                @id @default(uuid())
+  symbol          String                @unique
   name            String
-  coingeckoId     String?       @unique @map("coingecko_id")
+  coingeckoId     String?               @unique @map("coingecko_id")
   blockchain      String
-  contractAddress String?       @map("contract_address")
+  contractAddress String?               @map("contract_address")
   decimals        Int?
-  logoUrl         String?       @map("logo_url")
-  currentPrice    Decimal?      @map("current_price") @db.Decimal(18, 8)
-  marketCap       Decimal?      @map("market_cap") @db.Decimal(24, 2)
-  volume24h       Decimal?      @map("volume_24h") @db.Decimal(24, 2)
-  priceChange24h  Decimal?      @map("price_change_24h") @db.Decimal(10, 4)
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+  logoUrl         String?               @map("logo_url")
+  currentPrice    Decimal?              @map("current_price") @db.Decimal(18, 8)
+  marketCap       Decimal?              @map("market_cap") @db.Decimal(24, 2)
+  volume24h       Decimal?              @map("volume_24h") @db.Decimal(24, 2)
+  priceChange24h  Decimal?              @map("price_change_24h") @db.Decimal(10, 4)
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
   holdings        Holding[]
   predictions     Prediction[]
   riskScores      RiskScore[]
   transactions    Transaction[]
+  unlockSchedules TokenUnlockSchedule[]
 
   @@map("tokens")
+}
+
+model TokenUnlockSchedule {
+  id                 String   @id @default(uuid())
+  tokenId            String   @map("token_id")
+  unlockDate         DateTime @map("unlock_date")
+  unlockAmount       Decimal  @map("unlock_amount") @db.Decimal(24, 8)
+  percentOfSupply    Decimal  @map("percent_of_supply") @db.Decimal(5, 2)
+  circulatingSupply  Decimal  @map("circulating_supply") @db.Decimal(24, 8)
+  category           String?  @db.VarChar(100)
+  description        String?
+  source             String   @db.VarChar(100)
+  metadata           Json?
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  token              Token    @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+  @@index([tokenId], map: "idx_token_unlock_schedule_token")
+  @@index([unlockDate], map: "idx_token_unlock_schedule_date")
+  @@index([percentOfSupply], map: "idx_token_unlock_schedule_percent")
+  @@map("token_unlock_schedules")
 }
 
 model Portfolio {
@@ -596,33 +618,33 @@ model ResearchSource {
 }
 
 model TradingStrategy {
-  id                  String              @id @default(uuid())
-  name                String              @unique
+  id                  String                  @id @default(uuid())
+  name                String                  @unique
   archetype           String
   description         String
   timeframe           String
-  avgHoldTime         String              @map("avg_hold_time")
-  winRate             Decimal?            @map("win_rate") @db.Decimal(5, 4)
-  riskRewardRatio     Decimal?            @map("risk_reward_ratio") @db.Decimal(5, 2)
-  entryConditions     String[]            @map("entry_conditions")
-  exitConditions      String[]            @map("exit_conditions")
-  technicalIndicators String[]            @map("technical_indicators")
-  onChainMetrics      String[]            @map("on_chain_metrics")
-  socialSignals       String[]            @map("social_signals")
-  sourceWalletIds     String[]            @map("source_wallet_ids")
-  sourceTraderIds     String[]            @map("source_trader_ids")
-  sourceResearchIds   String[]            @map("source_research_ids")
-  evidenceCount       Int                 @map("evidence_count")
-  performanceScore    Decimal?            @map("performance_score") @db.Decimal(5, 2)
-  practicalityScore   Decimal?            @map("practicality_score") @db.Decimal(5, 2)
-  verifiabilityScore  Decimal?            @map("verifiability_score") @db.Decimal(5, 2)
-  totalScore          Decimal?            @map("total_score") @db.Decimal(5, 2)
-  status              String              @default("identified")
+  avgHoldTime         String                  @map("avg_hold_time")
+  winRate             Decimal?                @map("win_rate") @db.Decimal(5, 4)
+  riskRewardRatio     Decimal?                @map("risk_reward_ratio") @db.Decimal(5, 2)
+  entryConditions     String[]                @map("entry_conditions")
+  exitConditions      String[]                @map("exit_conditions")
+  technicalIndicators String[]                @map("technical_indicators")
+  onChainMetrics      String[]                @map("on_chain_metrics")
+  socialSignals       String[]                @map("social_signals")
+  sourceWalletIds     String[]                @map("source_wallet_ids")
+  sourceTraderIds     String[]                @map("source_trader_ids")
+  sourceResearchIds   String[]                @map("source_research_ids")
+  evidenceCount       Int                     @map("evidence_count")
+  performanceScore    Decimal?                @map("performance_score") @db.Decimal(5, 2)
+  practicalityScore   Decimal?                @map("practicality_score") @db.Decimal(5, 2)
+  verifiabilityScore  Decimal?                @map("verifiability_score") @db.Decimal(5, 2)
+  totalScore          Decimal?                @map("total_score") @db.Decimal(5, 2)
+  status              String                  @default("identified")
   priority            Int?
-  researchNotes       String?             @map("research_notes")
+  researchNotes       String?                 @map("research_notes")
   metadata            Json?
-  createdAt           DateTime            @default(now()) @map("created_at")
-  updatedAt           DateTime            @updatedAt @map("updated_at")
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
   backtest_configs    BacktestConfig[]
   walkforward_periods WalkforwardPeriod[]
   live_positions      LivePosition[]
@@ -870,25 +892,25 @@ model WalkforwardPeriod {
 // ========== PHASE 2: LIVE TRADING TABLES ==========
 
 model LivePosition {
-  id            String    @id @default(uuid())
-  strategyId    String    @map("strategy_id")
-  exchange      String    @db.VarChar(50)
-  symbol        String    @db.VarChar(50)
-  side          String    @db.VarChar(10)
-  entryPrice    Decimal   @map("entry_price") @db.Decimal(18, 8)
-  quantity      Decimal   @db.Decimal(20, 8)
-  status        String    @db.VarChar(20)
-  pnl           Decimal   @default(0) @db.Decimal(18, 2)
-  pnlPercent    Decimal?  @map("pnl_percent") @db.Decimal(10, 4)
-  stopLoss      Decimal?  @map("stop_loss") @db.Decimal(18, 8)
-  takeProfit    Decimal?  @map("take_profit") @db.Decimal(18, 8)
-  entryOrderId  String?   @map("entry_order_id")
-  exitOrderId   String?   @map("exit_order_id")
-  closeReason   String?   @map("close_reason") @db.VarChar(100)
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  closedAt      DateTime? @map("closed_at")
-  strategy      TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  id           String          @id @default(uuid())
+  strategyId   String          @map("strategy_id")
+  exchange     String          @db.VarChar(50)
+  symbol       String          @db.VarChar(50)
+  side         String          @db.VarChar(10)
+  entryPrice   Decimal         @map("entry_price") @db.Decimal(18, 8)
+  quantity     Decimal         @db.Decimal(20, 8)
+  status       String          @db.VarChar(20)
+  pnl          Decimal         @default(0) @db.Decimal(18, 2)
+  pnlPercent   Decimal?        @map("pnl_percent") @db.Decimal(10, 4)
+  stopLoss     Decimal?        @map("stop_loss") @db.Decimal(18, 8)
+  takeProfit   Decimal?        @map("take_profit") @db.Decimal(18, 8)
+  entryOrderId String?         @map("entry_order_id")
+  exitOrderId  String?         @map("exit_order_id")
+  closeReason  String?         @map("close_reason") @db.VarChar(100)
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+  closedAt     DateTime?       @map("closed_at")
+  strategy     TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
 
   @@index([strategyId], map: "idx_live_positions_strategy")
   @@index([status], map: "idx_live_positions_status")
@@ -899,29 +921,29 @@ model LivePosition {
 }
 
 model LiveOrder {
-  id           String    @id @default(uuid())
-  strategyId   String    @map("strategy_id")
-  positionId   String?   @map("position_id")
-  exchange     String    @db.VarChar(50)
-  symbol       String    @db.VarChar(50)
-  orderType    String    @map("order_type") @db.VarChar(20)
-  side         String    @db.VarChar(10)
-  amount       Decimal   @db.Decimal(20, 8)
-  price        Decimal?  @db.Decimal(18, 8)
-  stopPrice    Decimal?  @map("stop_price") @db.Decimal(18, 8)
-  status       String    @db.VarChar(20)
-  filled       Decimal   @default(0) @db.Decimal(20, 8)
-  remaining    Decimal   @db.Decimal(20, 8)
-  avgFillPrice Decimal?  @map("avg_fill_price") @db.Decimal(18, 8)
-  fee          Decimal?  @db.Decimal(18, 8)
-  feeCurrency  String?   @map("fee_currency") @db.VarChar(20)
-  exchangeOrderId String? @map("exchange_order_id")
-  errorMessage String?   @map("error_message")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  filledAt     DateTime? @map("filled_at")
-  canceledAt   DateTime? @map("canceled_at")
-  strategy     TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  id              String          @id @default(uuid())
+  strategyId      String          @map("strategy_id")
+  positionId      String?         @map("position_id")
+  exchange        String          @db.VarChar(50)
+  symbol          String          @db.VarChar(50)
+  orderType       String          @map("order_type") @db.VarChar(20)
+  side            String          @db.VarChar(10)
+  amount          Decimal         @db.Decimal(20, 8)
+  price           Decimal?        @db.Decimal(18, 8)
+  stopPrice       Decimal?        @map("stop_price") @db.Decimal(18, 8)
+  status          String          @db.VarChar(20)
+  filled          Decimal         @default(0) @db.Decimal(20, 8)
+  remaining       Decimal         @db.Decimal(20, 8)
+  avgFillPrice    Decimal?        @map("avg_fill_price") @db.Decimal(18, 8)
+  fee             Decimal?        @db.Decimal(18, 8)
+  feeCurrency     String?         @map("fee_currency") @db.VarChar(20)
+  exchangeOrderId String?         @map("exchange_order_id")
+  errorMessage    String?         @map("error_message")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  filledAt        DateTime?       @map("filled_at")
+  canceledAt      DateTime?       @map("canceled_at")
+  strategy        TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
 
   @@index([strategyId], map: "idx_live_orders_strategy")
   @@index([positionId], map: "idx_live_orders_position")
@@ -933,34 +955,34 @@ model LiveOrder {
 }
 
 model StrategyExecutionState {
-  id                    String    @id @default(uuid())
-  strategyId            String    @unique @map("strategy_id")
-  isActive              Boolean   @default(false) @map("is_active")
-  mode                  String    @default("paper") @db.VarChar(20)
-  currentCapital        Decimal   @map("current_capital") @db.Decimal(18, 2)
-  allocatedCapital      Decimal   @map("allocated_capital") @db.Decimal(18, 2)
-  totalPnl              Decimal   @default(0) @map("total_pnl") @db.Decimal(18, 2)
-  realizedPnl           Decimal   @default(0) @map("realized_pnl") @db.Decimal(18, 2)
-  unrealizedPnl         Decimal   @default(0) @map("unrealized_pnl") @db.Decimal(18, 2)
-  totalTrades           Int       @default(0) @map("total_trades")
-  winningTrades         Int       @default(0) @map("winning_trades")
-  losingTrades          Int       @default(0) @map("losing_trades")
-  winRate               Decimal?  @map("win_rate") @db.Decimal(5, 4)
-  sharpeRatio           Decimal?  @map("sharpe_ratio") @db.Decimal(8, 4)
-  maxDrawdown           Decimal?  @map("max_drawdown") @db.Decimal(5, 4)
-  dailyLossLimit        Decimal   @default(0.05) @map("daily_loss_limit") @db.Decimal(5, 4)
-  dailyLossCurrent      Decimal   @default(0) @map("daily_loss_current") @db.Decimal(18, 2)
-  maxPositionSize       Decimal   @default(0.20) @map("max_position_size") @db.Decimal(5, 4)
-  maxOpenPositions      Int       @default(5) @map("max_open_positions")
-  currentOpenPositions  Int       @default(0) @map("current_open_positions")
-  lastTradeAt           DateTime? @map("last_trade_at")
-  lastPnlUpdateAt       DateTime? @map("last_pnl_update_at")
-  emergencyStopTriggered Boolean  @default(false) @map("emergency_stop_triggered")
-  stopReason            String?   @map("stop_reason")
-  metadata              Json?
-  createdAt             DateTime  @default(now()) @map("created_at")
-  updatedAt             DateTime  @updatedAt @map("updated_at")
-  strategy              TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  id                     String          @id @default(uuid())
+  strategyId             String          @unique @map("strategy_id")
+  isActive               Boolean         @default(false) @map("is_active")
+  mode                   String          @default("paper") @db.VarChar(20)
+  currentCapital         Decimal         @map("current_capital") @db.Decimal(18, 2)
+  allocatedCapital       Decimal         @map("allocated_capital") @db.Decimal(18, 2)
+  totalPnl               Decimal         @default(0) @map("total_pnl") @db.Decimal(18, 2)
+  realizedPnl            Decimal         @default(0) @map("realized_pnl") @db.Decimal(18, 2)
+  unrealizedPnl          Decimal         @default(0) @map("unrealized_pnl") @db.Decimal(18, 2)
+  totalTrades            Int             @default(0) @map("total_trades")
+  winningTrades          Int             @default(0) @map("winning_trades")
+  losingTrades           Int             @default(0) @map("losing_trades")
+  winRate                Decimal?        @map("win_rate") @db.Decimal(5, 4)
+  sharpeRatio            Decimal?        @map("sharpe_ratio") @db.Decimal(8, 4)
+  maxDrawdown            Decimal?        @map("max_drawdown") @db.Decimal(5, 4)
+  dailyLossLimit         Decimal         @default(0.05) @map("daily_loss_limit") @db.Decimal(5, 4)
+  dailyLossCurrent       Decimal         @default(0) @map("daily_loss_current") @db.Decimal(18, 2)
+  maxPositionSize        Decimal         @default(0.20) @map("max_position_size") @db.Decimal(5, 4)
+  maxOpenPositions       Int             @default(5) @map("max_open_positions")
+  currentOpenPositions   Int             @default(0) @map("current_open_positions")
+  lastTradeAt            DateTime?       @map("last_trade_at")
+  lastPnlUpdateAt        DateTime?       @map("last_pnl_update_at")
+  emergencyStopTriggered Boolean         @default(false) @map("emergency_stop_triggered")
+  stopReason             String?         @map("stop_reason")
+  metadata               Json?
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
+  strategy               TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
 
   @@index([isActive], map: "idx_strategy_execution_state_active")
   @@index([mode], map: "idx_strategy_execution_state_mode")
@@ -968,15 +990,15 @@ model StrategyExecutionState {
 }
 
 model AccountBalance {
-  id           String   @id @default(uuid())
-  exchange     String   @db.VarChar(50)
-  asset        String   @db.VarChar(20)
-  free         Decimal  @db.Decimal(20, 8)
-  locked       Decimal  @db.Decimal(20, 8)
-  total        Decimal  @db.Decimal(20, 8)
-  valueUsd     Decimal? @map("value_usd") @db.Decimal(18, 2)
-  timestamp    DateTime
-  createdAt    DateTime @default(now()) @map("created_at")
+  id        String   @id @default(uuid())
+  exchange  String   @db.VarChar(50)
+  asset     String   @db.VarChar(20)
+  free      Decimal  @db.Decimal(20, 8)
+  locked    Decimal  @db.Decimal(20, 8)
+  total     Decimal  @db.Decimal(20, 8)
+  valueUsd  Decimal? @map("value_usd") @db.Decimal(18, 2)
+  timestamp DateTime
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([exchange, asset, timestamp])
   @@index([exchange], map: "idx_account_balances_exchange")
@@ -986,24 +1008,24 @@ model AccountBalance {
 }
 
 model TradingSignal {
-  id              String    @id @default(uuid())
-  strategyId      String    @map("strategy_id")
-  symbol          String    @db.VarChar(50)
-  signalType      String    @map("signal_type") @db.VarChar(20)
-  action          String    @db.VarChar(10)
-  strength        Decimal   @db.Decimal(5, 4)
-  entryPrice      Decimal?  @map("entry_price") @db.Decimal(18, 8)
-  stopLoss        Decimal?  @map("stop_loss") @db.Decimal(18, 8)
-  takeProfit      Decimal?  @map("take_profit") @db.Decimal(18, 8)
-  positionSize    Decimal?  @map("position_size") @db.Decimal(5, 4)
-  reasoning       String?
-  metadata        Json?
-  executed        Boolean   @default(false)
-  executedAt      DateTime? @map("executed_at")
-  positionId      String?   @map("position_id")
-  expiresAt       DateTime? @map("expires_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  strategy        TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  id           String          @id @default(uuid())
+  strategyId   String          @map("strategy_id")
+  symbol       String          @db.VarChar(50)
+  signalType   String          @map("signal_type") @db.VarChar(20)
+  action       String          @db.VarChar(10)
+  strength     Decimal         @db.Decimal(5, 4)
+  entryPrice   Decimal?        @map("entry_price") @db.Decimal(18, 8)
+  stopLoss     Decimal?        @map("stop_loss") @db.Decimal(18, 8)
+  takeProfit   Decimal?        @map("take_profit") @db.Decimal(18, 8)
+  positionSize Decimal?        @map("position_size") @db.Decimal(5, 4)
+  reasoning    String?
+  metadata     Json?
+  executed     Boolean         @default(false)
+  executedAt   DateTime?       @map("executed_at")
+  positionId   String?         @map("position_id")
+  expiresAt    DateTime?       @map("expires_at")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  strategy     TradingStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
 
   @@index([strategyId], map: "idx_trading_signals_strategy")
   @@index([symbol], map: "idx_trading_signals_symbol")

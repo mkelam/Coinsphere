@@ -30,15 +30,27 @@ async function main() {
       strategy = await prisma.tradingStrategy.create({
         data: {
           name: 'Token Unlock Front-Running (Test)',
+          archetype: 'Event-Driven',
           description: 'Buy tokens 24 hours before large unlock events',
-          strategyType: 'market_event',
-          avgReturn: 0.51,
-          winRate: 51.0,
-          sharpeRatio: 0.08,
-          maxDrawdown: -12.5,
-          profitFactor: 1.04,
-          backtestCount: 10,
+          timeframe: '1d',
+          avgHoldTime: '48h',
+          winRate: 0.5100,
+          riskRewardRatio: 1.04,
+          entryConditions: ['Large unlock event within 24-48h', 'Unlock > 5% of supply'],
+          exitConditions: ['After unlock event', 'Stop-loss hit', 'Take-profit hit'],
+          technicalIndicators: [],
+          onChainMetrics: ['unlock_schedule', 'circulating_supply'],
+          socialSignals: [],
+          sourceWalletIds: [],
+          sourceTraderIds: [],
+          sourceResearchIds: [],
+          evidenceCount: 10,
+          performanceScore: 51,
+          practicalityScore: 85,
+          verifiabilityScore: 90,
+          totalScore: 75,
           status: 'active',
+          priority: 1,
         },
       });
 
@@ -62,10 +74,9 @@ async function main() {
           symbol: 'APT',
           name: 'Aptos',
           coingeckoId: 'aptos',
+          blockchain: 'aptos',
           marketCap: 5000000000,
-          circulatingSupply: 500000000,
-          totalSupply: 1000000000,
-          rank: 30,
+          currentPrice: 12.50,
         },
       });
       console.log(`✅ Created test token: ${testToken.symbol}`);
@@ -90,7 +101,7 @@ async function main() {
           unlockDate,
           unlockAmount: 50000000, // 50M tokens
           percentOfSupply: 10.0, // 10% unlock
-          circulatingSupply: testToken.circulatingSupply,
+          circulatingSupply: 500000000, // 500M circulating
           source: 'test',
         },
       });
