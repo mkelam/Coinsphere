@@ -3,6 +3,7 @@
  * Tests the strategy activation, signal generation, and execution flow
  */
 
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { strategyExecutor } from '../src/services/strategyExecutor';
 import { marketDataStreamer } from '../src/services/marketDataStreamer';
