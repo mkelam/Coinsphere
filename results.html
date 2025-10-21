@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Unlock Strategy Results</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      font-size: 1.3rem;
+      margin-bottom: 16px;
+      color: #333;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 8px;
+    }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .stat:last-child { border-bottom: none; }
+    .stat-label {
+      color: #666;
+      font-weight: 500;
+    }
+    .stat-value {
+      color: #333;
+      font-weight: 600;
+    }
+    .positive { color: #10b981; }
+    .negative { color: #ef4444; }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .badge-green { background: #d1fae5; color: #065f46; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-yellow { background: #fef3c7; color: #92400e; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #374151;
+    }
+    .entry-window {
+      background: #fef3c7;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: #92400e;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #9ca3af;
+    }
+    .refresh-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 16px 24px;
+      border-radius: 50px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: all 0.3s;
+    }
+    .refresh-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
+    .timestamp {
+      text-align: center;
+      color: white;
+      opacity: 0.8;
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Token Unlock Strategy Dashboard</h1>
+      <p>Real-time Paper Trading Results</p>
+    </div>
+
+    <!-- Strategy Overview -->
+    <div class="grid">
+      <div class="card">
+        <h2>🎯 Strategy Status</h2>
+        <div class="stat">
+          <span class="stat-label">Status</span>
+          <span class="stat-value">
+            <span class="badge badge-green">
+              🟢 ACTIVE
+            </span>
+          </span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Mode</span>
+          <span class="stat-value">PAPER</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Win Rate (Backtest)</span>
+          <span class="stat-value">51.00%</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Risk/Reward</span>
+          <span class="stat-value">1.04</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>💰 Capital & P&L</h2>
+        <div class="stat">
+          <span class="stat-label">Current Capital</span>
+          <span class="stat-value">$10 000</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Total P&L</span>
+          <span class="stat-value positive">
+            +$0.00
+          </span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Realized P&L</span>
+          <span class="stat-value positive">
+            +$0.00
+          </span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Unrealized P&L</span>
+          <span class="stat-value positive">
+            +$0.00
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📈 Performance</h2>
+        <div class="stat">
+          <span class="stat-label">Total Trades</span>
+          <span class="stat-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Win Rate</span>
+          <span class="stat-value">N/A</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Max Drawdown</span>
+          <span class="stat-value">N/A</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Open Positions</span>
+          <span class="stat-value">0 / 3</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Unlocks -->
+    <div class="card" style="margin-bottom: 30px;">
+      <h2>📅 Upcoming Token Unlocks (Next 30 Days)</h2>
+      
+        <table>
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Unlock Date</th>
+              <th>Days Until</th>
+              <th>Amount</th>
+              <th>% Supply</th>
+              <th>Category</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+                <tr>
+                  <td><strong>APT</strong></td>
+                  <td>2025/10/22 12:02:10</td>
+                  <td>1 days (24h)</td>
+                  <td>50 000 000</td>
+                  <td>10%</td>
+                  <td>N/A</td>
+                  <td>
+                    <span class="entry-window">🎯 ENTRY WINDOW</span>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td><strong>ARB</strong></td>
+                  <td>2025/10/26 12:05:33</td>
+                  <td>5 days (120h)</td>
+                  <td>1 100 000 000</td>
+                  <td>11%</td>
+                  <td>Team & Advisors</td>
+                  <td>
+                    <span class="badge badge-blue">Waiting</span>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td><strong>OP</strong></td>
+                  <td>2025/10/28 12:05:33</td>
+                  <td>7 days (168h)</td>
+                  <td>260 000 000</td>
+                  <td>6.5%</td>
+                  <td>Ecosystem Fund</td>
+                  <td>
+                    <span class="badge badge-blue">Waiting</span>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td><strong>APE</strong></td>
+                  <td>2025/10/29 12:05:33</td>
+                  <td>8 days (192h)</td>
+                  <td>100 000 000</td>
+                  <td>10%</td>
+                  <td>Community</td>
+                  <td>
+                    <span class="badge badge-blue">Waiting</span>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td><strong>APT</strong></td>
+                  <td>2025/10/31 12:05:33</td>
+                  <td>10 days (240h)</td>
+                  <td>50 000 000</td>
+                  <td>5%</td>
+                  <td>Investors</td>
+                  <td>
+                    <span class="badge badge-blue">Waiting</span>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td><strong>IMX</strong></td>
+                  <td>2025/11/02 12:05:33</td>
+                  <td>12 days (288h)</td>
+                  <td>150 000 000</td>
+                  <td>7.5%</td>
+                  <td>Project Development</td>
+                  <td>
+                    <span class="badge badge-blue">Waiting</span>
+                  </td>
+                </tr>
+              
+                <tr>
+                  <td><strong>DYDX</strong></td>
+                  <td>2025/11/04 12:05:33</td>
+                  <td>14 days (336h)</td>
+                  <td>80 000 000</td>
+                  <td>8%</td>
+                  <td>Trading Rewards</td>
+                  <td>
+                    <span class="badge badge-blue">Waiting</span>
+                  </td>
+                </tr>
+              
+          </tbody>
+        </table>
+      
+    </div>
+
+    <!-- Recent Signals -->
+    <div class="card" style="margin-bottom: 30px;">
+      <h2>📡 Recent Signals</h2>
+      
+        <div class="empty-state">
+          <p>No signals generated yet</p>
+          <small>Signals will appear when tokens enter 24-48h window</small>
+        </div>
+      
+    </div>
+
+    <!-- Open Positions -->
+    <div class="card">
+      <h2>💼 Recent Positions</h2>
+      
+        <div class="empty-state">
+          <p>No positions yet</p>
+          <small>Positions will appear when signals are executed</small>
+        </div>
+      
+    </div>
+
+    <div class="timestamp">
+      Last updated: 2025/10/21, 12:10:56
+    </div>
+
+    <button class="refresh-btn" onclick="location.reload()">🔄 Refresh</button>
+  </div>
+</body>
+</html>
+  
