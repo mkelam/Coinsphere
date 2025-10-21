@@ -39,6 +39,7 @@ import backtestingRoutes from './routes/backtesting.js';
 import exchangeRoutes from './routes/exchange.js';
 import marketDataRoutes from './routes/marketData.js';
 import strategiesRoutes from './routes/strategies.js';
+import paperTradingRoutes from './routes/paperTrading.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -184,6 +185,7 @@ app.use('/api/v1/backtesting', apiLimiter, backtestingRoutes); // Phase 1 Backte
 app.use('/api/v1/exchange', authenticate, validateCsrfToken, apiLimiter, exchangeRoutes); // Phase 2 Live Trading Exchange API
 app.use('/api/v1/market-data', authenticate, validateCsrfToken, apiLimiter, marketDataRoutes); // Phase 2 Market Data Streaming
 app.use('/api/v1/strategies', authenticate, validateCsrfToken, apiLimiter, strategiesRoutes); // Phase 2 Strategy Execution & Management
+app.use('/api/v1/paper-trading', apiLimiter, paperTradingRoutes); // Phase 2 Paper Trading Dashboard (public read)
 app.use('/api/v1/admin', authenticate, validateCsrfToken, apiLimiter, adminRoutes); // Admin only routes
 
 // Sentry error handler must be before custom error handlers

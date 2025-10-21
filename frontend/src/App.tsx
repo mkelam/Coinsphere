@@ -38,6 +38,7 @@ const AccuracyPage = lazy(() => import("@/pages/AccuracyPage"))
 const BacktestingDashboard = lazy(() => import("@/pages/BacktestingDashboard"))
 const BacktestResults = lazy(() => import("@/pages/BacktestResults"))
 const McpDataDashboard = lazy(() => import("@/pages/McpDataDashboard"))
+const PaperTradingDashboard = lazy(() => import("@/pages/PaperTradingDashboard"))
 
 export default function App() {
   return (
@@ -101,6 +102,7 @@ export default function App() {
           <Route path="/backtesting" element={<BacktestingDashboard />} />
           <Route path="/backtesting/results/:id" element={<BacktestResults />} />
           <Route path="/mcp-data" element={<McpDataDashboard />} />
+          <Route path="/paper-trading" element={<PaperTradingDashboard />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route
             path="/onboarding"
